@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { Playfair_Display } from "next/font/google";
 import { motion, useScroll, useTransform, AnimatePresence } from "framer-motion";
-import { Phone, Mail, ArrowRight, Quote, ShieldCheck, Globe, Clock, MapPin, Sparkles, Leaf, Droplets, Wind, Sun, Heart, Plus, Minus } from "lucide-react";
+import { Phone, Mail, ArrowRight, Quote, ShieldCheck, Globe, Clock, MapPin, Sparkles, Leaf, Droplets, Wind, Sun, Heart, Plus, Minus, Play } from "lucide-react";
 import { ReactLenis, useLenis } from 'lenis/react';
 
 const playfair = Playfair_Display({ subsets: ["latin"] });
@@ -39,6 +39,22 @@ const faqs = [
   { q: "Are your products safe for indoor use?", a: "Absolutely. We strictly use 100% natural herbs, resins, and essential oils with zero synthetic chemicals, making them safe for daily indoor use." },
   { q: "Do you offer bulk or wholesale pricing?", a: "Yes, we specialize in bulk orders and third-party manufacturing. Please contact us directly for catalog and wholesale pricing details." },
   { q: "What makes Mishi Pooja Products unique?", a: "Our commitment to ancestral formulas. We don't just create fragrances; we craft spiritual experiences using recipes passed down through generations." }
+];
+
+const galleryMedia = [
+  { type: 'image', src: "https://www.mishipoojaproducts.com/wp-content/uploads/2026/03/Product-1.jpg" },
+  { type: 'image', src: "https://www.mishipoojaproducts.com/wp-content/uploads/2026/03/Product-4.jpg" },
+  { type: 'video', src: "/bg.mp4" },
+  { type: 'image', src: "https://www.mishipoojaproducts.com/wp-content/uploads/2026/03/img1.jpg" },
+  { type: 'image', src: "https://www.mishipoojaproducts.com/wp-content/uploads/2026/03/img2.jpg" },
+  { type: 'image', src: "https://www.mishipoojaproducts.com/wp-content/uploads/2026/03/img3.jpg" },
+  { type: 'image', src: "https://www.mishipoojaproducts.com/wp-content/uploads/2026/03/Panchagavya-Vilaku.jpg" },
+  { type: 'video', src: "/bg.mp4" },
+  { type: 'image', src: "https://www.mishipoojaproducts.com/wp-content/uploads/2026/03/pr1.jpg" },
+  { type: 'image', src: "https://www.mishipoojaproducts.com/wp-content/uploads/2026/03/pr2.jpg" },
+  { type: 'image', src: "https://www.mishipoojaproducts.com/wp-content/uploads/2026/03/pr3.jpg" },
+  { type: 'image', src: "https://www.mishipoojaproducts.com/wp-content/uploads/2026/03/pr4.jpg" },
+  { type: 'image', src: "https://www.mishipoojaproducts.com/wp-content/uploads/2026/03/pr5.jpg" }
 ];
 
 export default function Home() {
@@ -395,7 +411,7 @@ export default function Home() {
         {/* EXTRA COMPONENT 2: Symphony of Fragrances (Ingredients Parallax) */}
         <section className="relative py-40 clip-diagonal bg-black text-white overflow-hidden">
           <div className="absolute inset-0 opacity-40">
-            <img src="https://images.unsplash.com/photo-1602928321679-560bb453f190?q=80&w=1920&auto=format&fit=crop" alt="Ingredients" className="w-full h-full object-cover" />
+            <img src="https://www.mishipoojaproducts.com/wp-content/uploads/2026/03/Banner-3.jpg" alt="Ingredients" className="w-full h-full object-cover" />
             <div className="absolute inset-0 bg-gradient-to-r from-black via-black/80 to-transparent"></div>
           </div>
           
@@ -404,12 +420,12 @@ export default function Home() {
               <h3 className="text-amber-500 text-sm tracking-[0.3em] uppercase mb-4 font-bold flex items-center gap-3">
                 <div className="w-12 h-[1px] bg-amber-500"></div> The Ingredients
               </h3>
-              <h2 className={`text-5xl md:text-7xl mb-8 leading-[1.1] ${playfair.className}`}>A Symphony of Pure Fragrances</h2>
+              <h2 className={`text-5xl md:text-7xl mb-8 leading-[1.1] ${playfair.className}`}>Ayurvedic & Sacred Elements</h2>
               <p className="text-zinc-300 font-light text-lg mb-12 leading-relaxed">
-                We believe that true spiritual connection requires absolute purity. That is why our products are formulated using a highly guarded blend of indigenous forest herbs, natural tree resins like Loban, Sandalwood extracts, and organic essential oils. No harmful chemicals, just nature's divine breath.
+                Our sacred blends are meticulously handcrafted using time-honored Ayurvedic principles. We source the finest Panchagavya, rare Himalayan herbs, pure camphor, and aromatic tree resins. Each element is carefully chosen not just for its fragrance, but for its profound ability to cleanse the aura and elevate the spiritual energy of your home.
               </p>
               <div className="flex flex-wrap gap-4">
-                {['Sandalwood', 'Pure Camphor', 'Natural Resins'].map((tag, i) => (
+                {['Panchagavya', 'Pure Camphor', 'Natural Resins', 'Himalayan Herbs'].map((tag, i) => (
                   <span key={i} className="px-5 py-2 rounded-full border border-white/20 bg-white/10 backdrop-blur-md text-xs font-bold uppercase tracking-widest text-amber-50">
                     {tag}
                   </span>
@@ -448,6 +464,53 @@ export default function Home() {
                 <div className="p-8 flex flex-col flex-1 bg-white">
                   <h3 className={`text-3xl text-zinc-900 mb-3 ${playfair.className}`}>{product.name}</h3>
                   <p className="text-zinc-600 text-sm leading-relaxed mb-8 flex-1">{product.desc}</p>
+                </div>
+              </motion.div>
+            ))}
+          </div>
+        </section>
+
+        {/* Gallery & Reels Section */}
+        <section id="gallery" className="py-32 px-6 md:px-16 max-w-[1400px] mx-auto bg-zinc-50 rounded-[3rem] my-12">
+          <motion.div variants={fadeBlurVariants} initial="hidden" whileInView="visible" viewport={{ once: true }} className="mb-16 text-center">
+            <h3 className="text-amber-600 text-sm tracking-[0.3em] uppercase mb-4 font-bold">Visual Journey</h3>
+            <h2 className={`text-4xl md:text-6xl text-zinc-900 ${playfair.className}`}>Gallery & Reels</h2>
+            <p className="text-zinc-500 mt-4 max-w-xl mx-auto font-light">Experience the divine essence and behind-the-scenes moments of our pure formulations.</p>
+          </motion.div>
+
+          {/* Masonry-like Grid for Gallery */}
+          <div className="columns-1 sm:columns-2 lg:columns-3 gap-6 space-y-6">
+            {galleryMedia.map((media, i) => (
+              <motion.div 
+                key={i}
+                variants={popUpVariants}
+                initial="hidden"
+                whileInView="visible"
+                viewport={{ once: true, margin: "-50px" }}
+                custom={i}
+                className="relative rounded-2xl overflow-hidden shadow-sm group break-inside-avoid bg-white"
+              >
+                {media.type === 'image' ? (
+                  <img src={media.src} alt={`Gallery item ${i}`} className="w-full h-auto object-cover transform group-hover:scale-105 transition-transform duration-700" />
+                ) : (
+                  <div className="relative w-full aspect-[9/16] bg-black rounded-2xl overflow-hidden group">
+                    <video 
+                      src={media.src} 
+                      autoPlay 
+                      loop 
+                      muted 
+                      playsInline 
+                      className="w-full h-full object-cover transform group-hover:scale-105 transition-transform duration-700"
+                    />
+                    <div className="absolute inset-0 bg-black/20 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                      <div className="w-16 h-16 rounded-full bg-white/20 backdrop-blur-md flex items-center justify-center border border-white/50 text-white pl-1">
+                        <Play size={24} className="fill-white" /> 
+                      </div>
+                    </div>
+                  </div>
+                )}
+                <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-end p-6 pointer-events-none">
+                  <span className="text-white text-xs font-bold uppercase tracking-widest">{media.type === 'image' ? 'Product View' : 'Reel Preview'}</span>
                 </div>
               </motion.div>
             ))}

@@ -6,7 +6,7 @@ import { usePathname } from 'next/navigation';
 import { 
   BarChart3, ShoppingBag, 
   Ticket, CreditCard, Users, 
-  Menu, X, PanelLeftClose, PanelLeftOpen
+  Menu, X, PanelLeftClose, PanelLeftOpen, Package
 } from 'lucide-react';
 import { AdminProvider } from './AdminContext';
 
@@ -36,6 +36,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   const navigation = [
     { name: 'WhatsApp Center', href: '/admin/whatsapp', icon: WhatsAppIcon, color: 'text-[#25D366]' },
     { name: 'Billing', href: '/admin/billing', icon: CreditCard, color: 'text-blue-500' },
+    { name: 'Products', href: '/admin/products', icon: Package, color: 'text-orange-500' },
     { name: 'POS Analytics', href: '/admin/analytics', icon: BarChart3, color: 'text-amber-500' },
     { name: 'Orders', href: '/admin/orders', icon: ShoppingBag, color: 'text-emerald-500' },
     { name: 'Coupons', href: '/admin/coupons', icon: Ticket, color: 'text-purple-500' },

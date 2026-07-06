@@ -108,6 +108,16 @@ export default function AnalyticsPage() {
 
   const themeColor = '#E75F24'; 
 
+  // --- DYNAMIC DATES ---
+  const currentYear = new Date().getFullYear();
+  const currentWeek = React.useMemo(() => {
+    const d = new Date();
+    d.setUTCHours(0, 0, 0, 0);
+    d.setUTCDate(d.getUTCDate() + 4 - (d.getUTCDay() || 7));
+    const yearStart = new Date(Date.UTC(d.getUTCFullYear(), 0, 1));
+    return Math.ceil((((d.getTime() - yearStart.getTime()) / 86400000) + 1) / 7);
+  }, []);
+
   // --- DYNAMIC CALCULATIONS ---
   const dynamicOverview = React.useMemo(() => {
     let totalRevenue = 0;
@@ -276,7 +286,7 @@ export default function AnalyticsPage() {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <div className="lg:col-span-2 bg-white rounded-2xl p-6 border border-slate-100 shadow-sm">
           <div className="flex items-baseline gap-3 mb-6">
-            <h2 className="text-xs font-bold text-slate-800 uppercase tracking-widest">Revenue Trend This Year <span style={{color: themeColor}}>2026</span></h2>
+            <h2 className="text-xs font-bold text-slate-800 uppercase tracking-widest">Revenue Trend This Year <span style={{color: themeColor}}>{currentYear}</span></h2>
           </div>
           <div className="flex items-baseline gap-3 mb-8">
             <span className="text-2xl font-black text-slate-900">₹{mockAnalytics.overview.totalRevenue.toLocaleString('en-IN')}</span>
@@ -348,7 +358,7 @@ export default function AnalyticsPage() {
 
         <div className="lg:col-span-2 bg-white rounded-2xl p-6 border border-slate-100 shadow-sm">
           <div className="flex items-baseline gap-3 mb-1">
-            <h2 className="text-xs font-bold text-slate-800 uppercase tracking-widest">Revenue This Week <span style={{color: themeColor}}>(WEEK 28 OF 2026)</span></h2>
+            <h2 className="text-xs font-bold text-slate-800 uppercase tracking-widest">Revenue This Week <span style={{color: themeColor}}>(WEEK {currentWeek} OF {currentYear})</span></h2>
           </div>
           <div className="text-xs text-slate-500 mb-6">₹12,550 total</div>
           
