@@ -1,0 +1,319 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"  dir="ltr" lang="en-EN">
+
+<head>
+<title>Crossed Flag Pins Friendship Pin Flags</title>
+<meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1" />
+<meta http-equiv="Content-Language" content="en" />
+<meta name="description" content="Crossed Flag Pins from Promex, Friendship Pins using virtually any combination of Flags can be realized, Small badges often speak louder than big words!" />
+<meta name="keywords" content="Crossed Flag Pins, Crossed Flag Pin, Friendship Pins, Friendship Pin, Flags, Flag, Pins, Pin, Badges, Badge" />
+<meta name="author" content="crossed-flag-pins.com" />
+<meta name="copyright" content="Promex GmbH" />
+<meta name="page-topic" content="Crossed Flag Pins" />
+<meta name="page-type" content="commercial" />
+<meta name="audience" content="Crossed Flag Pins" />
+<meta name="expires" content="never" />
+<meta name="revisit-after" content="7 days" />
+<meta http-equiv="cache-control" content="no-cache" />
+<meta name="robots" content="index, follow" />
+
+<link rel="shortcut icon" href="promex.ico" type="image/x-icon" />
+
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+<!-- Stylesheet für Desktop -->
+<link rel="stylesheet" type="text/css" href="inc/style.css" />
+
+
+<!-- Stylesheet für Mobile -->
+<link rel="stylesheet" type="text/css" href="inc/style_mobile.css" />
+
+</head>
+<body id="home">
+	<div id="main">
+
+		<div id="header">
+	<a href="https://www.crossed-flag-pins.com"></a>
+	<div id="headerText">
+		<p id="headerText1">crossed-flag-pins.com</p>
+		<p id="headerText2">Crossed Flag Pins - symbols of solidarity</p>
+	</div>
+
+</div>
+<script src="/inc/jquery-3.2.1.js"></script>
+<div id="cookiedingsbums"><div>
+  <span>This website uses cookies.</span> 
+  <a href="https://www.crossed-flag-pins.com/privacy-notice.php" target="_blank">You can follow this link to read our information on data protection and cookies.</a></div>
+ <span id="cookiedingsbumsCloser" onclick="document.cookie = 'hidecookiedingsbums=1;path=/';jQuery('#cookiedingsbums').slideUp()">&#10006;</span>
+</div>
+
+<script>
+ if(document.cookie.indexOf('hidecookiedingsbums=1') != -1){
+ jQuery('#cookiedingsbums').hide();
+ }
+ else{
+ jQuery('#cookiedingsbums').prependTo('body');
+ jQuery('#cookiedingsbumsCloser').show();
+ }
+</script>		<!-- <div id="topNavigation"> -->
+<!-- 	<div id="linkClips"> -->
+<!-- 		<a href="https://www.clips.de" title="www.clips.de">Clips</a> -->
+<!-- 	</div> -->
+<!-- 	<div id="linkFilzband">Schlüsselbänder</div> -->
+	
+<!-- 	<div id="linkAirsticks"> -->
+<!-- 		<a href="https://www.airsticks.de" title="www.airsticks.de">AirSticks</a> -->
+<!-- 	</div> -->
+<!-- 	<div id="linkMagnetpins"> -->
+<!-- 		<a href="https://www.kuehlschrankmagnete.de" title="www.magnetpins.de">Magnete</a> -->
+<!-- 	</div> -->
+<!-- 	<div id="linkFlags"> -->
+<!-- 		<a href="https://www.flags.de" title="www.flags.de">Flaggen</a> -->
+<!-- 	</div> -->
+	
+	
+<!-- 	<div id="linkPins"> -->
+<!-- 		<a href="https://www.pins.de" -->
+<!-- 			title="https://www.pins.de">Pins</a> -->
+<!-- 	</div> -->
+	
+<!-- 	<div id="linkSilikonarmband"> -->
+<!-- 		<a href="https://www.silikonarmband.de" title="www.silikonarmband.de">Silikonarmbänder</a> -->
+<!-- 	</div> -->
+	
+	
+<!-- 	<div id="linkKofferband"> -->
+<!-- 		<a href="https://www.kofferband.de" title="www.kofferband.de">Kofferband</a> -->
+<!-- 	</div> -->
+<!-- 	<div id="linkFreundschaftspins"> -->
+<!-- 		<a href="https://www.freundschaftspins.de" -->
+<!-- 			title="www.freundschaftspins.de">Freundschaftspins</a> -->
+<!-- 	</div> -->
+<!-- 	<div id="linkFanhorn"> -->
+<!-- 		<a href="http://www.fanhorn.de" title="www.fanhorn.de">Fanhorn</a> -->
+<!-- 	</div> -->
+<!-- 	<div id="linkSchluesselband"> -->
+<!-- 		<a href="https://www.filzband.de" title="www.filzband.de">Filzband</a> -->
+<!-- 	</div> -->
+
+<!-- </div> -->
+		<div id="leftNavigation">
+	
+	<div id="navigationLinks">
+		<div id="navTop"></div>
+		<hr class="hrNavigation" />
+		<a
+			href="https://www.crossed-flag-pins.com/crossed-flag-pins-gallery/crossed-flag-pin-Norway-Bulgaria.html"
+			id="galerieNav">&nbsp;&nbsp;Gallery</a>
+		<hr class="hrNavigation" />	
+		<a
+			href="https://www.crossed-flag-pins.com/crossed-flag-pins-configurator.php"
+			id="configuratorNav">&nbsp;&nbsp;Configurator</a>
+		
+		<hr class="hrNavigation" />
+		<a
+			href="https://www.crossed-flag-pins.com/prices.php"
+			id="pricesNav">&nbsp;&nbsp;Prices</a>
+		<hr class="hrNavigation" />
+		<a
+			href="https://www.crossed-flag-pins.com/crossed-flag-pins-freight-charges.php"
+			id="freightChargesNav">&nbsp;&nbsp;Freight Charges</a>
+		<hr class="hrNavigation" />
+		
+		<a
+			href="https://www.crossed-flag-pins.com/crossed-flag-pins-delivery-times.php"
+			id="deliveryTimesNav">&nbsp;&nbsp;Delivery Times</a>
+		
+		<hr class="hrNavigation" />
+		<a
+			href="https://www.crossed-flag-pins.com/crossed-flag-pins-payment-methods.php"
+			id="paymentMethodsNav">&nbsp;&nbsp;Payment Methods</a>
+		<hr class="hrNavigation" />
+		
+		<a
+			href="https://www.crossed-flag-pins.com/crossed-flag-pins-terms-and-conditions.php"
+			id="termsAndConditionsNav">&nbsp;&nbsp;Terms and Conditions</a>
+		<hr class="hrNavigation" />
+		
+		<a
+			href="https://www.crossed-flag-pins.com/crossed-flag-pins-copyright.php"
+			id="copyrightNav">&nbsp;&nbsp;Copyright</a>
+		<hr class="hrNavigation" />
+		
+		<a
+			href="https://www.crossed-flag-pins.com/crossed-flag-pins-faq.php"
+			id="faqNav">&nbsp;&nbsp;FAQ</a>
+		<hr class="hrNavigation" />
+		
+		<a
+			href="https://www.crossed-flag-pins.com/Friendship-Pins.html"
+			id="flagPinsOverviewNav">&nbsp;&nbsp;Flag Pins Overview</a>
+		<hr class="hrNavigation" />
+		
+		<a
+			href="https://www.crossed-flag-pins.com/animated-flag-gif.html"
+			id="animatedFlagGifNav">&nbsp;&nbsp;Animated Flag Gif</a>
+		<hr class="hrNavigation" />
+
+		<a href="https://www.crossed-flag-pins.com/crossed-flag-pins-about.php"
+			id="aboutUsNav">&nbsp;&nbsp;About Us</a>
+		<hr class="hrNavigation" />
+		
+		<a href="https://www.crossed-flag-pins.com/privacy-notice.php"
+			id="datenschutzNav">&nbsp;&nbsp;Privacy Notice</a>
+		<hr class="hrNavigation" />
+		
+		<a href="mailto:info@crossed-flag-pins.com?subject=Your request over www.crossed-flag-pins.com"
+			id="kontaktNav">&nbsp;&nbsp;Contact Us</a>
+		<hr class="hrNavigation" />
+		<a
+			href="https://www.crossed-flag-pins.com/imp.php"
+			id="impressumNav">&nbsp;&nbsp;Impressum</a>
+		<hr class="hrNavigation" />
+		
+		<a href="https://www.crossed-flag-pins.com/" id="homeNav">&nbsp;&nbsp;Home
+		</a>
+		<hr class="hrNavigation" />
+	</div>
+	
+</div>
+		
+		
+<!-- 		mobile spezifisch anfang -->
+		<div class="nav-open">
+    		 <a href="#leftNavigationMobile" title="Menü anzeigen">show Navigation &uarr;</a>
+		</div>
+		<div id="leftNavigationMobile" style="text-align: justify;">
+ <ul>
+  <li><a href="https://www.crossed-flag-pins.com/shop/">Online Shop</a>
+ </li>
+  <li><a href="https://www.crossed-flag-pins.com/shop/Special-Offer.html">Special Offer</a>
+ </li>
+ <li><a href="https://www.crossed-flag-pins.com/crossed-flag-pins-gallery/crossed-flag-pin-Norway-Bulgaria.html">Gallery</a>
+ </li>
+ <li><a href="https://www.crossed-flag-pins.com/crossed-flag-pins-configurator.php">Configurator</a></li>
+ <li><a href="https://www.crossed-flag-pins.com/prices.php">Prices</a></li>
+  <li><a href="https://www.crossed-flag-pins.com/crossed-flag-pins-freight-charges.php">Freight Charges</a></li>
+ <li><a href="https://www.crossed-flag-pins.com/crossed-flag-pins-delivery-times.php">Delivery Times</a></li>
+ <li><a href="https://www.crossed-flag-pins.com/crossed-flag-pins-payment-methods.php">Payment Methods</a></li>
+ <li><a href="https://www.crossed-flag-pins.com/crossed-flag-pins-terms-and-conditions.php">Terms and Conditions</a></li>
+ <li><a href="https://www.crossed-flag-pins.com/crossed-flag-pins-copyright.php">Copyright</a></li>
+ <li><a href="https://www.crossed-flag-pins.com/crossed-flag-pins-faq.php">FAQ</a></li>
+ <li><a href="https://www.crossed-flag-pins.com/Friendship-Pins.html">Flag Pins Overview</a></li>
+ <li><a href="https://www.crossed-flag-pins.com/animated-flag-gif.html">Animated Flag Gif</a></li>
+ <li><a href="https://www.crossed-flag-pins.com/crossed-flag-pins-about.php">About Us</a></li>
+ <li><a href="https://www.crossed-flag-pins.com/privacy-notice.php">Privacy Notice</a></li>
+ <li><a href="mailto:info@crossed-flag-pins.com?subject=Your request over www.crossed-flag-pins.com">Contact Us</a></li>
+ <li><a href="https://www.crossed-flag-pins.com/imp.php">Impressum</a></li>
+ <li><a href="https://www.crossed-flag-pins.com/">Home</a></li>
+ <li class="close"><a href="#">&uarr; close Navigation</a></li>
+ </ul>	
+</div>		
+		
+<!-- 		mobile spezifisch ende -->
+		<div id="mainContent">
+				
+	
+
+			<div id="mainTitle">
+				<br />
+				<h1>
+					Crossed Flag Pins - Friendship Pins
+					<br />
+					Small badges often speak louder than big words!
+				</h1>
+			</div>
+			<br />
+			<div id="mainPictureBox">
+				<div id="mainPicture"></div>
+				<div id="mainBlockText">
+					<p class="textMain">
+						Our crossed flag pins - symbols of solidarity with a powerful
+						message! <br /> <br /> Here is an overview of various
+						possibilities for the use of our Friendship Pins: <br /> <br /> 
+					<ul class="bulletPoint">
+						<li>International meetings</li>
+						<li>Bilateral events</li>
+						<li>Diplomatic relations</li>
+						<li>Worldwide aid projects</li>
+						<li>Town twinning</li>
+						<li>School exchanges</li>
+						<li>Partnership and Wedding</li>
+						<li>Family History</li>
+						<li>Global business contacts</li>
+					</ul>
+						
+						
+						<br /> <br />
+
+
+					</p>
+					
+				</div>
+
+			</div>
+			<p class="textMain">
+			You can view a small selection of completed pin projects in our <a
+					href="https://www.crossed-flag-pins.com/crossed-flag-pins-gallery/crossed-flag-pin-Norway-Bulgaria.html"
+					class="textlink">Gallery</a><br /> <br />
+				Over 24 years of experience: Virtually all national flags can be realized in customized designs as Friendship Pins.
+					<br /> <br />
+					We mainly sell the Flag Pins shown here within the scope of city partnerships, student exchanges and international encounters.
+					<br /> <br />
+					Our customers are: cities and communities, schools, embassies, associations and globally active companies.
+					<br /><br />
+					In addition, we have been supplying the Office of the President of the Federal Republic of Germany, the Chancellery, the Protocol Office of the German Foreign Ministry and the majority of all German agencies abroad worldwide with our flag items for many years.
+					<br /><br />
+					Our Crossed Flag Pins are particularly popular. Thanks to the recommendation of a large number of German diplomatic missions, we have also been able to win several International embassies, consulates and associations worldwide as satisfied customers. We would also be happy to supply our products to your diplomatic mission, your local authority, your public sector agency, your association or your company.
+					<br /><br />
+					Please inform us of your desired country combination for Crossed Flag Pins (e.g. USA Flag left, Denmark Flag right or Great Britain Flag left, New Zealand Flag right).
+					<br /><br />
+					Our sales team looks forward to hearing from you - we would be extremely pleased to count you among our regular customers.
+					<br /><br />
+					If you have any further questions we would be happy to advise you!
+					<br /> <br /> <br /> <br />
+
+			</p>
+
+			<div id="footer">
+				<hr id="footerLine" />
+
+				<p class="textsmall">&copy; 1999 - 2024 Crossed Flag Pins - Friendship Pins</p>
+			</div>
+		</div>
+
+		<div id="rightNavigation">
+	<br /> 
+	<a href="mailto:info@crossed-flag-pins.com?subject=Your request over www.crossed-flag-pins.com" class="imgRight">
+		<img src="/images/anyquestions.png" alt="Crossed Flag Pins Any Questions" class="imgRight" />
+	</a> 
+	
+	<!--  Link in Shop -->
+	<a href="https://www.crossed-flag-pins.com/Special-Offer/crossed-flag-pins-special-offer-A.php" target="_blank" class="imgRight">
+		<img src="/images/SpecialOffer.png" alt="Crosssed Flag Pins Special Offer" class="imgRight" /> 
+	</a>
+	
+	<a href="https://www.crossed-flag-pins.com/shop/" class="imgRight">
+		<img src="/images/onlineshop.png" alt="Crossed Flag Pins Online Shop" class="imgRight" /> 
+	</a>
+	<a href="https://www.facebook.com/Promex-GmbH-419922151694555/" class="imgRight" target="_blank" >
+		<img src="/images/FB-FindUsonFacebook-online-120.png" alt="Crossed Flag Pins Facebook" class="imgRight" /> 
+	</a>
+	
+
+	
+
+</div>
+
+	</div>
+	<!-- Google tag (gtag.js) -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-Y1MFBZG998"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+
+  gtag('config', 'G-Y1MFBZG998');
+</script></body>
+</html>
