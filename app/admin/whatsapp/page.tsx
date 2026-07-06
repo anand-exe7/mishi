@@ -39,7 +39,7 @@ const mockInquiries: Inquiry[] = [
     status: 'pending',
     total_amount: 945,
     discount_amount: 0,
-    items: [ { product_name: 'Product A', variant: 'Standard', size: '72x72', quantity: 7, unit_price: 135 } ]
+    items: [ { product_name: 'Bath Powder', variant: 'Standard', size: '200g', quantity: 7, unit_price: 135 } ]
   },
   {
     id: '2',
@@ -50,7 +50,30 @@ const mockInquiries: Inquiry[] = [
     status: 'pending',
     total_amount: 1080,
     discount_amount: 0,
-    items: [ { product_name: 'Product B', variant: 'Standard', size: '72x72', quantity: 8, unit_price: 135 } ]
+    items: [ { product_name: 'Face Pack & Bath Powder', variant: 'Standard', size: '200g', quantity: 8, unit_price: 135 } ]
+  },
+  {
+    id: '3',
+    created_at: new Date(Date.now() - 86400000).toISOString(),
+    customer_name: 'Amit Singh',
+    customer_phone: '9876543210',
+    notes: '45 Anna Salai, Chennai\nINVOICE_ID: ORD-2026-0028',
+    status: 'completed',
+    total_amount: 2500,
+    discount_amount: 250,
+    coupon: { code: 'FESTIVE10' },
+    items: [ { product_name: 'Herbal Shikakai Powder', variant: 'Premium', size: '500g', quantity: 5, unit_price: 550 } ]
+  },
+  {
+    id: '4',
+    created_at: new Date(Date.now() - 172800000).toISOString(),
+    customer_name: 'Sneha Reddy',
+    customer_phone: '9123456789',
+    notes: 'Hitech City, Hyderabad\nINVOICE_ID: ORD-2026-0027',
+    status: 'processing',
+    total_amount: 400,
+    discount_amount: 0,
+    items: [ { product_name: 'Multi Millet Health Mix', variant: 'Standard', size: '1kg', quantity: 1, unit_price: 400 } ]
   }
 ];
 
@@ -80,6 +103,16 @@ export default function WhatsAppCenter() {
   };
 
   const processedData = useMemo(() => inquiries.map(processInquiry), [inquiries]);
+
+  // Derived Metrics from data
+  const metrics = useMemo(() => {
+    return {
+      total: inquiries.length,
+      pending: inquiries.filter(i => i.status === 'pending').length,
+      processing: inquiries.filter(i => i.status === 'processing').length,
+      completed: inquiries.filter(i => i.status === 'completed').length,
+    };
+  }, [inquiries]);
 
   const copyMessage = (inq: ReturnType<typeof processInquiry>) => {
     const itemsText = inq.items.map(i => `• ${i.product_name} - ${i.size} × ${i.quantity} = ₹${(i.unit_price * i.quantity).toLocaleString('en-IN')}`).join('\n');
@@ -115,7 +148,7 @@ Subtotal: ₹${inq.subtotal.toLocaleString('en-IN')}${discountText}
           <WhatsAppIcon size={32} className="text-[#25D366]" />
           <h1 className="text-2xl font-black text-slate-900 tracking-tight">WhatsApp Center</h1>
           <span className="bg-amber-100 text-amber-600 text-[10px] font-bold px-3 py-1 rounded-full uppercase tracking-widest">
-            26 pending
+            {metrics.pending} pending
           </span>
         </div>
         
@@ -151,19 +184,19 @@ Subtotal: ₹${inq.subtotal.toLocaleString('en-IN')}${discountText}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-6 flex flex-col justify-center items-center h-[120px]">
           <span className="text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-2">Total Requests</span>
-          <span className="text-4xl font-black text-blue-600">30</span>
+          <span className="text-4xl font-black text-blue-600">{metrics.total}</span>
         </div>
         <div className="bg-amber-50/50 rounded-2xl border border-amber-100 shadow-sm p-6 flex flex-col justify-center items-center h-[120px]">
           <span className="text-[10px] font-bold text-amber-500 uppercase tracking-widest mb-2">Pending</span>
-          <span className="text-4xl font-black text-amber-500">26</span>
+          <span className="text-4xl font-black text-amber-500">{metrics.pending}</span>
         </div>
         <div className="bg-blue-50/50 rounded-2xl border border-blue-100 shadow-sm p-6 flex flex-col justify-center items-center h-[120px]">
-          <span className="text-[10px] font-bold text-blue-500 uppercase tracking-widest mb-2">Contacted</span>
-          <span className="text-4xl font-black text-blue-500">1</span>
+          <span className="text-[10px] font-bold text-blue-500 uppercase tracking-widest mb-2">Processing</span>
+          <span className="text-4xl font-black text-blue-500">{metrics.processing}</span>
         </div>
         <div className="bg-emerald-50/50 rounded-2xl border border-emerald-100 shadow-sm p-6 flex flex-col justify-center items-center h-[120px]">
           <span className="text-[10px] font-bold text-emerald-500 uppercase tracking-widest mb-2">Completed</span>
-          <span className="text-4xl font-black text-emerald-500">3</span>
+          <span className="text-4xl font-black text-emerald-500">{metrics.completed}</span>
         </div>
       </div>
 
@@ -175,7 +208,7 @@ Subtotal: ₹${inq.subtotal.toLocaleString('en-IN')}${discountText}
           <div className="flex items-center gap-3">
             <WhatsAppIcon size={20} className="text-[#25D366]" />
             <h2 className="text-base font-bold text-slate-900">Customer Requests</h2>
-            <span className="text-xs text-slate-500 font-medium">30 requests</span>
+            <span className="text-xs text-slate-500 font-medium">{metrics.total} requests</span>
           </div>
           
           <div className="relative w-full md:w-64">

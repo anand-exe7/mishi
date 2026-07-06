@@ -28,21 +28,46 @@ const mockOrders: Order[] = [
     customer_phone: '+919876500001',
     shipping_address: '789 Birch Street, Chennai, 600001',
     status: 'New',
-    total_amount: 25000,
+    total_amount: 850,
     items: [
-      { product_name: 'Luxury Spring Mattress', variant: 'Plush', size: 'King', quantity: 1, unit_price: 25000 }
+      { product_name: 'Bath Powder', variant: 'Standard', size: '500g', quantity: 2, unit_price: 250 },
+      { product_name: 'Herbal Hair Oil', variant: 'Premium', size: '100ml', quantity: 1, unit_price: 350 }
     ]
   },
   {
     id: 'ORD-2026-002',
-    created_at: new Date(Date.now() - 100000000).toISOString(),
+    created_at: new Date(Date.now() - 86400000).toISOString(),
     customer_name: 'Vikram Singh',
     customer_phone: '+919876500002',
     shipping_address: '45 Pine Road, Delhi, 110001',
     status: 'Processing',
-    total_amount: 12500,
+    total_amount: 1200,
     items: [
-      { product_name: 'Orthopedic Mattress', variant: 'Firm', size: 'Queen', quantity: 1, unit_price: 12500 }
+      { product_name: 'Multi Millet Health Mix', variant: 'Standard', size: '1kg', quantity: 3, unit_price: 400 }
+    ]
+  },
+  {
+    id: 'ORD-2026-003',
+    created_at: new Date(Date.now() - 172800000).toISOString(),
+    customer_name: 'Sneha Reddy',
+    customer_phone: '+919876500003',
+    shipping_address: 'Flat 402, Lotus Towers, Hyderabad',
+    status: 'Shipped',
+    total_amount: 2750,
+    items: [
+      { product_name: 'Face Pack & Bath Powder', variant: 'Combo', size: '500g', quantity: 5, unit_price: 550 }
+    ]
+  },
+  {
+    id: 'ORD-2026-004',
+    created_at: new Date(Date.now() - 259200000).toISOString(),
+    customer_name: 'Rohan Sharma',
+    customer_phone: '+919876500004',
+    shipping_address: '12 MG Road, Bangalore',
+    status: 'Delivered',
+    total_amount: 400,
+    items: [
+      { product_name: 'Herbal Shikakai Powder', variant: 'Standard', size: '200g', quantity: 2, unit_price: 200 }
     ]
   }
 ];
