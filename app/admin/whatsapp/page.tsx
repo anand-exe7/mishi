@@ -56,9 +56,12 @@ const mockInquiries: Inquiry[] = [
 
 export default function WhatsAppCenter() {
   const [filter, setFilter] = useState('ALL');
+  const [customFrom, setCustomFrom] = useState('');
+  const [customTo, setCustomTo] = useState('');
   const [search, setSearch] = useState('');
   const [expandedRow, setExpandedRow] = useState<string | null>(null);
   const [copiedId, setCopiedId] = useState<string | null>(null);
+  const [inquiries, setInquiries] = useState(mockInquiries);
 
   const processInquiry = (inq: Inquiry) => {
     let cleanAddress = inq.notes || '';
@@ -76,7 +79,7 @@ export default function WhatsAppCenter() {
     return { ...inq, cleanAddress, invoiceId, subtotal, totalItems };
   };
 
-  const processedData = useMemo(() => mockInquiries.map(processInquiry), []);
+  const processedData = useMemo(() => inquiries.map(processInquiry), [inquiries]);
 
   const copyMessage = (inq: ReturnType<typeof processInquiry>) => {
     const itemsText = inq.items.map(i => `• ${i.product_name} - ${i.size} × ${i.quantity} = ₹${(i.unit_price * i.quantity).toLocaleString('en-IN')}`).join('\n');
@@ -99,13 +102,17 @@ Subtotal: ₹${inq.subtotal.toLocaleString('en-IN')}${discountText}
     setTimeout(() => setCopiedId(null), 2000);
   };
 
+  const updateStatus = (id: string, newStatus: string) => {
+    setInquiries(inquiries.map(inq => inq.id === id ? { ...inq, status: newStatus } : inq));
+  };
+
   return (
     <div className="space-y-6 max-w-full overflow-hidden">
       
       {/* Header Section */}
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+      <div className="flex flex-col xl:flex-row justify-between items-start xl:items-center gap-4">
         <div className="flex items-center gap-3">
-          <WhatsAppIcon size={32} className="text-[#dc2626]" />
+          <WhatsAppIcon size={32} className="text-[#25D366]" />
           <h1 className="text-2xl font-black text-slate-900 tracking-tight">WhatsApp Center</h1>
           <span className="bg-amber-100 text-amber-600 text-[10px] font-bold px-3 py-1 rounded-full uppercase tracking-widest">
             26 pending
@@ -113,7 +120,7 @@ Subtotal: ₹${inq.subtotal.toLocaleString('en-IN')}${discountText}
         </div>
         
         <div className="flex flex-wrap items-center gap-3">
-          <div className="bg-white rounded-full border border-slate-200 p-1 shadow-sm flex text-xs font-bold text-slate-600">
+          <div className="flex flex-wrap items-center bg-white rounded-full border border-slate-200 p-1 shadow-sm text-xs font-bold text-slate-600">
             {['ALL', 'TODAY', 'WEEK', 'MONTH', 'YEAR', 'CUSTOM'].map(f => (
               <button 
                 key={f}
@@ -124,6 +131,16 @@ Subtotal: ₹${inq.subtotal.toLocaleString('en-IN')}${discountText}
               </button>
             ))}
           </div>
+
+          {filter === 'CUSTOM' && (
+            <div className="flex items-center gap-2 bg-white rounded-full border border-slate-200 px-3 py-1 shadow-sm text-xs font-bold text-slate-700">
+              <span className="text-[10px] text-slate-400">FROM</span>
+              <input type="date" value={customFrom} onChange={e => setCustomFrom(e.target.value)} className="outline-none bg-transparent" />
+              <span className="text-[10px] text-slate-400">TO</span>
+              <input type="date" value={customTo} onChange={e => setCustomTo(e.target.value)} className="outline-none bg-transparent" />
+            </div>
+          )}
+
           <button className="flex items-center gap-2 px-4 py-2 bg-white border border-slate-200 hover:bg-slate-50 rounded-full text-xs font-bold text-slate-700 transition-colors shadow-sm">
             <RefreshCw size={14} /> Refresh
           </button>
@@ -156,19 +173,19 @@ Subtotal: ₹${inq.subtotal.toLocaleString('en-IN')}${discountText}
         {/* Table Header Controls */}
         <div className="p-4 border-b border-slate-100 flex flex-col md:flex-row justify-between items-center gap-4">
           <div className="flex items-center gap-3">
-            <WhatsAppIcon size={20} className="text-[#dc2626]" />
+            <WhatsAppIcon size={20} className="text-[#25D366]" />
             <h2 className="text-base font-bold text-slate-900">Customer Requests</h2>
             <span className="text-xs text-slate-500 font-medium">30 requests</span>
           </div>
           
           <div className="relative w-full md:w-64">
-            <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+            <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500" />
             <input 
               type="text" 
               placeholder="Search requests..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              className="pl-9 pr-4 py-2 border border-slate-200 rounded-full text-sm w-full focus:outline-none focus:border-[#dc2626]"
+              className="pl-9 pr-4 py-2 border-2 border-slate-300 rounded-full text-sm font-medium text-slate-900 placeholder:text-slate-500 w-full focus:outline-none focus:border-[#dc2626]"
             />
           </div>
         </div>
@@ -207,11 +224,24 @@ Subtotal: ₹${inq.subtotal.toLocaleString('en-IN')}${discountText}
                       {new Date(inq.created_at).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })}
                     </td>
                     <td className="px-6 py-4">
-                      <div className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-bold border ${
-                        inq.status === 'pending' ? 'bg-amber-50 text-amber-600 border-amber-200' : 'bg-emerald-50 text-emerald-600 border-emerald-200'
-                      }`}>
-                        {inq.status.toUpperCase()}
-                        <ChevronDown size={12} />
+                      <div className="relative inline-block w-[130px]">
+                        <select
+                          value={inq.status}
+                          onChange={(e) => updateStatus(inq.id, e.target.value)}
+                          className={`appearance-none w-full outline-none font-bold text-xs px-3 py-1.5 pr-8 rounded-full border cursor-pointer uppercase ${
+                            inq.status === 'pending' ? 'bg-amber-50 text-amber-600 border-amber-200' : 
+                            inq.status === 'processing' ? 'bg-blue-50 text-blue-600 border-blue-200' :
+                            'bg-emerald-50 text-emerald-600 border-emerald-200'
+                          }`}
+                        >
+                          <option value="pending">PENDING</option>
+                          <option value="processing">PROCESSING</option>
+                          <option value="completed">COMPLETED</option>
+                        </select>
+                        <ChevronDown size={14} className={`absolute right-2.5 top-1/2 -translate-y-1/2 pointer-events-none ${
+                            inq.status === 'pending' ? 'text-amber-600' : 
+                            inq.status === 'processing' ? 'text-blue-600' : 'text-emerald-600'
+                        }`} />
                       </div>
                     </td>
                     <td className="px-6 py-4 text-right">
