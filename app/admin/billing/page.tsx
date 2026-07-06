@@ -6,7 +6,7 @@ import { useAdmin, Order } from '../AdminContext';
 
 export default function POSBillingPanel() {
   const { addOrder } = useAdmin();
-  const [orderType, setOrderType] = useState<'OFFLINE' | 'ONLINE'>('OFFLINE');
+  const [orderType, setOrderType] = useState<'Offline' | 'Online'>('Offline');
   const [customerName, setCustomerName] = useState('');
   const [customerPhone, setCustomerPhone] = useState('');
   const [items, setItems] = useState<Array<{ id: number; name: string; price: number; qty: number }>>([]);
@@ -101,17 +101,17 @@ export default function POSBillingPanel() {
         
         <div className="flex items-center gap-2 bg-white rounded-full border border-slate-200 p-1 shadow-sm">
           <button 
-            onClick={() => setOrderType('OFFLINE')}
-            className={`flex items-center gap-2 px-4 py-1.5 rounded-full text-xs font-bold transition-all ${orderType === 'OFFLINE' ? 'bg-slate-50 border border-slate-200 shadow-sm text-slate-900' : 'text-slate-500 hover:text-slate-800'}`}
+            onClick={() => setOrderType('Offline')}
+            className={`flex items-center gap-2 px-4 py-1.5 rounded-full text-xs font-bold transition-all ${orderType === 'Offline' ? 'bg-slate-50 border border-slate-200 shadow-sm text-slate-900' : 'text-slate-500 hover:text-slate-800'}`}
           >
-            <span className={`w-2 h-2 rounded-full ${orderType === 'OFFLINE' ? 'bg-amber-500' : 'bg-slate-300'}`}></span>
+            <span className={`w-2 h-2 rounded-full ${orderType === 'Offline' ? 'bg-amber-500' : 'bg-slate-300'}`}></span>
             OFFLINE (POS)
           </button>
           <button 
-            onClick={() => setOrderType('ONLINE')}
-            className={`flex items-center gap-2 px-4 py-1.5 rounded-full text-xs font-bold transition-all ${orderType === 'ONLINE' ? 'bg-slate-50 border border-slate-200 shadow-sm text-slate-900' : 'text-slate-500 hover:text-slate-800'}`}
+            onClick={() => setOrderType('Online')}
+            className={`flex items-center gap-2 px-4 py-1.5 rounded-full text-xs font-bold transition-all ${orderType === 'Online' ? 'bg-slate-50 border border-slate-200 shadow-sm text-slate-900' : 'text-slate-500 hover:text-slate-800'}`}
           >
-            <span className={`w-2 h-2 rounded-full ${orderType === 'ONLINE' ? 'bg-emerald-500' : 'bg-slate-300'}`}></span>
+            <span className={`w-2 h-2 rounded-full ${orderType === 'Online' ? 'bg-emerald-500' : 'bg-slate-300'}`}></span>
             ONLINE ORDER
           </button>
         </div>
@@ -236,7 +236,7 @@ export default function POSBillingPanel() {
             <div className="bg-slate-50 border border-slate-100 rounded-xl p-4 mb-6">
               <div className="flex justify-between items-center mb-4 text-xs">
                 <span className="font-bold text-slate-500 uppercase tracking-widest">Source</span>
-                <span className={`font-black uppercase ${orderType === 'OFFLINE' ? 'text-amber-600' : 'text-emerald-600'}`}>{orderType}</span>
+                <span className={`font-black uppercase ${orderType === 'Offline' ? 'text-amber-600' : 'text-emerald-600'}`}>{orderType}</span>
               </div>
               <div className="space-y-2 text-sm">
                 <div className="flex justify-between border-b border-slate-200 pb-2">

@@ -321,13 +321,13 @@ export default function Home() {
             >
               Products
             </a>
-            <button className={`transition-colors ${isScrolled ? "hover:text-amber-600" : "hover:text-amber-400"}`}>
+            <a href="/profile" className={`transition-colors ${isScrolled ? "hover:text-amber-600" : "hover:text-amber-400"}`}>
               <User size={20} />
-            </button>
-            <button className={`transition-colors relative ${isScrolled ? "hover:text-amber-600" : "hover:text-amber-400"}`}>
+            </a>
+            <a href="/cart" className={`transition-colors relative ${isScrolled ? "hover:text-amber-600" : "hover:text-amber-400"}`}>
               <ShoppingCart size={20} />
               <span className="absolute -top-2 -right-2 bg-amber-600 text-white text-[10px] w-4 h-4 flex items-center justify-center rounded-full font-bold">2</span>
-            </button>
+            </a>
           </div>
         </nav>
 

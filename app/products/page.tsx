@@ -77,7 +77,7 @@ export default function ProductsPage() {
       y: 0,
       transition: {
         delay: i * 0.1,
-        type: "spring",
+        type: "spring" as const,
         stiffness: 150,
         damping: 15,
       },
@@ -148,15 +148,15 @@ export default function ProductsPage() {
           >
             Products
           </Link>
-          <button className="transition-colors hover:text-amber-600">
+          <Link href="/profile" className="transition-colors hover:text-amber-600">
             <User size={20} />
-          </button>
-          <button className="transition-colors relative hover:text-amber-600">
+          </Link>
+          <Link href="/cart" className="transition-colors relative hover:text-amber-600">
             <ShoppingCart size={20} />
             <span className="absolute -top-2 -right-2 bg-amber-600 text-white text-[10px] w-4 h-4 flex items-center justify-center rounded-full font-bold">
               2
             </span>
-          </button>
+          </Link>
         </div>
       </nav>
 
