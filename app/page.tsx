@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { Playfair_Display } from "next/font/google";
 import { motion, useScroll, useTransform, AnimatePresence } from "framer-motion";
-import { Phone, Mail, ArrowRight, Quote, ShieldCheck, Globe, Clock, MapPin, Sparkles, Leaf, Droplets, Wind, Sun, Heart } from "lucide-react";
+import { Phone, Mail, ArrowRight, Quote, ShieldCheck, Globe, Clock, MapPin, Sparkles, Leaf, Droplets, Wind, Sun, Heart, Plus, Minus } from "lucide-react";
 import { ReactLenis, useLenis } from 'lenis/react';
 
 const playfair = Playfair_Display({ subsets: ["latin"] });
@@ -27,6 +27,20 @@ const flags = [
   { name: "Nigeria", code: "ng" }
 ];
 
+const aromas = [
+  { id: 1, name: "Sacred Sandalwood", description: "Deep, woody, and grounding. Ideal for intense meditation and spiritual focus.", img: "https://images.unsplash.com/photo-1608222384784-2197171e2e0e?q=80&w=800&auto=format&fit=crop" },
+  { id: 2, name: "Divine Rose", description: "Soft, floral, and uplifting. Creates an aura of love, peace, and gentle positivity.", img: "https://images.unsplash.com/photo-1596434452187-578f7ebaf9fc?q=80&w=800&auto=format&fit=crop" },
+  { id: 3, name: "Mystic Loban", description: "Rich, earthy, and cleansing. Traditionally used to purify spaces and ward off negativity.", img: "https://images.unsplash.com/photo-1611077543666-c9535730a911?q=80&w=800&auto=format&fit=crop" },
+  { id: 4, name: "Pure Camphor", description: "Crisp, intense, and awakening. Instantly elevates the energy of any room.", img: "https://images.unsplash.com/photo-1608681283626-444747715f5c?q=80&w=800&auto=format&fit=crop" }
+];
+
+const faqs = [
+  { q: "How long does the fragrance last after burning?", a: "Our pure natural ingredients ensure that the divine aroma lingers in your space for 4-6 hours after the sambrani has fully burned." },
+  { q: "Are your products safe for indoor use?", a: "Absolutely. We strictly use 100% natural herbs, resins, and essential oils with zero synthetic chemicals, making them safe for daily indoor use." },
+  { q: "Do you offer bulk or wholesale pricing?", a: "Yes, we specialize in bulk orders and third-party manufacturing. Please contact us directly for catalog and wholesale pricing details." },
+  { q: "What makes Mishi Pooja Products unique?", a: "Our commitment to ancestral formulas. We don't just create fragrances; we craft spiritual experiences using recipes passed down through generations." }
+];
+
 export default function Home() {
   const { scrollYProgress } = useScroll();
   const heroY = useTransform(scrollYProgress, [0, 0.2], ["0%", "20%"]);
@@ -34,6 +48,8 @@ export default function Home() {
   const heroOpacity = useTransform(scrollYProgress, [0, 0.2], [1, 0]);
 
   const [isScrolled, setIsScrolled] = useState(false);
+  const [activeAroma, setActiveAroma] = useState(0);
+  const [openFAQ, setOpenFAQ] = useState<number | null>(0);
   const lenis = useLenis();
 
   useEffect(() => {
@@ -109,12 +125,16 @@ export default function Home() {
           .clip-diagonal {
             clip-path: polygon(0 0, 100% 10vw, 100% 100%, 0 calc(100% - 10vw));
           }
+          .vertical-text {
+            writing-mode: vertical-rl;
+            text-orientation: mixed;
+            transform: rotate(180deg);
+          }
         `}} />
 
         {/* Dynamic Navbar */}
         <nav className={`fixed top-0 left-0 right-0 z-50 p-4 px-6 md:px-12 flex justify-between items-center transition-all duration-500 ${isScrolled ? 'bg-white/90 backdrop-blur-md shadow-sm border-b border-zinc-200/50 py-3 text-zinc-900' : 'bg-transparent py-6 text-white'}`}>
           <div className="flex items-center">
-            {/* Added a subtle white glow/pill to the logo so it's ALWAYS visible regardless of the background */}
             <div className={`transition-all duration-300 ${isScrolled ? '' : 'bg-white/90 p-1.5 px-3 rounded-xl shadow-lg backdrop-blur-md'}`}>
               <img 
                 src="/logo.webp" 
@@ -208,7 +228,7 @@ export default function Home() {
               </div>
             </motion.div>
 
-            <div className="w-full lg:w-1/2 relative h-[600px] flex items-center justify-center">
+            <div className="w-full lg:w-1/2 relative h-[400px] md:h-[600px] flex items-center justify-center">
               <motion.div 
                 initial={{ opacity: 0, y: 50, rotate: -5 }}
                 whileInView={{ opacity: 1, y: 0, rotate: -2 }}
@@ -293,7 +313,51 @@ export default function Home() {
           </div>
         </section>
 
-        {/* Global Reach / Flags Section with Pop-up Animations */}
+        {/* EXTRA COMPONENT: Expanding Aroma Gallery */}
+        <section className="py-24 bg-white max-w-[1400px] mx-auto px-6 md:px-16">
+          <motion.div variants={fadeBlurVariants} initial="hidden" whileInView="visible" viewport={{ once: true }} className="mb-16">
+            <h3 className="text-amber-600 text-sm tracking-[0.3em] uppercase mb-4 font-bold">Discover Your Aura</h3>
+            <h2 className={`text-4xl md:text-6xl text-zinc-900 ${playfair.className}`}>Aroma Profiles</h2>
+          </motion.div>
+
+          <div className="flex flex-col lg:flex-row h-[700px] lg:h-[600px] gap-4 w-full">
+            {aromas.map((aroma, i) => (
+              <motion.div 
+                key={aroma.id}
+                onMouseEnter={() => setActiveAroma(i)}
+                onClick={() => setActiveAroma(i)}
+                animate={{ flex: activeAroma === i ? 3 : 1 }}
+                transition={{ type: "spring", stiffness: 200, damping: 25 }}
+                className="relative rounded-3xl overflow-hidden cursor-pointer group"
+              >
+                <img src={aroma.img} className="absolute inset-0 w-full h-full object-cover" alt={aroma.name} />
+                <div className={`absolute inset-0 transition-opacity duration-700 ${activeAroma === i ? 'bg-black/40' : 'bg-black/60 group-hover:bg-black/50'}`} />
+                
+                <div className={`absolute inset-0 p-6 md:p-8 flex flex-col justify-end transition-all duration-500 ${activeAroma === i ? 'opacity-100' : 'lg:opacity-0'}`}>
+                  <h3 className={`text-2xl md:text-3xl lg:text-4xl text-white font-bold mb-2 md:mb-3 ${playfair.className}`}>{aroma.name}</h3>
+                  <AnimatePresence>
+                    {activeAroma === i && (
+                      <motion.p 
+                        initial={{ opacity: 0, y: 20 }} 
+                        animate={{ opacity: 1, y: 0 }} 
+                        exit={{ opacity: 0, y: 20 }} 
+                        className="text-zinc-200 text-xs md:text-sm max-w-sm leading-relaxed hidden lg:block"
+                      >
+                        {aroma.description}
+                      </motion.p>
+                    )}
+                  </AnimatePresence>
+                </div>
+
+                <div className={`absolute inset-0 flex items-center justify-center p-8 transition-all duration-500 hidden lg:flex ${activeAroma === i ? 'opacity-0' : 'opacity-100'}`}>
+                  <h3 className={`text-2xl text-white font-bold whitespace-nowrap vertical-text ${playfair.className}`}>{aroma.name}</h3>
+                </div>
+              </motion.div>
+            ))}
+          </div>
+        </section>
+
+        {/* Global Reach / Flags Section */}
         <section id="exports" className="py-32 px-6 md:px-16 bg-white overflow-hidden relative">
           <div className="absolute -top-[20%] -left-[10%] w-[50%] h-[50%] rounded-full bg-amber-500/5 blur-[120px] pointer-events-none"></div>
           
@@ -301,7 +365,6 @@ export default function Home() {
             <motion.div variants={fadeBlurVariants} initial="hidden" whileInView="visible" viewport={{ once: true }}>
               <h3 className="text-amber-600 text-sm tracking-[0.3em] uppercase mb-6 font-bold">Global Reach</h3>
               <h2 className={`text-5xl md:text-7xl text-zinc-900 mb-6 ${playfair.className}`}>Our Exports & Imports</h2>
-              <p className="max-w-2xl mx-auto text-zinc-600 font-light mb-24 text-lg">Delivering the purest fragrances and traditional products to customers worldwide with trusted standards.</p>
             </motion.div>
 
             <div className="flex flex-wrap justify-center gap-12 md:gap-20">
@@ -345,7 +408,7 @@ export default function Home() {
               <p className="text-zinc-300 font-light text-lg mb-12 leading-relaxed">
                 We believe that true spiritual connection requires absolute purity. That is why our products are formulated using a highly guarded blend of indigenous forest herbs, natural tree resins like Loban, Sandalwood extracts, and organic essential oils. No harmful chemicals, just nature's divine breath.
               </p>
-              <div className="flex gap-4">
+              <div className="flex flex-wrap gap-4">
                 {['Sandalwood', 'Pure Camphor', 'Natural Resins'].map((tag, i) => (
                   <span key={i} className="px-5 py-2 rounded-full border border-white/20 bg-white/10 backdrop-blur-md text-xs font-bold uppercase tracking-widest text-amber-50">
                     {tag}
@@ -356,7 +419,7 @@ export default function Home() {
           </div>
         </section>
 
-        {/* Standard Products Grid Section with Pop-up Animations */}
+        {/* Standard Products Grid Section */}
         <section id="products" className="py-32 px-6 md:px-16 max-w-[1400px] mx-auto">
           <motion.div variants={fadeBlurVariants} initial="hidden" whileInView="visible" viewport={{ once: true }} className="mb-20 flex flex-col md:flex-row justify-between items-end gap-6 border-b border-zinc-200 pb-12">
             <div>
@@ -381,17 +444,60 @@ export default function Home() {
               >
                 <div className="w-full h-72 overflow-hidden relative bg-zinc-100">
                   <img src={product.img} alt={product.name} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700 ease-out" />
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
                 </div>
                 <div className="p-8 flex flex-col flex-1 bg-white">
                   <h3 className={`text-3xl text-zinc-900 mb-3 ${playfair.className}`}>{product.name}</h3>
                   <p className="text-zinc-600 text-sm leading-relaxed mb-8 flex-1">{product.desc}</p>
-                  <button className="flex items-center justify-between w-full text-amber-600 text-sm font-bold uppercase tracking-widest hover:text-amber-700 transition-colors py-3 border-t border-zinc-100 pt-6">
-                    <span>Add to Cart</span> <ArrowRight size={18} className="group-hover:translate-x-2 transition-transform" />
-                  </button>
                 </div>
               </motion.div>
             ))}
+          </div>
+        </section>
+
+        {/* EXTRA COMPONENT: Wisdom & Queries (Animated FAQ) */}
+        <section className="py-24 bg-zinc-50 border-y border-zinc-200">
+          <div className="max-w-[800px] mx-auto px-6 md:px-16">
+            <motion.div variants={fadeBlurVariants} initial="hidden" whileInView="visible" viewport={{ once: true }} className="text-center mb-16">
+              <h3 className="text-amber-600 text-sm tracking-[0.3em] uppercase mb-4 font-bold">Curiosity</h3>
+              <h2 className={`text-4xl md:text-5xl text-zinc-900 ${playfair.className}`}>Wisdom & Queries</h2>
+            </motion.div>
+            
+            <div className="space-y-4">
+              {faqs.map((faq, i) => (
+                <motion.div 
+                  key={i}
+                  variants={fadeBlurVariants} 
+                  initial="hidden" 
+                  whileInView="visible" 
+                  viewport={{ once: true }}
+                  className="bg-white border border-zinc-200 rounded-2xl overflow-hidden"
+                >
+                  <button 
+                    onClick={() => setOpenFAQ(openFAQ === i ? null : i)}
+                    className="w-full px-8 py-6 flex items-center justify-between text-left hover:bg-zinc-50 transition-colors"
+                  >
+                    <span className="font-bold text-zinc-800 pr-8">{faq.q}</span>
+                    <div className={`shrink-0 w-8 h-8 rounded-full flex items-center justify-center transition-colors duration-300 ${openFAQ === i ? 'bg-amber-600 text-white' : 'bg-zinc-100 text-zinc-500'}`}>
+                      {openFAQ === i ? <Minus size={16} /> : <Plus size={16} />}
+                    </div>
+                  </button>
+                  <AnimatePresence>
+                    {openFAQ === i && (
+                      <motion.div
+                        initial={{ height: 0, opacity: 0 }}
+                        animate={{ height: 'auto', opacity: 1 }}
+                        exit={{ height: 0, opacity: 0 }}
+                        transition={{ duration: 0.3 }}
+                      >
+                        <div className="px-8 pb-6 text-zinc-600 font-light leading-relaxed border-t border-zinc-100 pt-4">
+                          {faq.a}
+                        </div>
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
+                </motion.div>
+              ))}
+            </div>
           </div>
         </section>
 
@@ -410,11 +516,11 @@ export default function Home() {
             
             <div className="animate-marquee hover:[animation-play-state:paused]">
               {[...Array(2)].map((_, arrayIndex) => (
-                <div key={arrayIndex} className="flex gap-8 px-4">
+                <div key={arrayIndex} className="flex gap-4 md:gap-8 px-2 md:px-4">
                   {[1, 2, 3, 4, 5].map((i) => (
-                    <div key={i} className="w-[400px] bg-white p-10 rounded-3xl shadow-sm border border-amber-100/50 flex-shrink-0">
+                    <div key={i} className="w-[300px] md:w-[400px] bg-white p-6 md:p-10 rounded-3xl shadow-sm border border-amber-100/50 flex-shrink-0">
                       <Quote className="text-amber-300 mb-6" size={40} />
-                      <p className="text-zinc-600 italic mb-8 font-light leading-relaxed">
+                      <p className="text-zinc-600 italic mb-8 font-light leading-relaxed text-sm md:text-base">
                         "The purity and fragrance of these products are unmatched. It instantly elevates the spiritual ambiance of my home during prayers. Highly recommended for daily use!"
                       </p>
                       <div className="flex items-center gap-4 border-t border-zinc-100 pt-6">
@@ -422,8 +528,8 @@ export default function Home() {
                           {String.fromCharCode(64 + i)}
                         </div>
                         <div>
-                          <h4 className="font-bold text-zinc-900 text-sm uppercase tracking-wider">Devotee {i}</h4>
-                          <p className="text-xs text-zinc-500 mt-1">Verified Buyer</p>
+                          <h4 className="font-bold text-zinc-900 text-xs md:text-sm uppercase tracking-wider">Devotee {i}</h4>
+                          <p className="text-[10px] md:text-xs text-zinc-500 mt-1">Verified Buyer</p>
                         </div>
                       </div>
                     </div>
@@ -503,4 +609,3 @@ export default function Home() {
     </ReactLenis>
   );
 }
-
