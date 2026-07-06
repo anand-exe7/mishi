@@ -10,6 +10,7 @@ import {
   RefreshCw, Search, Percent, Tag, IndianRupee,
   X
 } from 'lucide-react';
+import { useAdmin } from '../AdminContext';
 
 // --- MOCK DATA SOURCE ---
 const mockAnalytics = {
@@ -94,6 +95,8 @@ const mockAnalytics = {
 };
 
 export default function AnalyticsPage() {
+  const { orders } = useAdmin();
+  
   const [period, setPeriod] = useState('All Time');
   const [activeTab, setActiveTab] = useState('REVENUE');
   const [customFrom, setCustomFrom] = useState('');
@@ -104,6 +107,43 @@ export default function AnalyticsPage() {
   const [refreshKey, setRefreshKey] = useState(0);
 
   const themeColor = '#E75F24'; 
+
+  // --- DYNAMIC CALCULATIONS ---
+  const dynamicOverview = React.useMemo(() => {
+    let totalRevenue = 0;
+    let offlineBillsAmount = 0;
+    let onlineBillsAmount = 0;
+    let totalOfflineBills = 0;
+    let totalOnlineBills = 0;
+    let totalItemsSold = 0;
+
+    orders.forEach(order => {
+      totalRevenue += order.total_amount;
+      totalItemsSold += order.items.reduce((sum, item) => sum + item.quantity, 0);
+      if (order.source === 'Offline') {
+        offlineBillsAmount += order.total_amount;
+        totalOfflineBills++;
+      } else {
+        onlineBillsAmount += order.total_amount;
+        totalOnlineBills++;
+      }
+    });
+
+    return {
+      totalRevenue,
+      completedBills: orders.length,
+      offlineBillsAmount,
+      onlineBillsAmount,
+      totalOfflineBills,
+      totalOnlineBills,
+      totalItemsSold,
+      avgOrderValue: orders.length ? Math.round(totalRevenue / orders.length) : 0,
+      topProductName: "Face Pack & Bath Powder", // Keeping static for visual consistency in modal
+      topProductRevenue: 2910,
+      topProductQty: 11,
+      topProductShare: 32.0,
+    };
+  }, [orders]);
 
   const handleRefresh = () => {
     setIsRefreshing(true);
@@ -134,7 +174,7 @@ export default function AnalyticsPage() {
             <div className="p-1.5 bg-emerald-50 rounded-lg text-emerald-500"><Banknote size={14} /></div>
           </div>
           <div>
-            <h3 className="text-xl font-black text-slate-900">₹{mockAnalytics.overview.totalRevenue.toLocaleString('en-IN')}</h3>
+            <h3 className="text-xl font-black text-slate-900">₹{dynamicOverview.totalRevenue.toLocaleString('en-IN')}</h3>
             <p className="text-[10px] text-slate-400 mt-1 font-medium">POS + manual combined</p>
           </div>
         </div>
@@ -145,7 +185,7 @@ export default function AnalyticsPage() {
             <div className="p-1.5 bg-green-50 rounded-lg text-green-500"><CheckCircle2 size={14} /></div>
           </div>
           <div>
-            <h3 className="text-xl font-black text-slate-900">{mockAnalytics.overview.completedBills}</h3>
+            <h3 className="text-xl font-black text-slate-900">{dynamicOverview.completedBills}</h3>
             <p className="text-[10px] text-slate-400 mt-1 font-medium">POS + manual bills</p>
           </div>
         </div>
@@ -156,7 +196,7 @@ export default function AnalyticsPage() {
             <div className="p-1.5 bg-blue-50 rounded-lg text-blue-500"><Store size={14} /></div>
           </div>
           <div>
-            <h3 className="text-xl font-black text-slate-900">₹{mockAnalytics.overview.offlineBillsAmount.toLocaleString('en-IN')}</h3>
+            <h3 className="text-xl font-black text-slate-900">₹{dynamicOverview.offlineBillsAmount.toLocaleString('en-IN')}</h3>
             <p className="text-[10px] text-slate-400 mt-1 font-medium">Walk-in POS sales</p>
           </div>
         </div>
@@ -167,7 +207,7 @@ export default function AnalyticsPage() {
             <div className="p-1.5 bg-purple-50 rounded-lg text-purple-500"><Globe size={14} /></div>
           </div>
           <div>
-            <h3 className="text-xl font-black text-slate-900">₹{mockAnalytics.overview.onlineBillsAmount.toLocaleString('en-IN')}</h3>
+            <h3 className="text-xl font-black text-slate-900">₹{dynamicOverview.onlineBillsAmount.toLocaleString('en-IN')}</h3>
             <p className="text-[10px] text-slate-400 mt-1 font-medium">Online POS sales</p>
           </div>
         </div>
@@ -180,7 +220,7 @@ export default function AnalyticsPage() {
             <div className="p-1.5 bg-red-50 rounded-lg text-red-500"><ShoppingBag size={14} /></div>
           </div>
           <div>
-            <h3 className="text-xl font-black text-slate-900">{mockAnalytics.overview.totalOfflineBills}</h3>
+            <h3 className="text-xl font-black text-slate-900">{dynamicOverview.totalOfflineBills}</h3>
             <p className="text-[10px] text-slate-400 mt-1 font-medium">Walk-in POS orders</p>
           </div>
         </div>
@@ -191,7 +231,7 @@ export default function AnalyticsPage() {
             <div className="p-1.5 bg-indigo-50 rounded-lg text-indigo-500"><Globe size={14} /></div>
           </div>
           <div>
-            <h3 className="text-xl font-black text-slate-900">{mockAnalytics.overview.totalOnlineBills}</h3>
+            <h3 className="text-xl font-black text-slate-900">{dynamicOverview.totalOnlineBills}</h3>
             <p className="text-[10px] text-slate-400 mt-1 font-medium">Online channel orders</p>
           </div>
         </div>
@@ -202,7 +242,7 @@ export default function AnalyticsPage() {
             <div className="p-1.5 bg-fuchsia-50 rounded-lg text-fuchsia-500"><Package size={14} /></div>
           </div>
           <div>
-            <h3 className="text-xl font-black text-slate-900">{mockAnalytics.overview.totalItemsSold}</h3>
+            <h3 className="text-xl font-black text-slate-900">{dynamicOverview.totalItemsSold}</h3>
             <p className="text-[10px] text-slate-400 mt-1 font-medium">From completed bills</p>
           </div>
         </div>
@@ -213,7 +253,7 @@ export default function AnalyticsPage() {
             <div className="p-1.5 bg-orange-50 rounded-lg text-orange-500"><TrendingUp size={14} /></div>
           </div>
           <div>
-            <h3 className="text-xl font-black text-slate-900">₹{mockAnalytics.overview.avgOrderValue.toLocaleString('en-IN')}</h3>
+            <h3 className="text-xl font-black text-slate-900">₹{dynamicOverview.avgOrderValue.toLocaleString('en-IN')}</h3>
             <p className="text-[10px] text-slate-400 mt-1 font-medium">Per completed order</p>
           </div>
         </div>

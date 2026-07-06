@@ -2,8 +2,10 @@
 
 import React, { useState } from 'react';
 import { User, FileText, Trash2, CheckCircle2, ChevronDown } from 'lucide-react';
+import { useAdmin, Order } from '../AdminContext';
 
 export default function POSBillingPanel() {
+  const { addOrder } = useAdmin();
   const [orderType, setOrderType] = useState<'OFFLINE' | 'ONLINE'>('OFFLINE');
   const [customerName, setCustomerName] = useState('');
   const [customerPhone, setCustomerPhone] = useState('');
@@ -26,6 +28,63 @@ export default function POSBillingPanel() {
 
   const removeItem = (id: number) => {
     setItems(items.filter(item => item.id !== id));
+  };
+
+  const handleSendBill = () => {
+    // Validation
+    const cleanPhone = customerPhone.replace(/\D/g, '');
+    if (cleanPhone.length !== 10) {
+      alert("Please enter a valid 10-digit mobile number.");
+      return;
+    }
+    if (!customerName.trim() || items.length === 0) {
+      alert("Please enter customer name and at least one item.");
+      return;
+    }
+
+    // Prepare Context Order Object
+    const newOrder: Order = {
+      id: `INV-${new Date().getFullYear()}-${Math.floor(1000 + Math.random() * 9000)}`,
+      created_at: new Date().toISOString(),
+      customer_name: customerName,
+      customer_phone: cleanPhone,
+      source: orderType,
+      status: 'Completed',
+      total_amount: grandTotal,
+      discount_amount: manualDiscount,
+      delivery_amount: delivery,
+      items: items.map(i => ({
+        product_name: i.name || 'Custom Item',
+        variant: 'Standard',
+        size: '-',
+        quantity: i.qty,
+        unit_price: i.price
+      }))
+    };
+
+    // Build WhatsApp Message String
+    const itemsText = items.map(i => `• ${i.name || 'Item'} - ${i.qty} x ₹${i.price} = ₹${i.qty * i.price}`).join('%0A');
+    let message = `Hello ${customerName}, thank you for purchasing from Mishi!%0A%0A`;
+    message += `*Your Bill Details:*%0A${itemsText}%0A%0A`;
+    message += `Subtotal: ₹${subtotal}%0A`;
+    if (manualDiscount > 0) message += `Discount: -₹${manualDiscount}%0A`;
+    if (delivery > 0) message += `Delivery: ₹${delivery}%0A`;
+    message += `*Grand Total: ₹${grandTotal}*%0A%0A`;
+    message += `Have a great day!`;
+
+    // 1. Save globally to update Analytics and Orders
+    addOrder(newOrder);
+
+    // 2. Open WhatsApp in new tab
+    window.open(`https://wa.me/91${cleanPhone}?text=${message}`, '_blank');
+
+    // 3. Clear form
+    setCustomerName('');
+    setCustomerPhone('');
+    setItems([]);
+    setManualDiscount(0);
+    setDelivery(0);
+    setAmountReceived('');
   };
 
   return (
@@ -260,7 +319,10 @@ export default function POSBillingPanel() {
             </div>
 
             {/* Submit Button */}
-            <button className="w-full mt-4 bg-slate-200 hover:bg-slate-300 text-slate-500 font-bold py-3.5 rounded-xl transition-colors flex items-center justify-center gap-2 text-sm uppercase tracking-widest cursor-not-allowed">
+            <button 
+              onClick={handleSendBill}
+              className="w-full mt-4 bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-3.5 rounded-xl transition-colors flex items-center justify-center gap-2 text-sm uppercase tracking-widest shadow-md hover:shadow-lg"
+            >
               <CheckCircle2 size={18} /> Send Bill Via WhatsApp
             </button>
 

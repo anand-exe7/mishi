@@ -8,6 +8,7 @@ import {
   Ticket, CreditCard, Users, 
   Menu, X, PanelLeftClose, PanelLeftOpen
 } from 'lucide-react';
+import { AdminProvider } from './AdminContext';
 
 const WhatsAppIcon = ({ size, className }: { size?: number, className?: string }) => (
   <svg 
@@ -166,7 +167,9 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
 
         {/* Page Content */}
         <div className="flex-1 p-4 lg:p-8 overflow-y-auto bg-[#f8f9fa]">
-          {children}
+          <AdminProvider>
+            {children}
+          </AdminProvider>
         </div>
       </main>
     </div>
