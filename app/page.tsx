@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { Playfair_Display } from "next/font/google";
 import { motion, useScroll, useTransform, AnimatePresence } from "framer-motion";
-import { Phone, Mail, ArrowRight, Quote, ShieldCheck, Globe, Clock, MapPin, Sparkles, Leaf, Droplets } from "lucide-react";
+import { Phone, Mail, ArrowRight, Quote, ShieldCheck, Globe, Clock, MapPin, Sparkles, Leaf, Droplets, Wind, Sun, Heart } from "lucide-react";
 import { ReactLenis, useLenis } from 'lenis/react';
 
 const playfair = Playfair_Display({ subsets: ["latin"] });
@@ -106,23 +106,29 @@ export default function Home() {
           .animate-spin-slow {
             animation: spin-slow 12s linear infinite;
           }
+          .clip-diagonal {
+            clip-path: polygon(0 0, 100% 10vw, 100% 100%, 0 calc(100% - 10vw));
+          }
         `}} />
 
         {/* Dynamic Navbar */}
         <nav className={`fixed top-0 left-0 right-0 z-50 p-4 px-6 md:px-12 flex justify-between items-center transition-all duration-500 ${isScrolled ? 'bg-white/90 backdrop-blur-md shadow-sm border-b border-zinc-200/50 py-3 text-zinc-900' : 'bg-transparent py-6 text-white'}`}>
           <div className="flex items-center">
-            <img 
-              src="/logo.webp" 
-              alt="Mishi Pooja Products" 
-              className={`h-10 md:h-14 w-auto object-contain transition-all duration-300 ${isScrolled ? 'filter invert brightness-0' : ''}`} 
-              onError={(e) => {
-                (e.target as HTMLElement).style.display = 'none';
-                (e.target as HTMLElement).nextElementSibling?.classList.remove('hidden');
-              }} 
-            />
-            <span className={`hidden text-2xl font-bold tracking-widest ${playfair.className} uppercase`}>
-              Mishi
-            </span>
+            {/* Added a subtle white glow/pill to the logo so it's ALWAYS visible regardless of the background */}
+            <div className={`transition-all duration-300 ${isScrolled ? '' : 'bg-white/90 p-1.5 px-3 rounded-xl shadow-lg backdrop-blur-md'}`}>
+              <img 
+                src="/logo.webp" 
+                alt="Mishi Pooja Products" 
+                className="h-8 md:h-12 w-auto object-contain" 
+                onError={(e) => {
+                  (e.target as HTMLElement).style.display = 'none';
+                  (e.target as HTMLElement).nextElementSibling?.classList.remove('hidden');
+                }} 
+              />
+              <span className={`hidden text-2xl font-bold tracking-widest ${playfair.className} uppercase text-zinc-900`}>
+                Mishi
+              </span>
+            </div>
           </div>
           <div className="hidden md:flex gap-8 text-sm uppercase tracking-widest font-semibold">
             <button onClick={() => scrollTo('#home')} className={`transition-colors ${isScrolled ? 'hover:text-amber-600' : 'hover:text-amber-400'}`}>Home</button>
@@ -143,15 +149,15 @@ export default function Home() {
           className="relative h-screen w-full overflow-hidden bg-black text-white origin-top"
         >
           <div className="absolute inset-0 w-full h-full">
-            <video autoPlay loop muted playsInline className="w-full h-full object-cover opacity-60 scale-105">
+            <video autoPlay loop muted playsInline poster="https://images.unsplash.com/photo-1608222384784-2197171e2e0e?q=80&w=1920&auto=format&fit=crop" className="w-full h-full object-cover opacity-60 scale-105">
               <source src="/bg.mp4" type="video/mp4" />
             </video>
-            <div className="absolute inset-0 bg-gradient-to-b from-black/20 via-transparent to-black/80"></div>
+            <div className="absolute inset-0 bg-gradient-to-b from-black/40 via-transparent to-black/80"></div>
           </div>
 
           <div className="relative z-10 w-full h-full p-8 md:p-16 flex flex-col justify-between pointer-events-none">
             <div className="pt-24">
-              <motion.p initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.2, duration: 1 }} className="text-xs md:text-sm tracking-[0.3em] uppercase text-amber-200/80 font-semibold">
+              <motion.p initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.2, duration: 1 }} className="text-xs md:text-sm tracking-[0.3em] uppercase text-amber-200/90 font-semibold drop-shadow-md">
                 EST. 2024
               </motion.p>
             </div>
@@ -194,7 +200,6 @@ export default function Home() {
                 Forged in Excellence, Delivered with Trust
               </h2>
               <div className="text-zinc-600 text-lg font-light leading-relaxed space-y-6 relative">
-                {/* Large background typography quote mark */}
                 <div className={`absolute -top-16 -left-12 text-[15rem] text-zinc-100 opacity-50 z-[-1] ${playfair.className} pointer-events-none`}>
                   "
                 </div>
@@ -204,7 +209,6 @@ export default function Home() {
             </motion.div>
 
             <div className="w-full lg:w-1/2 relative h-[600px] flex items-center justify-center">
-              {/* Overlapping images for advanced look */}
               <motion.div 
                 initial={{ opacity: 0, y: 50, rotate: -5 }}
                 whileInView={{ opacity: 1, y: 0, rotate: -2 }}
@@ -225,7 +229,6 @@ export default function Home() {
                 <img src="https://images.unsplash.com/photo-1615592389070-bcc97e0504d3?q=80&w=800&auto=format&fit=crop" alt="Incense" className="w-full h-full object-cover" />
               </motion.div>
 
-              {/* Spinning Seal */}
               <motion.div 
                 initial={{ opacity: 0, scale: 0 }}
                 whileInView={{ opacity: 1, scale: 1 }}
@@ -251,8 +254,47 @@ export default function Home() {
           </div>
         </section>
 
+        {/* EXTRA COMPONENT 1: Spiritual Benefits */}
+        <section className="py-24 bg-amber-50 overflow-hidden relative border-y border-amber-100">
+          <div className="absolute top-0 right-0 p-32 opacity-5 pointer-events-none">
+            <Sparkles size={400} />
+          </div>
+          <div className="max-w-[1400px] mx-auto px-6 md:px-16 relative z-10">
+            <motion.div variants={fadeBlurVariants} initial="hidden" whileInView="visible" viewport={{ once: true }} className="text-center mb-16">
+              <h3 className="text-amber-600 text-sm tracking-[0.3em] uppercase mb-4 font-bold">The Essence</h3>
+              <h2 className={`text-4xl md:text-5xl text-zinc-900 ${playfair.className} mb-6`}>Spiritual Benefits</h2>
+              <p className="text-zinc-600 max-w-2xl mx-auto font-light">Incorporating pure Sambrani and Agarbathi into your daily routine offers profound effects on the mind, body, and space.</p>
+            </motion.div>
+            
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+              {[
+                { icon: Wind, title: "Purifies the Air", desc: "Clears out negative energy and neutralizes foul odors organically." },
+                { icon: Sparkles, title: "Deepens Meditation", desc: "The soothing aroma helps center the mind for deeper spiritual focus." },
+                { icon: Sun, title: "Invokes Positivity", desc: "Uplifts the mood and creates a warm, welcoming aura in any room." },
+                { icon: Heart, title: "Reduces Stress", desc: "Natural essential oils act as a gentle relaxant for the nervous system." }
+              ].map((benefit, i) => (
+                <motion.div 
+                  key={i}
+                  custom={i}
+                  variants={popUpVariants}
+                  initial="hidden"
+                  whileInView="visible"
+                  viewport={{ once: true, margin: "-50px" }}
+                  className="bg-white p-8 rounded-3xl shadow-sm border border-zinc-100 flex flex-col items-center text-center hover:-translate-y-2 transition-transform duration-300"
+                >
+                  <div className="w-16 h-16 bg-amber-50 rounded-2xl flex items-center justify-center text-amber-500 mb-6 group-hover:scale-110 transition-transform">
+                    <benefit.icon size={28} />
+                  </div>
+                  <h3 className="text-xl font-bold text-zinc-900 mb-3">{benefit.title}</h3>
+                  <p className="text-zinc-500 text-sm leading-relaxed">{benefit.desc}</p>
+                </motion.div>
+              ))}
+            </div>
+          </div>
+        </section>
+
         {/* Global Reach / Flags Section with Pop-up Animations */}
-        <section id="exports" className="py-32 px-6 md:px-16 bg-zinc-50 border-y border-zinc-200 overflow-hidden relative">
+        <section id="exports" className="py-32 px-6 md:px-16 bg-white overflow-hidden relative">
           <div className="absolute -top-[20%] -left-[10%] w-[50%] h-[50%] rounded-full bg-amber-500/5 blur-[120px] pointer-events-none"></div>
           
           <div className="max-w-[1400px] mx-auto text-center relative z-10">
@@ -280,48 +322,37 @@ export default function Home() {
                       <div className="absolute inset-0 flag-shadow pointer-events-none"></div>
                     </div>
                   </div>
-                  <h4 className="text-sm font-bold uppercase tracking-widest text-zinc-700 group-hover:text-amber-600 transition-colors mt-4 bg-white px-4 py-1 rounded-full shadow-sm border border-zinc-100">{flag.name}</h4>
+                  <h4 className="text-sm font-bold uppercase tracking-widest text-zinc-700 group-hover:text-amber-600 transition-colors mt-4 bg-zinc-50 px-4 py-1 rounded-full shadow-sm border border-zinc-100">{flag.name}</h4>
                 </motion.div>
               ))}
             </div>
           </div>
         </section>
 
-        {/* Our Process / Craftsmanship Component */}
-        <section className="py-32 bg-zinc-900 text-white overflow-hidden relative">
-          <div className="max-w-[1400px] mx-auto px-6 md:px-16">
-            <motion.div variants={fadeBlurVariants} initial="hidden" whileInView="visible" viewport={{ once: true }} className="mb-20 text-center">
-              <h3 className="text-amber-500 text-sm tracking-[0.3em] uppercase mb-4 font-bold">Craftsmanship</h3>
-              <h2 className={`text-5xl md:text-6xl ${playfair.className} mb-6`}>How It's Made</h2>
-              <p className="text-zinc-400 font-light max-w-2xl mx-auto text-lg">The journey from raw nature to the divine fragrance that sanctifies your space.</p>
+        {/* EXTRA COMPONENT 2: Symphony of Fragrances (Ingredients Parallax) */}
+        <section className="relative py-40 clip-diagonal bg-black text-white overflow-hidden">
+          <div className="absolute inset-0 opacity-40">
+            <img src="https://images.unsplash.com/photo-1602928321679-560bb453f190?q=80&w=1920&auto=format&fit=crop" alt="Ingredients" className="w-full h-full object-cover" />
+            <div className="absolute inset-0 bg-gradient-to-r from-black via-black/80 to-transparent"></div>
+          </div>
+          
+          <div className="max-w-[1400px] mx-auto px-6 md:px-16 relative z-10">
+            <motion.div variants={fadeBlurVariants} initial="hidden" whileInView="visible" viewport={{ once: true }} className="max-w-2xl">
+              <h3 className="text-amber-500 text-sm tracking-[0.3em] uppercase mb-4 font-bold flex items-center gap-3">
+                <div className="w-12 h-[1px] bg-amber-500"></div> The Ingredients
+              </h3>
+              <h2 className={`text-5xl md:text-7xl mb-8 leading-[1.1] ${playfair.className}`}>A Symphony of Pure Fragrances</h2>
+              <p className="text-zinc-300 font-light text-lg mb-12 leading-relaxed">
+                We believe that true spiritual connection requires absolute purity. That is why our products are formulated using a highly guarded blend of indigenous forest herbs, natural tree resins like Loban, Sandalwood extracts, and organic essential oils. No harmful chemicals, just nature's divine breath.
+              </p>
+              <div className="flex gap-4">
+                {['Sandalwood', 'Pure Camphor', 'Natural Resins'].map((tag, i) => (
+                  <span key={i} className="px-5 py-2 rounded-full border border-white/20 bg-white/10 backdrop-blur-md text-xs font-bold uppercase tracking-widest text-amber-50">
+                    {tag}
+                  </span>
+                ))}
+              </div>
             </motion.div>
-            
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-8 relative">
-              {/* Connecting line for desktop */}
-              <div className="hidden md:block absolute top-1/2 left-[15%] right-[15%] h-[1px] bg-gradient-to-r from-transparent via-amber-500/50 to-transparent -translate-y-1/2 z-0"></div>
-              
-              {[
-                { icon: Leaf, title: "Sourcing", desc: "We handpick pure resins, herbs, and natural essential oils directly from trusted traditional sources." },
-                { icon: Droplets, title: "Blending", desc: "Ingredients are ground and blended meticulously following age-old traditional formulas for perfect harmony." },
-                { icon: Sparkles, title: "Crafting", desc: "Molded with care, dried naturally, and rigorously checked to ensure a long-lasting, consistent burn." }
-              ].map((step, i) => (
-                <motion.div 
-                  key={i} 
-                  custom={i}
-                  variants={popUpVariants}
-                  initial="hidden"
-                  whileInView="visible"
-                  viewport={{ once: true }}
-                  className="flex flex-col items-center text-center p-10 rounded-[2rem] bg-zinc-800/80 backdrop-blur-sm border border-white/10 hover:border-amber-500/50 transition-colors relative z-10"
-                >
-                  <div className="w-20 h-20 bg-black rounded-full flex items-center justify-center border border-zinc-700 mb-8 shadow-[0_0_30px_rgba(217,119,6,0.15)] group-hover:shadow-[0_0_30px_rgba(217,119,6,0.3)] transition-shadow">
-                    <step.icon size={32} className="text-amber-500" />
-                  </div>
-                  <h3 className="text-2xl font-bold mb-4">{step.title}</h3>
-                  <p className="text-zinc-400 leading-relaxed font-light">{step.desc}</p>
-                </motion.div>
-              ))}
-            </div>
           </div>
         </section>
 
@@ -449,46 +480,20 @@ export default function Home() {
           </motion.div>
         </section>
 
-        {/* Updated Footer */}
-        <footer className="bg-zinc-50 pt-20 pb-12 px-6 md:px-16 border-t border-zinc-200">
-          <div className="max-w-[1400px] mx-auto grid grid-cols-1 md:grid-cols-3 gap-12 items-center text-sm font-medium">
+        {/* Exactly Replicated Minimalist Dark Footer */}
+        <footer className="bg-[#050806] text-zinc-400 py-6 border-t border-zinc-900">
+          <div className="max-w-[1400px] mx-auto px-6 md:px-16 flex flex-col md:flex-row justify-between items-center gap-4 text-[10px] md:text-xs font-semibold tracking-widest uppercase">
             
-            {/* Left Side: Logo & Rights */}
-            <div className="flex flex-col items-center md:items-start text-center md:text-left gap-4">
-               <img 
-                 src="/logo.webp" 
-                 alt="Mishi Pooja Products" 
-                 className="h-16 w-auto object-contain filter grayscale opacity-80 hover:grayscale-0 hover:opacity-100 transition-all" 
-                 onError={(e) => {
-                  (e.target as HTMLElement).style.display = 'none';
-                  (e.target as HTMLElement).nextElementSibling?.classList.remove('hidden');
-                }} 
-              />
-              <div className={`hidden text-2xl font-bold tracking-widest text-zinc-900 ${playfair.className} uppercase`}>
-                Mishi
-              </div>
-              <div className="text-zinc-500 uppercase tracking-widest text-[10px] mt-2">
-                All rights reserved 2026 Mishi Pooja Products
-              </div>
+            <div className="text-zinc-400">
+              © 2026 Mishi Pooja Products. All Rights Reserved
             </div>
             
-            {/* Center: Powered By */}
-            <div className="flex flex-col items-center text-center">
-              <p className="text-zinc-400 tracking-widest uppercase text-[10px] mb-2 font-bold">
-                Powered by Cenexa
-              </p>
-              <p className="text-zinc-500 tracking-widest uppercase text-[10px]">
-                © Copyright 2026
-              </p>
+            <div className="text-zinc-400">
+              Powered by <span className="text-zinc-200">Cenexa Systems</span> © 2026
             </div>
-
-            {/* Right Side: 3 Words */}
-            <div className="flex justify-center md:justify-end gap-6 uppercase tracking-[0.3em] text-[10px] font-bold text-amber-600">
-              <span>Purity</span>
-              <span className="text-zinc-300">•</span>
-              <span>Tradition</span>
-              <span className="text-zinc-300">•</span>
-              <span>Devotion</span>
+            
+            <div className="text-zinc-300">
+              PURITY • TRADITION • DEVOTION
             </div>
 
           </div>
