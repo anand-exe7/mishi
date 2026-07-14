@@ -649,7 +649,7 @@ export default function Home() {
                     <span className="text-emerald-600 font-bold tracking-widest uppercase text-sm">The Collection</span>
                     <h2 className={`text-4xl md:text-6xl text-emerald-950 mt-4 ${cormorant.className}`}>Sacred Offerings</h2>
                  </div>
-                 <button className="text-emerald-700 font-semibold border-b border-emerald-700 pb-1 hover:text-emerald-900 transition-colors">View All Products</button>
+                 <Link href="/products" className="text-emerald-700 font-semibold border-b border-emerald-700 pb-1 hover:text-emerald-900 transition-colors">View All Products</Link>
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
@@ -666,7 +666,13 @@ export default function Home() {
                           <p className="text-neutral-500 text-sm line-clamp-2 mb-4">{product.desc}</p>
                           <div className="flex items-center justify-between">
                              <span className="font-semibold text-lg text-emerald-900">₹149</span>
-                             <button className="w-10 h-10 rounded-full bg-emerald-50 text-emerald-700 flex items-center justify-center hover:bg-emerald-600 hover:text-white transition-colors">
+                             <button 
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  alert(`Added ${product.name} to cart!`);
+                                }}
+                                className="w-10 h-10 rounded-full bg-emerald-50 text-emerald-700 flex items-center justify-center hover:bg-emerald-600 hover:text-white transition-colors"
+                             >
                                 <Plus size={20} />
                              </button>
                           </div>
@@ -751,7 +757,15 @@ export default function Home() {
                     </div>
                   </div>
 
-                  <button className="w-full bg-emerald-700 hover:bg-emerald-800 text-white font-bold py-4 rounded-full uppercase tracking-widest text-sm transition-colors shadow-lg shadow-emerald-700/20">
+                  <button 
+                    onClick={() => {
+                      alert(`Added ${qty}x ${selectedProduct.name} (${selectedSize}) to your cart!`);
+                      setSelectedProduct(null);
+                      setQty(1);
+                      setSelectedSize("250g");
+                    }}
+                    className="w-full bg-emerald-700 hover:bg-emerald-800 text-white font-bold py-4 rounded-full uppercase tracking-widest text-sm transition-colors shadow-lg shadow-emerald-700/20"
+                  >
                     Add to Cart
                   </button>
                 </div>

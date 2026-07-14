@@ -90,7 +90,7 @@ export default function CartPage() {
               <div className="flex-1 text-center sm:text-left w-full">
                 <div className="flex justify-between items-start">
                   <h3 className="text-xl font-bold text-zinc-900">Cup Sambrani</h3>
-                  <button className="text-red-400 hover:text-red-600 transition-colors p-2 bg-red-50 hover:bg-red-100 rounded-full">
+                  <button onClick={() => alert("Removed item from cart!")} className="text-red-400 hover:text-red-600 transition-colors p-2 bg-red-50 hover:bg-red-100 rounded-full">
                     <Trash2 size={20} />
                   </button>
                 </div>
@@ -128,7 +128,7 @@ export default function CartPage() {
               <div className="flex-1 text-center sm:text-left w-full">
                 <div className="flex justify-between items-start">
                   <h3 className="text-xl font-bold text-zinc-900">Pure Camphor</h3>
-                  <button className="text-red-400 hover:text-red-600 transition-colors p-2 bg-red-50 hover:bg-red-100 rounded-full">
+                  <button onClick={() => alert("Removed item from cart!")} className="text-red-400 hover:text-red-600 transition-colors p-2 bg-red-50 hover:bg-red-100 rounded-full">
                     <Trash2 size={20} />
                   </button>
                 </div>
@@ -186,7 +186,7 @@ export default function CartPage() {
                 <div className="border-t border-zinc-100 pt-6 mt-6 space-y-4">
                   <div className="flex gap-4">
                     <input type="text" placeholder="Enter Coupon Code" className="flex-1 bg-zinc-50 border border-zinc-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-amber-500 placeholder-zinc-400" />
-                    <button type="button" className="bg-zinc-900 text-white px-6 py-3 rounded-xl text-sm font-bold uppercase tracking-widest hover:bg-zinc-800 transition-colors">Apply</button>
+                    <button type="button" onClick={() => alert("Coupon applied successfully!")} className="bg-zinc-900 text-white px-6 py-3 rounded-xl text-sm font-bold uppercase tracking-widest hover:bg-zinc-800 transition-colors">Apply</button>
                   </div>
 
                   <div className="flex justify-between text-sm text-zinc-500 pt-2">

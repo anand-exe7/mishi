@@ -66,7 +66,7 @@ export default function ProfilePage() {
                   <p className="text-zinc-500 mt-1">anand.client@example.com</p>
                 </div>
               </div>
-              <Link href="/login" className="flex items-center gap-2 text-sm font-bold text-zinc-500 hover:text-red-500 transition-colors bg-white px-6 py-3 rounded-full border border-zinc-200 shadow-sm">
+              <Link href="/" onClick={() => alert("Successfully signed out!")} className="flex items-center gap-2 text-sm font-bold text-zinc-500 hover:text-red-500 transition-colors bg-white px-6 py-3 rounded-full border border-zinc-200 shadow-sm">
                 <LogOut size={16} /> Sign Out
               </Link>
             </div>
