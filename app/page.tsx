@@ -34,7 +34,7 @@ import {
   
 } from "lucide-react";
 import { ReactLenis, useLenis } from "lenis/react";
-
+import Link from "next/link";
 const InstagramIcon = ({
   size = 24,
   className = "",
@@ -313,7 +313,6 @@ export default function Home() {
         >
           <div className="flex items-center gap-2 cursor-pointer" onClick={() => scrollTo("#home")}>
             <img src="/logo.webp" alt="Mishi" className="h-8 md:h-10 w-auto object-contain" />
-            <span className={`text-xl font-bold tracking-widest uppercase text-emerald-950 ${cormorant.className} hidden sm:block`}>Mishi</span>
           </div>
           
           <div className={`hidden md:flex gap-8 text-xs uppercase tracking-widest font-semibold text-neutral-800`}>
@@ -323,11 +322,11 @@ export default function Home() {
           </div>
 
           <div className={`flex gap-4 items-center text-neutral-800`}>
-            <button className="p-2 hover:bg-emerald-500/10 rounded-full transition-colors"><User size={18} /></button>
-            <button className="p-2 hover:bg-emerald-500/10 rounded-full transition-colors relative">
+            <Link href="/profile" className="p-2 hover:bg-emerald-500/10 rounded-full transition-colors"><User size={18} /></Link>
+            <Link href="/cart" className="p-2 hover:bg-emerald-500/10 rounded-full transition-colors relative">
                <ShoppingCart size={18} />
                <span className="absolute top-0 right-0 w-2 h-2 bg-emerald-600 rounded-full"></span>
-            </button>
+            </Link>
           </div>
         </motion.nav>
 

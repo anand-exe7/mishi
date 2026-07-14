@@ -3,15 +3,13 @@
 import { useState, useEffect } from "react";
 import { Playfair_Display } from "next/font/google";
 import { motion } from "framer-motion";
-import { User, ShoppingCart, LogOut, Package, MapPin, Settings, ChevronRight } from "lucide-react";
+import { User, ShoppingCart, LogOut, Package, ChevronRight } from "lucide-react";
 import Link from "next/link";
 
 const playfair = Playfair_Display({ subsets: ["latin"] });
 
 export default function ProfilePage() {
   const [isScrolled, setIsScrolled] = useState(false);
-  const [isLoggedIn, setIsLoggedIn] = useState(false); // Toggle this to see the two states!
-
   useEffect(() => {
     const handleScroll = () => {
       setIsScrolled(window.scrollY > 50);
@@ -47,9 +45,7 @@ export default function ProfilePage() {
         <div className="flex justify-start md:justify-center">
           <Link href="/">
             <div className="transition-all duration-300 cursor-pointer flex items-center">
-              <span className={`text-2xl font-bold tracking-widest ${playfair.className} uppercase text-zinc-900`}>
-                Mishi
-              </span>
+              <img src="/logo.webp" alt="Mishi" className="h-8 md:h-10 w-auto object-contain" />
             </div>
           </Link>
         </div>
@@ -73,50 +69,7 @@ export default function ProfilePage() {
 
       {/* Main Content */}
       <section className="pt-40 pb-24 px-6 md:px-16 max-w-[1400px] mx-auto min-h-[80vh] flex items-center justify-center">
-        {!isLoggedIn ? (
-          /* LOGIN FORM */
-          <motion.div
-            initial={{ opacity: 0, scale: 0.95 }}
-            animate={{ opacity: 1, scale: 1 }}
-            className="w-full max-w-md bg-white p-8 md:p-12 rounded-[2rem] shadow-xl border border-zinc-100"
-          >
-            <div className="text-center mb-8">
-              <h1 className={`text-4xl text-zinc-900 mb-2 ${playfair.className}`}>Welcome Back</h1>
-              <p className="text-zinc-500 font-light">Sign in to manage your orders</p>
-            </div>
-
-            <button 
-              onClick={() => setIsLoggedIn(true)}
-              className="w-full flex items-center justify-center gap-3 bg-white border border-zinc-200 hover:bg-zinc-50 text-zinc-900 font-bold py-3.5 rounded-xl transition-colors mb-6 shadow-sm"
-            >
-              <img src="https://www.svgrepo.com/show/475656/google-color.svg" alt="Google" className="w-5 h-5" />
-              Continue with Google
-            </button>
-
-            <div className="relative flex items-center justify-center mb-6">
-              <div className="absolute inset-0 flex items-center"><div className="w-full border-t border-zinc-200"></div></div>
-              <span className="relative bg-white px-4 text-xs font-bold text-zinc-400 uppercase tracking-widest">Or Sign In with Email</span>
-            </div>
-
-            <form onSubmit={(e) => { e.preventDefault(); setIsLoggedIn(true); }} className="space-y-4">
-              <div>
-                <label className="text-xs font-bold text-zinc-500 uppercase tracking-wider mb-2 block">Email Address</label>
-                <input required type="email" className="w-full bg-zinc-50 border border-zinc-200 rounded-xl px-4 py-3 focus:outline-none focus:border-amber-500 transition-colors" placeholder="hello@example.com" />
-              </div>
-              <div>
-                <label className="text-xs font-bold text-zinc-500 uppercase tracking-wider mb-2 block">Password</label>
-                <input required type="password" className="w-full bg-zinc-50 border border-zinc-200 rounded-xl px-4 py-3 focus:outline-none focus:border-amber-500 transition-colors" placeholder="••••••••" />
-              </div>
-              <div className="flex justify-end">
-                <a href="#" className="text-xs text-amber-600 font-bold hover:underline">Forgot Password?</a>
-              </div>
-              <button type="submit" className="w-full bg-zinc-900 hover:bg-zinc-800 text-white font-bold py-4 rounded-xl uppercase tracking-widest text-sm transition-colors shadow-lg mt-4">
-                Sign In
-              </button>
-            </form>
-          </motion.div>
-        ) : (
-          /* USER PROFILE */
+          {/* USER PROFILE */}
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
@@ -132,9 +85,9 @@ export default function ProfilePage() {
                   <p className="text-zinc-500 mt-1">anand.client@example.com</p>
                 </div>
               </div>
-              <button onClick={() => setIsLoggedIn(false)} className="flex items-center gap-2 text-sm font-bold text-zinc-500 hover:text-red-500 transition-colors bg-white px-6 py-3 rounded-full border border-zinc-200 shadow-sm">
+              <Link href="/login" className="flex items-center gap-2 text-sm font-bold text-zinc-500 hover:text-red-500 transition-colors bg-white px-6 py-3 rounded-full border border-zinc-200 shadow-sm">
                 <LogOut size={16} /> Sign Out
-              </button>
+              </Link>
             </div>
 
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
@@ -142,8 +95,6 @@ export default function ProfilePage() {
               <div className="lg:col-span-1 space-y-3">
                 {[
                   { name: "Order History", icon: Package, active: true },
-                  { name: "Saved Addresses", icon: MapPin, active: false },
-                  { name: "Account Settings", icon: Settings, active: false },
                 ].map((item) => (
                   <button key={item.name} className={`w-full flex items-center justify-between p-4 rounded-2xl transition-all ${item.active ? "bg-amber-50 border-amber-200 text-amber-700 font-bold border" : "bg-white border-zinc-100 text-zinc-600 hover:bg-zinc-50 border"}`}>
                     <div className="flex items-center gap-3">
@@ -202,7 +153,6 @@ export default function ProfilePage() {
               </div>
             </div>
           </motion.div>
-        )}
       </section>
     </div>
   );

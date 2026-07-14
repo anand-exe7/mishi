@@ -124,18 +124,7 @@ export default function ProductsPage() {
                 src="/logo.webp"
                 alt="Mishi Pooja Products"
                 className="h-8 md:h-12 w-auto object-contain"
-                onError={(e) => {
-                  (e.target as HTMLElement).style.display = "none";
-                  (
-                    e.target as HTMLElement
-                  ).nextElementSibling?.classList.remove("hidden");
-                }}
               />
-              <span
-                className={`hidden text-2xl font-bold tracking-widest ${playfair.className} uppercase text-zinc-900`}
-              >
-                Mishi
-              </span>
             </div>
           </Link>
         </div>

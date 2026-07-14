@@ -65,9 +65,7 @@ export default function CartPage() {
         <div className="flex justify-start md:justify-center">
           <Link href="/">
             <div className="transition-all duration-300 cursor-pointer flex items-center">
-              <span className={`text-2xl font-bold tracking-widest ${playfair.className} uppercase text-zinc-900`}>
-                Mishi
-              </span>
+              <img src="/logo.webp" alt="Mishi" className="h-8 md:h-10 w-auto object-contain" />
             </div>
           </Link>
         </div>
