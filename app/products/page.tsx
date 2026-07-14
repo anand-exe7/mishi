@@ -298,7 +298,15 @@ export default function ProductsPage() {
                   </div>
                 </div>
 
-                <button className="w-full bg-amber-600 hover:bg-amber-700 text-white font-bold py-4 rounded-full uppercase tracking-widest text-sm transition-colors shadow-lg shadow-amber-600/20">
+                <button 
+                  onClick={() => {
+                    alert(`Added ${qty}x ${selectedProduct.name} (${selectedSize}) to your cart!`);
+                    setSelectedProduct(null);
+                    setQty(1);
+                    setSelectedSize("250g");
+                  }}
+                  className="w-full bg-amber-600 hover:bg-amber-700 text-white font-bold py-4 rounded-full uppercase tracking-widest text-sm transition-colors shadow-lg shadow-amber-600/20"
+                >
                   Add to Cart
                 </button>
               </div>
@@ -306,6 +314,16 @@ export default function ProductsPage() {
           </motion.div>
         )}
       </AnimatePresence>
+
+      {/* Footer */}
+      <footer className="w-full bg-[#faf9f6]">
+        <div className="py-6 px-6 md:px-12 text-[10px] md:text-xs text-slate-400 font-bold uppercase tracking-wider flex flex-col md:flex-row justify-between items-center gap-4 text-center">
+          <div>© 2026 Mishi Pooja Products. All Rights Reserved</div>
+          <div>Powered by <a href="https://www.cenexasystems.com" target="_blank" rel="noopener noreferrer" className="text-slate-600 hover:text-slate-800 transition-colors">Cenexa Systems</a> © 2026</div>
+          <div>PURE • ORGANIC • PROVEN</div>
+        </div>
+        <div className="w-full h-3 bg-[#3f3f46]"></div>
+      </footer>
     </div>
   );
 }
