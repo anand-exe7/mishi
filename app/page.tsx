@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { Cormorant_Garamond, Outfit } from "next/font/google";
+import toast from "react-hot-toast";
 import {
   motion,
   useScroll,
@@ -669,7 +670,7 @@ export default function Home() {
                              <button 
                                 onClick={(e) => {
                                   e.stopPropagation();
-                                  alert(`Added ${product.name} to cart!`);
+                                  toast.success(`Added ${product.name} to cart!`);
                                 }}
                                 className="w-10 h-10 rounded-full bg-emerald-50 text-emerald-700 flex items-center justify-center hover:bg-emerald-600 hover:text-white transition-colors"
                              >
@@ -759,7 +760,7 @@ export default function Home() {
 
                   <button 
                     onClick={() => {
-                      alert(`Added ${qty}x ${selectedProduct.name} (${selectedSize}) to your cart!`);
+                      toast.success(`Added ${qty}x ${selectedProduct.name} (${selectedSize}) to your cart!`);
                       setSelectedProduct(null);
                       setQty(1);
                       setSelectedSize("250g");
