@@ -311,15 +311,18 @@ export default function Home() {
           animate={{ y: 0 }}
           className={`fixed top-4 left-1/2 -translate-x-1/2 z-50 w-[95%] max-w-6xl rounded-full px-6 py-3 flex items-center justify-between transition-all duration-500 ${isScrolled ? "bg-white/90 backdrop-blur-xl shadow-lg border border-white/50" : "bg-white/50 backdrop-blur-md border border-white/20 shadow-sm"}`}
         >
-          <div className="flex items-center gap-2 cursor-pointer" onClick={() => scrollTo("#home")}>
-            <img src="/logo.webp" alt="Mishi" className="h-8 md:h-10 w-auto object-contain" />
+          <div className="flex items-center gap-2 cursor-pointer">
+            <Link href="/">
+              <img src="/logo.webp" alt="Mishi" className="h-8 md:h-10 w-auto object-contain" />
+            </Link>
           </div>
           
           <div className={`hidden md:flex gap-8 text-xs uppercase tracking-widest font-semibold text-neutral-800`}>
-             <button onClick={() => scrollTo("#home")} className="hover:text-emerald-600 transition-colors">Home</button>
-             <button onClick={() => scrollTo("#about")} className="hover:text-emerald-600 transition-colors">Heritage</button>
-             <button onClick={() => scrollTo("#products")} className="hover:text-emerald-600 transition-colors">Collection</button>
-          </div>
+           <Link href="/" className="hover:text-emerald-600 transition-colors">Home</Link>
+           <Link href="/#about" className="hover:text-emerald-600 transition-colors">Heritage</Link>
+           <Link href="/#products" className="hover:text-emerald-600 transition-colors">Collection</Link>
+           <Link href="/products" className="hover:text-emerald-600 transition-colors">Products</Link>
+        </div>
 
           <div className={`flex gap-4 items-center text-neutral-800`}>
             <Link href="/profile" className="p-2 hover:bg-emerald-500/10 rounded-full transition-colors"><User size={18} /></Link>

@@ -87,67 +87,32 @@ export default function ProductsPage() {
   return (
     <div className="bg-zinc-50 min-h-screen font-sans selection:bg-amber-600/30 selection:text-amber-900 overflow-x-hidden">
       {/* Navbar */}
-      <nav
-        className={`fixed top-0 left-0 right-0 z-50 p-4 px-6 md:px-12 grid grid-cols-2 md:grid-cols-3 items-center transition-all duration-500 ${
-          isScrolled
-            ? "bg-white/90 backdrop-blur-md shadow-sm border-b border-zinc-200/50 py-3 text-zinc-900"
-            : "bg-transparent py-6 text-zinc-900"
-        }`}
+      <motion.nav
+        initial={{ y: -100 }}
+        animate={{ y: 0 }}
+        className={`fixed top-4 left-1/2 -translate-x-1/2 z-50 w-[95%] max-w-6xl rounded-full px-6 py-3 flex items-center justify-between transition-all duration-500 ${isScrolled ? "bg-white/90 backdrop-blur-xl shadow-lg border border-white/50" : "bg-white/50 backdrop-blur-md border border-white/20 shadow-sm"}`}
       >
-        {/* Left Links */}
-        <div className="hidden md:flex gap-8 text-sm uppercase tracking-widest font-semibold justify-start">
-          <Link
-            href="/"
-            className="transition-colors hover:text-amber-600"
-          >
-            Home
-          </Link>
-          <Link
-            href="/#about"
-            className="transition-colors hover:text-amber-600"
-          >
-            About
-          </Link>
-          <Link
-            href="/#exports"
-            className="transition-colors hover:text-amber-600"
-          >
-            Exports
-          </Link>
-        </div>
-
-        {/* Center Logo */}
-        <div className="flex justify-start md:justify-center">
+        <div className="flex items-center gap-2 cursor-pointer">
           <Link href="/">
-            <div className="transition-all duration-300 bg-white/90 p-1.5 px-3 rounded-xl shadow-lg backdrop-blur-md cursor-pointer">
-              <img
-                src="/logo.webp"
-                alt="Mishi Pooja Products"
-                className="h-8 md:h-12 w-auto object-contain"
-              />
-            </div>
+            <img src="/logo.webp" alt="Mishi" className="h-8 md:h-10 w-auto object-contain" />
           </Link>
+        </div>
+        
+        <div className={`hidden md:flex gap-8 text-xs uppercase tracking-widest font-semibold text-neutral-800`}>
+           <Link href="/" className="hover:text-emerald-600 transition-colors">Home</Link>
+           <Link href="/#about" className="hover:text-emerald-600 transition-colors">Heritage</Link>
+           <Link href="/#products" className="hover:text-emerald-600 transition-colors">Collection</Link>
+           <Link href="/products" className="hover:text-emerald-600 transition-colors">Products</Link>
         </div>
 
-        {/* Right Links & Button */}
-        <div className="flex gap-6 md:gap-8 text-sm uppercase tracking-widest font-semibold justify-end items-center">
-          <Link
-            href="/products"
-            className="hidden md:block transition-colors hover:text-amber-600 text-amber-600 border-b border-amber-600 pb-0.5"
-          >
-            Products
-          </Link>
-          <Link href="/profile" className="transition-colors hover:text-amber-600">
-            <User size={20} />
-          </Link>
-          <Link href="/cart" className="transition-colors relative hover:text-amber-600">
-            <ShoppingCart size={20} />
-            <span className="absolute -top-2 -right-2 bg-amber-600 text-white text-[10px] w-4 h-4 flex items-center justify-center rounded-full font-bold">
-              2
-            </span>
+        <div className={`flex gap-4 items-center text-neutral-800`}>
+          <Link href="/profile" className="p-2 hover:bg-emerald-500/10 rounded-full transition-colors"><User size={18} /></Link>
+          <Link href="/cart" className="p-2 hover:bg-emerald-500/10 rounded-full transition-colors relative">
+             <ShoppingCart size={18} />
+             <span className="absolute top-0 right-0 w-2 h-2 bg-emerald-600 rounded-full"></span>
           </Link>
         </div>
-      </nav>
+      </motion.nav>
 
       {/* Hero Header */}
       <section className="pt-40 pb-20 px-6 md:px-16 bg-white border-b border-zinc-200">
