@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { 
   BarChart, Bar, XAxis, Tooltip as RechartsTooltip, ResponsiveContainer, Cell, LabelList
 } from 'recharts';
@@ -11,91 +11,10 @@ import {
   X
 } from 'lucide-react';
 import { useAdmin } from '../AdminContext';
-
-// --- MOCK DATA SOURCE ---
-const mockAnalytics = {
-  overview: {
-    totalRevenue: 7891.5,
-    completedBills: 15,
-    offlineBillsAmount: 4502,
-    onlineBillsAmount: 3389.5,
-    totalOfflineBills: 13,
-    totalOnlineBills: 2,
-    totalItemsSold: 26,
-    avgOrderValue: 526,
-    topProductName: "Face Pack & Bath Powder",
-    topProductRevenue: 2910,
-    topProductQty: 11,
-    topProductShare: 32.0,
-  },
-  today: {
-    revenue: 1250,
-    bills: 3,
-    itemsSold: 5,
-    avgOrderValue: 416.6,
-    channelSplit: {
-      offline: 850,
-      offlinePercentage: 68,
-      online: 400,
-      onlinePercentage: 32
-    },
-    transactions: [
-      { id: 'INV-2026-TODAY1', customer: '9876543210', source: 'Offline', items: 2, total: 850 },
-      { id: 'INV-2026-TODAY2', customer: '9123456789', source: 'Online', items: 3, total: 400 },
-    ],
-    topItems: [
-      { name: 'Bath powder', qty: 2, total: 850 },
-      { name: 'Health Mix', qty: 3, total: 400 }
-    ]
-  },
-  yearData: [
-    { name: 'JAN', value: 1200 }, { name: 'FEB', value: 2100 }, { name: 'MAR', value: 800 },
-    { name: 'APR', value: 1500 }, { name: 'MAY', value: 3200 }, 
-    { name: 'JUN', value: 5000, isMax: false }, 
-    { name: 'JUL', value: 7891.5, isMax: true }, 
-    { name: 'AUG', value: 0 }, { name: 'SEP', value: 0 },
-    { name: 'OCT', value: 0 }, { name: 'NOV', value: 0 }, { name: 'DEC', value: 0 }
-  ],
-  weekData: [
-    { name: 'MON', value: 500 }, { name: 'TUE', value: 850 }, 
-    { name: 'WED', value: 1200 }, { name: 'THU', value: 400 }, 
-    { name: 'FRI', value: 2100 }, { name: 'SAT', value: 3500 },
-    { name: 'SUN', value: 4200 }
-  ],
-  topItemsRevenue: [
-    { name: 'Bath powder', revenue: 3666, pcs: 3, percentage: 80 },
-    { name: 'Face Pack & Bath Powder', revenue: 2910, pcs: 11, percentage: 65 },
-    { name: 'Herbal Shikakai Powder (Bio Hair Wash)', revenue: 1860, pcs: 8, percentage: 40 },
-  ],
-  productLeaderboard: [
-    { rank: 1, name: 'Bath powder', qty: 3, revenue: 3666, share: 40.4 },
-    { rank: 2, name: 'Face Pack & Bath Powder', qty: 11, revenue: 2910, share: 32.0 },
-    { rank: 3, name: 'Herbal Shikakai Powder (Bio Hair Wash)', qty: 8, revenue: 1860, share: 20.5 },
-    { rank: 4, name: 'Multi Millet Health Mix', qty: 2, revenue: 400, share: 4.4 },
-    { rank: 5, name: 'Health Mix', qty: 2, revenue: 246, share: 2.7 },
-  ],
-  coupons: {
-    summary: {
-      totalDiscounts: 1364.5,
-      discountedOrders: 9,
-      avgDiscount: 152
-    },
-    transactions: [
-      { id: 'INV-2026-RFZ9FOB', customer: 'Priya Sharma', total: 640, discount: 40 },
-      { id: 'INV-2026-3XQLH2Q', customer: 'Rahul Kumar', total: 1035, discount: 115 },
-      { id: 'INV-2026-YFPHHA4', customer: 'Sneha Patel', total: 225, discount: 25 },
-      { id: 'INV-2026-00007', customer: 'Amit Singh', total: 1260, discount: 100 },
-      { id: 'INV-2026-00006', customer: 'Neha Gupta', total: 1244, discount: 50 },
-      { id: 'INV-2026-00004', customer: 'Vikram Desai', total: 756, discount: 84 },
-      { id: 'INV-2026-00003', customer: 'Kavita Reddy', total: 1218, discount: 122 },
-      { id: 'INV-2026-00002', customer: 'Suresh Menon', total: 2749.5, discount: 916.5 },
-      { id: 'INV-2026-00001', customer: 'Anita Bose', total: 1234, discount: 112 },
-    ]
-  }
-};
+import { Order } from '@/lib/db';
 
 export default function AnalyticsPage() {
-  const { orders } = useAdmin();
+  const { orders, refreshData, loading } = useAdmin();
   
   const [period, setPeriod] = useState('All Time');
   const [activeTab, setActiveTab] = useState('REVENUE');
@@ -106,75 +25,186 @@ export default function AnalyticsPage() {
   const [showProductModal, setShowProductModal] = useState(false);
   const [refreshKey, setRefreshKey] = useState(0);
 
-  const themeColor = '#E75F24'; 
+  const themeColor = '#dc2626'; // Match Mishi Red
 
-  // --- DYNAMIC DATES ---
-  const currentYear = new Date().getFullYear();
-  const currentWeek = React.useMemo(() => {
-    const d = new Date();
-    d.setUTCHours(0, 0, 0, 0);
-    d.setUTCDate(d.getUTCDate() + 4 - (d.getUTCDay() || 7));
-    const yearStart = new Date(Date.UTC(d.getUTCFullYear(), 0, 1));
-    return Math.ceil((((d.getTime() - yearStart.getTime()) / 86400000) + 1) / 7);
-  }, []);
+  const handleRefresh = async () => {
+    setIsRefreshing(true);
+    await refreshData();
+    setRefreshKey(prev => prev + 1);
+    setIsRefreshing(false);
+  };
 
-  // --- DYNAMIC CALCULATIONS ---
-  const dynamicOverview = React.useMemo(() => {
+  // 1. Filter orders based on the selected period
+  const filteredOrders = useMemo(() => {
+    const now = new Date();
+    return orders.filter(order => {
+      if (!order.createdAt) return false;
+      const orderDate = new Date(order.createdAt);
+
+      if (period === 'Today') {
+        return orderDate.toDateString() === now.toDateString();
+      }
+      if (period === 'This Week') {
+        const oneWeekAgo = new Date();
+        oneWeekAgo.setDate(now.getDate() - 7);
+        return orderDate >= oneWeekAgo;
+      }
+      if (period === 'This Month') {
+        return orderDate.getMonth() === now.getMonth() && orderDate.getFullYear() === now.getFullYear();
+      }
+      if (period === 'This Year') {
+        return orderDate.getFullYear() === now.getFullYear();
+      }
+      if (period === 'Custom' && customFrom && customTo) {
+        const from = new Date(customFrom);
+        const to = new Date(customTo);
+        to.setHours(23, 59, 59, 999);
+        return orderDate >= from && orderDate <= to;
+      }
+      return true; // 'All Time'
+    });
+  }, [orders, period, customFrom, customTo]);
+
+  // 2. Compute dynamic metrics and leaderboard
+  const stats = useMemo(() => {
     let totalRevenue = 0;
-    let offlineBillsAmount = 0;
-    let onlineBillsAmount = 0;
+    let offlineRevenue = 0;
+    let onlineRevenue = 0;
     let totalOfflineBills = 0;
     let totalOnlineBills = 0;
     let totalItemsSold = 0;
+    
+    // Product aggregation: { [name]: { qty, revenue } }
+    const productStats: Record<string, { name: string; qty: number; revenue: number }> = {};
+    
+    // Coupon aggregation
+    let totalCouponDiscounts = 0;
+    let couponOrdersCount = 0;
+    const couponTxList: Array<{ id: string; customer: string; total: number; discount: number }> = [];
 
-    orders.forEach(order => {
-      totalRevenue += order.total_amount;
+    filteredOrders.forEach(order => {
+      totalRevenue += order.totalPrice;
       totalItemsSold += order.items.reduce((sum, item) => sum + item.quantity, 0);
-      if (order.source === 'Offline') {
-        offlineBillsAmount += order.total_amount;
+
+      if (order.source === 'OFFLINE') {
+        offlineRevenue += order.totalPrice;
         totalOfflineBills++;
       } else {
-        onlineBillsAmount += order.total_amount;
+        onlineRevenue += order.totalPrice;
         totalOnlineBills++;
+      }
+
+      // Aggregate products
+      order.items.forEach(item => {
+        if (!productStats[item.name]) {
+          productStats[item.name] = { name: item.name, qty: 0, revenue: 0 };
+        }
+        productStats[item.name].qty += item.quantity;
+        productStats[item.name].revenue += item.price * item.quantity;
+      });
+
+      // Aggregate coupons
+      if (order.couponCode && order.couponDiscount > 0) {
+        totalCouponDiscounts += order.couponDiscount;
+        couponOrdersCount++;
+        couponTxList.push({
+          id: order.id,
+          customer: order.customerName,
+          total: order.totalPrice,
+          discount: order.couponDiscount
+        });
       }
     });
 
+    // Format Product Leaderboard sorted by revenue descending
+    const leaderboard = Object.values(productStats).sort((a, b) => b.revenue - a.revenue);
+    const topProduct = leaderboard[0] || { name: 'None', qty: 0, revenue: 0 };
+    const leaderboardWithShare = leaderboard.map((prod, idx) => ({
+      rank: idx + 1,
+      name: prod.name,
+      qty: prod.qty,
+      revenue: prod.revenue,
+      share: totalRevenue > 0 ? Math.round((prod.revenue / totalRevenue) * 100) : 0
+    }));
+
     return {
       totalRevenue,
-      completedBills: orders.length,
-      offlineBillsAmount,
-      onlineBillsAmount,
+      completedBills: filteredOrders.length,
+      offlineRevenue,
+      onlineRevenue,
       totalOfflineBills,
       totalOnlineBills,
       totalItemsSold,
-      avgOrderValue: orders.length ? Math.round(totalRevenue / orders.length) : 0,
-      topProductName: "Face Pack & Bath Powder", // Keeping static for visual consistency in modal
-      topProductRevenue: 2910,
-      topProductQty: 11,
-      topProductShare: 32.0,
+      avgOrderValue: filteredOrders.length ? Math.round(totalRevenue / filteredOrders.length) : 0,
+      leaderboard: leaderboardWithShare,
+      topProduct: {
+        name: topProduct.name,
+        revenue: topProduct.revenue,
+        qty: topProduct.qty,
+        share: totalRevenue > 0 ? (topProduct.revenue / totalRevenue) * 100 : 0
+      },
+      coupons: {
+        totalDiscounts: totalCouponDiscounts,
+        discountedOrders: couponOrdersCount,
+        avgDiscount: couponOrdersCount ? Math.round(totalCouponDiscounts / couponOrdersCount) : 0,
+        transactions: couponTxList
+      }
     };
+  }, [filteredOrders]);
+
+  // 3. Compute yearly chart data (Revenue by month)
+  const yearlyChartData = useMemo(() => {
+    const months = ['JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN', 'JUL', 'AUG', 'SEP', 'OCT', 'NOV', 'DEC'];
+    const monthlyValues = Array(12).fill(0);
+    const currentYear = new Date().getFullYear();
+
+    orders.forEach(order => {
+      if (!order.createdAt) return;
+      const date = new Date(order.createdAt);
+      if (date.getFullYear() === currentYear) {
+        monthlyValues[date.getMonth()] += order.totalPrice;
+      }
+    });
+
+    const maxVal = Math.max(...monthlyValues, 1);
+
+    return months.map((name, index) => ({
+      name,
+      value: monthlyValues[index],
+      isMax: monthlyValues[index] === maxVal && monthlyValues[index] > 0
+    }));
   }, [orders]);
 
-  const handleRefresh = () => {
-    setIsRefreshing(true);
-    setTimeout(() => {
-      setRefreshKey(prev => prev + 1);
-      setIsRefreshing(false);
-    }, 800);
-  };
+  // 4. Compute weekly chart data (Revenue by day of week)
+  const weeklyChartData = useMemo(() => {
+    const days = ['MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT', 'SUN'];
+    const dailyValues = Array(7).fill(0);
+    const now = new Date();
+    
+    // Get date of Monday of current week
+    const day = now.getDay();
+    const diff = now.getDate() - day + (day === 0 ? -6 : 1);
+    const monday = new Date(now.setDate(diff));
+    monday.setHours(0,0,0,0);
 
-  const renderCustomBarLabel = (props: any) => {
-    const { x, y, width, value, index } = props;
-    if (mockAnalytics.yearData[index].isMax) {
-      return (
-        <text x={x + width / 2} y={y - 10} fill={themeColor} textAnchor="middle" fontSize="10" fontWeight="bold">
-          Max
-        </text>
-      );
-    }
-    return null;
-  };
+    orders.forEach(order => {
+      if (!order.createdAt) return;
+      const date = new Date(order.createdAt);
+      if (date >= monday) {
+        // Javascript day is 0-6 (Sun-Sat). Map to Mon-Sun (0-6)
+        let mappedDayIndex = date.getDay() - 1;
+        if (mappedDayIndex === -1) mappedDayIndex = 6; // Sunday
+        dailyValues[mappedDayIndex] += order.totalPrice;
+      }
+    });
 
+    return days.map((name, index) => ({
+      name,
+      value: dailyValues[index]
+    }));
+  }, [orders]);
+
+  // Render sub-tabs helper
   const renderRevenueTab = () => (
     <div className="space-y-4 animate-in fade-in duration-300">
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
@@ -184,8 +214,8 @@ export default function AnalyticsPage() {
             <div className="p-1.5 bg-emerald-50 rounded-lg text-emerald-500"><Banknote size={14} /></div>
           </div>
           <div>
-            <h3 className="text-xl font-black text-slate-900">₹{dynamicOverview.totalRevenue.toLocaleString('en-IN')}</h3>
-            <p className="text-[10px] text-slate-400 mt-1 font-medium">POS + manual combined</p>
+            <h3 className="text-xl font-black text-slate-900">₹{stats.totalRevenue.toLocaleString('en-IN')}</h3>
+            <p className="text-[10px] text-slate-400 mt-1 font-medium">Selected period sales</p>
           </div>
         </div>
 
@@ -195,30 +225,30 @@ export default function AnalyticsPage() {
             <div className="p-1.5 bg-green-50 rounded-lg text-green-500"><CheckCircle2 size={14} /></div>
           </div>
           <div>
-            <h3 className="text-xl font-black text-slate-900">{dynamicOverview.completedBills}</h3>
+            <h3 className="text-xl font-black text-slate-900">{stats.completedBills}</h3>
             <p className="text-[10px] text-slate-400 mt-1 font-medium">POS + manual bills</p>
           </div>
         </div>
 
         <div className="bg-white rounded-xl border border-slate-100 shadow-sm p-5 flex flex-col justify-between h-[110px]">
           <div className="flex justify-between items-start">
-            <span className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Offline Bills</span>
+            <span className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Offline Sales</span>
             <div className="p-1.5 bg-blue-50 rounded-lg text-blue-500"><Store size={14} /></div>
           </div>
           <div>
-            <h3 className="text-xl font-black text-slate-900">₹{dynamicOverview.offlineBillsAmount.toLocaleString('en-IN')}</h3>
-            <p className="text-[10px] text-slate-400 mt-1 font-medium">Walk-in POS sales</p>
+            <h3 className="text-xl font-black text-slate-900">₹{stats.offlineRevenue.toLocaleString('en-IN')}</h3>
+            <p className="text-[10px] text-slate-400 mt-1 font-medium">POS walk-in channel</p>
           </div>
         </div>
 
         <div className="bg-white rounded-xl border border-slate-100 shadow-sm p-5 flex flex-col justify-between h-[110px]">
           <div className="flex justify-between items-start">
-            <span className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Online Bills</span>
+            <span className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Online Sales</span>
             <div className="p-1.5 bg-purple-50 rounded-lg text-purple-500"><Globe size={14} /></div>
           </div>
           <div>
-            <h3 className="text-xl font-black text-slate-900">₹{dynamicOverview.onlineBillsAmount.toLocaleString('en-IN')}</h3>
-            <p className="text-[10px] text-slate-400 mt-1 font-medium">Online POS sales</p>
+            <h3 className="text-xl font-black text-slate-900">₹{stats.onlineRevenue.toLocaleString('en-IN')}</h3>
+            <p className="text-[10px] text-slate-400 mt-1 font-medium">Storefront WhatsApp orders</p>
           </div>
         </div>
       </div>
@@ -226,34 +256,34 @@ export default function AnalyticsPage() {
       <div className="grid grid-cols-2 lg:grid-cols-5 gap-4">
         <div className="bg-white rounded-xl border border-slate-100 shadow-sm p-5 flex flex-col justify-between h-[110px]">
           <div className="flex justify-between items-start">
-            <span className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Total Offline Bills</span>
+            <span className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Offline Count</span>
             <div className="p-1.5 bg-red-50 rounded-lg text-red-500"><ShoppingBag size={14} /></div>
           </div>
           <div>
-            <h3 className="text-xl font-black text-slate-900">{dynamicOverview.totalOfflineBills}</h3>
+            <h3 className="text-xl font-black text-slate-900">{stats.totalOfflineBills}</h3>
             <p className="text-[10px] text-slate-400 mt-1 font-medium">Walk-in POS orders</p>
           </div>
         </div>
 
         <div className="bg-white rounded-xl border border-slate-100 shadow-sm p-5 flex flex-col justify-between h-[110px]">
           <div className="flex justify-between items-start">
-            <span className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Total Online Bills</span>
+            <span className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Online Count</span>
             <div className="p-1.5 bg-indigo-50 rounded-lg text-indigo-500"><Globe size={14} /></div>
           </div>
           <div>
-            <h3 className="text-xl font-black text-slate-900">{dynamicOverview.totalOnlineBills}</h3>
-            <p className="text-[10px] text-slate-400 mt-1 font-medium">Online channel orders</p>
+            <h3 className="text-xl font-black text-slate-900">{stats.totalOnlineBills}</h3>
+            <p className="text-[10px] text-slate-400 mt-1 font-medium">Online orders processed</p>
           </div>
         </div>
 
         <div className="bg-white rounded-xl border border-slate-100 shadow-sm p-5 flex flex-col justify-between h-[110px]">
           <div className="flex justify-between items-start">
-            <span className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Total Items Sold</span>
+            <span className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Items Sold</span>
             <div className="p-1.5 bg-fuchsia-50 rounded-lg text-fuchsia-500"><Package size={14} /></div>
           </div>
           <div>
-            <h3 className="text-xl font-black text-slate-900">{dynamicOverview.totalItemsSold}</h3>
-            <p className="text-[10px] text-slate-400 mt-1 font-medium">From completed bills</p>
+            <h3 className="text-xl font-black text-slate-900">{stats.totalItemsSold} pcs</h3>
+            <p className="text-[10px] text-slate-400 mt-1 font-medium">From completed invoices</p>
           </div>
         </div>
 
@@ -263,8 +293,8 @@ export default function AnalyticsPage() {
             <div className="p-1.5 bg-orange-50 rounded-lg text-orange-500"><TrendingUp size={14} /></div>
           </div>
           <div>
-            <h3 className="text-xl font-black text-slate-900">₹{dynamicOverview.avgOrderValue.toLocaleString('en-IN')}</h3>
-            <p className="text-[10px] text-slate-400 mt-1 font-medium">Per completed order</p>
+            <h3 className="text-xl font-black text-slate-900">₹{stats.avgOrderValue.toLocaleString('en-IN')}</h3>
+            <p className="text-[10px] text-slate-400 mt-1 font-medium">Per invoice checkout</p>
           </div>
         </div>
 
@@ -277,8 +307,8 @@ export default function AnalyticsPage() {
             <div className="p-1.5 bg-pink-50 rounded-lg text-pink-500"><Award size={14} /></div>
           </div>
           <div>
-            <h3 className="text-sm font-black text-slate-900 truncate">{mockAnalytics.overview.topProductName.length > 15 ? mockAnalytics.overview.topProductName.substring(0, 15) + '...' : mockAnalytics.overview.topProductName}</h3>
-            <p className="text-[10px] text-slate-400 mt-1 font-medium">Most sold item (Click to view)</p>
+            <h3 className="text-sm font-black text-slate-900 truncate">{stats.topProduct.name}</h3>
+            <p className="text-[10px] text-slate-400 mt-1 font-medium">Click to view share metrics</p>
           </div>
         </div>
       </div>
@@ -286,23 +316,22 @@ export default function AnalyticsPage() {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <div className="lg:col-span-2 bg-white rounded-2xl p-6 border border-slate-100 shadow-sm">
           <div className="flex items-baseline gap-3 mb-6">
-            <h2 className="text-xs font-bold text-slate-800 uppercase tracking-widest">Revenue Trend This Year <span style={{color: themeColor}}>{currentYear}</span></h2>
+            <h2 className="text-xs font-bold text-slate-800 uppercase tracking-widest">Revenue Trend This Year ({new Date().getFullYear()})</h2>
           </div>
           <div className="flex items-baseline gap-3 mb-8">
-            <span className="text-2xl font-black text-slate-900">₹{mockAnalytics.overview.totalRevenue.toLocaleString('en-IN')}</span>
-            <span className="text-[10px] font-bold" style={{color: themeColor}}>Avg ₹658/mo</span>
+            <span className="text-2xl font-black text-slate-900">₹{stats.totalRevenue.toLocaleString('en-IN')}</span>
+            <span className="text-[10px] font-bold text-red-600">Calculated from dynamic orders</span>
           </div>
           
           <div className="w-full h-[250px] overflow-hidden">
             <ResponsiveContainer width="100%" height="100%" key={`year-${refreshKey}`}>
-              <BarChart data={mockAnalytics.yearData} margin={{ top: 20, right: 10, bottom: 0, left: 10 }}>
+              <BarChart data={yearlyChartData} margin={{ top: 20, right: 10, bottom: 0, left: 10 }}>
                 <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fontSize: 10, fill: '#64748b', fontWeight: 600 }} dy={10} />
                 <RechartsTooltip cursor={false} contentStyle={{ borderRadius: '8px', border: '1px solid #e2e8f0', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }} />
                 <Bar dataKey="value" radius={[6, 6, 6, 6]} barSize={24} activeBar={false}>
-                  {mockAnalytics.yearData.map((entry, index) => (
-                    <Cell key={`cell-${index}`} fill={entry.isMax ? '#6D1A36' : '#FDE8E8'} />
+                  {yearlyChartData.map((entry, index) => (
+                    <Cell key={`cell-${index}`} fill={entry.isMax ? '#dc2626' : '#fee2e2'} />
                   ))}
-                  <LabelList dataKey="value" content={renderCustomBarLabel} />
                 </Bar>
               </BarChart>
             </ResponsiveContainer>
@@ -311,24 +340,24 @@ export default function AnalyticsPage() {
 
         <div className="space-y-6">
           <div className="bg-white rounded-2xl p-6 border border-slate-100 shadow-sm">
-            <h2 className="text-xs font-bold text-slate-800 uppercase tracking-widest mb-6">Order Source</h2>
+            <h2 className="text-xs font-bold text-slate-800 uppercase tracking-widest mb-6">Order Channel split</h2>
             <div className="space-y-4">
               <div>
                 <div className="flex justify-between text-xs font-bold mb-2">
-                  <span className="uppercase text-red-600">Offline</span>
-                  <span className="text-slate-700">{mockAnalytics.overview.totalOfflineBills}</span>
+                  <span className="uppercase text-red-600">Offline (POS)</span>
+                  <span className="text-slate-700">{stats.totalOfflineBills}</span>
                 </div>
                 <div className="w-full bg-slate-100 rounded-full h-1.5">
-                  <div className="bg-red-600 h-1.5 rounded-full" style={{ width: '85%' }}></div>
+                  <div className="bg-red-600 h-1.5 rounded-full" style={{ width: `${stats.completedBills > 0 ? (stats.totalOfflineBills / stats.completedBills) * 100 : 0}%` }}></div>
                 </div>
               </div>
               <div>
                 <div className="flex justify-between text-xs font-bold mb-2">
                   <span className="uppercase text-green-600">Online</span>
-                  <span className="text-slate-700">{mockAnalytics.overview.totalOnlineBills}</span>
+                  <span className="text-slate-700">{stats.totalOnlineBills}</span>
                 </div>
                 <div className="w-full bg-slate-100 rounded-full h-1.5">
-                  <div className="bg-green-600 h-1.5 rounded-full" style={{ width: '15%' }}></div>
+                  <div className="bg-green-600 h-1.5 rounded-full" style={{ width: `${stats.completedBills > 0 ? (stats.totalOnlineBills / stats.completedBills) * 100 : 0}%` }}></div>
                 </div>
               </div>
             </div>
@@ -337,39 +366,42 @@ export default function AnalyticsPage() {
           <div className="bg-white rounded-2xl p-6 border border-slate-100 shadow-sm">
             <h2 className="text-xs font-bold text-slate-800 uppercase tracking-widest mb-6">Top Items By Revenue</h2>
             <div className="space-y-5">
-              {mockAnalytics.topItemsRevenue.map((item, index) => (
+              {stats.leaderboard.slice(0, 3).map((item, index) => (
                 <div key={index}>
                   <div className="flex justify-between items-start text-xs font-bold mb-2">
                     <span className="text-slate-700 flex gap-2">
                       <span className="text-slate-400">{index + 1}</span> {item.name.length > 20 ? item.name.substring(0, 17) + '...' : item.name}
                     </span>
                     <span className="text-slate-900">
-                      ₹{item.revenue.toLocaleString('en-IN')} <span className="text-[10px] text-slate-400 font-medium ml-1">{item.pcs} pcs</span>
+                      ₹{item.revenue.toLocaleString('en-IN')} <span className="text-[10px] text-slate-400 font-medium ml-1">{item.qty} pcs</span>
                     </span>
                   </div>
                   <div className="w-full bg-slate-100 rounded-full h-1">
-                    <div className="h-1 rounded-full" style={{ width: `${item.percentage}%`, backgroundColor: themeColor }}></div>
+                    <div className="h-1 rounded-full" style={{ width: `${item.share}%`, backgroundColor: themeColor }}></div>
                   </div>
                 </div>
               ))}
+              {stats.leaderboard.length === 0 && (
+                <p className="text-xs text-slate-400 italic">No products sold in this period.</p>
+              )}
             </div>
           </div>
         </div>
 
         <div className="lg:col-span-2 bg-white rounded-2xl p-6 border border-slate-100 shadow-sm">
           <div className="flex items-baseline gap-3 mb-1">
-            <h2 className="text-xs font-bold text-slate-800 uppercase tracking-widest">Revenue This Week <span style={{color: themeColor}}>(WEEK {currentWeek} OF {currentYear})</span></h2>
+            <h2 className="text-xs font-bold text-slate-800 uppercase tracking-widest">Revenue This Week (Mon-Sun)</h2>
           </div>
-          <div className="text-xs text-slate-500 mb-6">₹12,550 total</div>
+          <div className="text-xs text-slate-500 mb-6">Weekly trends computed dynamically</div>
           
           <div className="w-full h-[250px] overflow-hidden">
             <ResponsiveContainer width="100%" height="100%" key={`week-${refreshKey}`}>
-              <BarChart data={mockAnalytics.weekData} margin={{ top: 20, right: 10, bottom: 0, left: 10 }}>
+              <BarChart data={weeklyChartData} margin={{ top: 20, right: 10, bottom: 0, left: 10 }}>
                 <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fontSize: 10, fill: '#64748b', fontWeight: 600 }} dy={10} />
                 <RechartsTooltip cursor={false} contentStyle={{ borderRadius: '8px', border: '1px solid #e2e8f0', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }} />
                 <Bar dataKey="value" radius={[6, 6, 6, 6]} barSize={24} activeBar={false}>
-                  {mockAnalytics.weekData.map((entry, index) => (
-                    <Cell key={`cell-${index}`} fill="#9f1239" />
+                  {weeklyChartData.map((entry, index) => (
+                    <Cell key={`cell-${index}`} fill="#dc2626" />
                   ))}
                 </Bar>
               </BarChart>
@@ -380,137 +412,173 @@ export default function AnalyticsPage() {
     </div>
   );
 
-  const renderTodaySalesTab = () => (
-    <div className="space-y-4 animate-in fade-in duration-300">
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-        <div className="bg-white rounded-xl border border-slate-100 shadow-sm p-5 flex flex-col justify-between h-[110px]">
-          <div className="flex justify-between items-start">
-            <span className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Today's Revenue</span>
-            <div className="p-1.5 bg-emerald-50 rounded-lg text-emerald-500"><Banknote size={14} /></div>
-          </div>
-          <div>
-            <h3 className="text-xl font-black text-slate-900">₹{mockAnalytics.today.revenue.toLocaleString('en-IN')}</h3>
-            <p className="text-[10px] text-slate-400 mt-1 font-medium">Completed today</p>
-          </div>
-        </div>
-        <div className="bg-white rounded-xl border border-slate-100 shadow-sm p-5 flex flex-col justify-between h-[110px]">
-          <div className="flex justify-between items-start">
-            <span className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Today's Bills</span>
-            <div className="p-1.5 bg-blue-50 rounded-lg text-blue-500"><CheckCircle2 size={14} /></div>
-          </div>
-          <div>
-            <h3 className="text-xl font-black text-slate-900">{mockAnalytics.today.bills}</h3>
-            <p className="text-[10px] text-slate-400 mt-1 font-medium">Completed today</p>
-          </div>
-        </div>
-        <div className="bg-white rounded-xl border border-slate-100 shadow-sm p-5 flex flex-col justify-between h-[110px]">
-          <div className="flex justify-between items-start">
-            <span className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Today's Items Sold</span>
-            <div className="p-1.5 bg-purple-50 rounded-lg text-purple-500"><Package size={14} /></div>
-          </div>
-          <div>
-            <h3 className="text-xl font-black text-slate-900">{mockAnalytics.today.itemsSold} pcs</h3>
-            <p className="text-[10px] text-slate-400 mt-1 font-medium">Quantity sold today</p>
-          </div>
-        </div>
-        <div className="bg-white rounded-xl border border-slate-100 shadow-sm p-5 flex flex-col justify-between h-[110px]">
-          <div className="flex justify-between items-start">
-            <span className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Today's Avg Order Value</span>
-            <div className="p-1.5 bg-orange-50 rounded-lg text-orange-500"><TrendingUp size={14} /></div>
-          </div>
-          <div>
-            <h3 className="text-xl font-black text-slate-900">₹{mockAnalytics.today.avgOrderValue.toLocaleString('en-IN')}</h3>
-            <p className="text-[10px] text-slate-400 mt-1 font-medium">Per invoice today</p>
-          </div>
-        </div>
-      </div>
+  const renderTodaySalesTab = () => {
+    // Filter transactions completed today
+    const today = new Date().toDateString();
+    const todayOrders = orders.filter(o => o.createdAt && new Date(o.createdAt).toDateString() === today);
+    
+    let todayRevenue = 0;
+    let todayItemsSold = 0;
+    let todayOfflineRevenue = 0;
+    let todayOnlineRevenue = 0;
+    const todayTopItemsMap: Record<string, { name: string; qty: number; total: number }> = {};
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <div className="lg:col-span-2 bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden flex flex-col">
-          <div className="p-6 border-b border-slate-50 flex justify-between items-center">
-            <h2 className="text-xs font-bold text-slate-800 uppercase tracking-widest">Today's Transactions</h2>
-            <div className="relative w-64">
-              <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
-              <input 
-                type="text" 
-                placeholder="Search contact no..." 
-                className="w-full bg-slate-50 border border-slate-100 rounded-full pl-9 pr-4 py-1.5 text-xs focus:outline-none" 
-              />
+    todayOrders.forEach(order => {
+      todayRevenue += order.totalPrice;
+      const orderQty = order.items.reduce((sum, item) => sum + item.quantity, 0);
+      todayItemsSold += orderQty;
+
+      if (order.source === 'OFFLINE') {
+        todayOfflineRevenue += order.totalPrice;
+      } else {
+        todayOnlineRevenue += order.totalPrice;
+      }
+
+      order.items.forEach(item => {
+        if (!todayTopItemsMap[item.name]) {
+          todayTopItemsMap[item.name] = { name: item.name, qty: 0, total: 0 };
+        }
+        todayTopItemsMap[item.name].qty += item.quantity;
+        todayTopItemsMap[item.name].total += item.price * item.quantity;
+      });
+    });
+
+    const todayTopItems = Object.values(todayTopItemsMap).sort((a,b) => b.total - a.total);
+    const offlinePercent = todayRevenue > 0 ? Math.round((todayOfflineRevenue / todayRevenue) * 100) : 0;
+    const onlinePercent = todayRevenue > 0 ? Math.round((todayOnlineRevenue / todayRevenue) * 100) : 0;
+
+    return (
+      <div className="space-y-4 animate-in fade-in duration-300">
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+          <div className="bg-white rounded-xl border border-slate-100 shadow-sm p-5 flex flex-col justify-between h-[110px]">
+            <div className="flex justify-between items-start">
+              <span className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Today's Revenue</span>
+              <div className="p-1.5 bg-emerald-50 rounded-lg text-emerald-500"><Banknote size={14} /></div>
+            </div>
+            <div>
+              <h3 className="text-xl font-black text-slate-900">₹{todayRevenue.toLocaleString('en-IN')}</h3>
+              <p className="text-[10px] text-slate-400 mt-1 font-medium">Completed today</p>
             </div>
           </div>
-          <div className="overflow-x-auto w-full flex-1">
-            <table className="w-full text-left text-[10px] font-bold text-slate-500 uppercase tracking-widest min-w-[600px]">
-              <thead className="bg-slate-50 border-b border-slate-100">
-                <tr>
-                  <th className="px-6 py-3">Invoice ID</th>
-                  <th className="px-6 py-3">Customer No</th>
-                  <th className="px-6 py-3">Source</th>
-                  <th className="px-6 py-3 text-center">Items</th>
-                  <th className="px-6 py-3 text-right">Grand Total</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-slate-50 text-xs font-bold text-slate-900">
-                {mockAnalytics.today.transactions.map((tx) => (
-                  <tr key={tx.id} className="hover:bg-slate-50">
-                    <td className="px-6 py-4">{tx.id}</td>
-                    <td className="px-6 py-4 text-slate-600">{tx.customer}</td>
-                    <td className="px-6 py-4">
-                      <span className={`px-2 py-1 rounded-md text-[10px] uppercase tracking-widest ${tx.source === 'Online' ? 'bg-green-50 text-green-700' : 'bg-red-50 text-red-700'}`}>
-                        {tx.source}
-                      </span>
-                    </td>
-                    <td className="px-6 py-4 text-center">{tx.items}</td>
-                    <td className="px-6 py-4 text-right">₹{tx.total.toLocaleString('en-IN')}</td>
+          <div className="bg-white rounded-xl border border-slate-100 shadow-sm p-5 flex flex-col justify-between h-[110px]">
+            <div className="flex justify-between items-start">
+              <span className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Today's Bills</span>
+              <div className="p-1.5 bg-blue-50 rounded-lg text-blue-500"><CheckCircle2 size={14} /></div>
+            </div>
+            <div>
+              <h3 className="text-xl font-black text-slate-900">{todayOrders.length}</h3>
+              <p className="text-[10px] text-slate-400 mt-1 font-medium">POS + WhatsApp checkouts</p>
+            </div>
+          </div>
+          <div className="bg-white rounded-xl border border-slate-100 shadow-sm p-5 flex flex-col justify-between h-[110px]">
+            <div className="flex justify-between items-start">
+              <span className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Today's Items Sold</span>
+              <div className="p-1.5 bg-purple-50 rounded-lg text-purple-500"><Package size={14} /></div>
+            </div>
+            <div>
+              <h3 className="text-xl font-black text-slate-900">{todayItemsSold} pcs</h3>
+              <p className="text-[10px] text-slate-400 mt-1 font-medium">Quantity sold today</p>
+            </div>
+          </div>
+          <div className="bg-white rounded-xl border border-slate-100 shadow-sm p-5 flex flex-col justify-between h-[110px]">
+            <div className="flex justify-between items-start">
+              <span className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Today's Avg Bill</span>
+              <div className="p-1.5 bg-orange-50 rounded-lg text-orange-500"><TrendingUp size={14} /></div>
+            </div>
+            <div>
+              <h3 className="text-xl font-black text-slate-900">₹{(todayOrders.length ? Math.round(todayRevenue / todayOrders.length) : 0).toLocaleString('en-IN')}</h3>
+              <p className="text-[10px] text-slate-400 mt-1 font-medium">Per completed order</p>
+            </div>
+          </div>
+        </div>
+
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          <div className="lg:col-span-2 bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden flex flex-col">
+            <div className="p-6 border-b border-slate-50 flex justify-between items-center">
+              <h2 className="text-xs font-bold text-slate-800 uppercase tracking-widest">Today's Transactions</h2>
+            </div>
+            <div className="overflow-x-auto w-full flex-1">
+              <table className="w-full text-left text-[10px] font-bold text-slate-500 uppercase tracking-widest min-w-[600px]">
+                <thead className="bg-slate-50 border-b border-slate-100">
+                  <tr>
+                    <th className="px-6 py-3">Invoice ID</th>
+                    <th className="px-6 py-3">Customer Name</th>
+                    <th className="px-6 py-3">Source</th>
+                    <th className="px-6 py-3 text-center">Items</th>
+                    <th className="px-6 py-3 text-right">Grand Total</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </div>
-
-        <div className="space-y-6">
-          <div className="bg-white rounded-2xl p-6 border border-slate-100 shadow-sm">
-            <h2 className="text-xs font-bold text-slate-800 uppercase tracking-widest mb-6">Today's Channel Split</h2>
-            <div className="space-y-4">
-              <div>
-                <div className="flex justify-between text-xs font-bold mb-2">
-                  <span className="uppercase text-red-600">Offline</span>
-                  <span className="text-slate-900">₹{mockAnalytics.today.channelSplit.offline.toLocaleString('en-IN')}</span>
-                </div>
-                <div className="w-full bg-slate-100 rounded-full h-1.5">
-                  <div className="bg-red-600 h-1.5 rounded-full" style={{ width: `${mockAnalytics.today.channelSplit.offlinePercentage}%` }}></div>
-                </div>
-              </div>
-              <div>
-                <div className="flex justify-between text-xs font-bold mb-2">
-                  <span className="uppercase text-green-600">Online</span>
-                  <span className="text-slate-900">₹{mockAnalytics.today.channelSplit.online.toLocaleString('en-IN')}</span>
-                </div>
-                <div className="w-full bg-slate-100 rounded-full h-1.5">
-                  <div className="bg-green-600 h-1.5 rounded-full" style={{ width: `${mockAnalytics.today.channelSplit.onlinePercentage}%` }}></div>
-                </div>
-              </div>
+                </thead>
+                <tbody className="divide-y divide-slate-50 text-xs font-bold text-slate-900">
+                  {todayOrders.map((tx) => (
+                    <tr key={tx.id} className="hover:bg-slate-50">
+                      <td className="px-6 py-4">{tx.id}</td>
+                      <td className="px-6 py-4 text-slate-600">{tx.customerName}</td>
+                      <td className="px-6 py-4">
+                        <span className={`px-2 py-1 rounded-md text-[10px] uppercase tracking-widest ${tx.source === 'ONLINE' ? 'bg-green-50 text-green-700' : 'bg-red-50 text-red-700'}`}>
+                          {tx.source}
+                        </span>
+                      </td>
+                      <td className="px-6 py-4 text-center">{tx.items.reduce((a,b)=>a+b.quantity,0)}</td>
+                      <td className="px-6 py-4 text-right">₹{tx.totalPrice.toLocaleString('en-IN')}</td>
+                    </tr>
+                  ))}
+                  {todayOrders.length === 0 && (
+                    <tr>
+                      <td colSpan={5} className="px-6 py-8 text-center text-slate-400 italic">No orders completed today yet.</td>
+                    </tr>
+                  )}
+                </tbody>
+              </table>
             </div>
           </div>
 
-          <div className="bg-white rounded-2xl p-6 border border-slate-100 shadow-sm">
-            <h2 className="text-xs font-bold text-slate-800 uppercase tracking-widest mb-4">Today's Top Items</h2>
-            <div className="space-y-3">
-              {mockAnalytics.today.topItems.map((item, idx) => (
-                <div key={idx} className="flex justify-between items-center text-xs border-b border-slate-50 pb-2 last:border-0 last:pb-0">
-                  <div>
-                    <p className="font-bold text-slate-800">{item.name}</p>
-                    <p className="text-[10px] text-slate-400">{item.qty} pcs</p>
+          <div className="space-y-6">
+            <div className="bg-white rounded-2xl p-6 border border-slate-100 shadow-sm">
+              <h2 className="text-xs font-bold text-slate-800 uppercase tracking-widest mb-6">Today's Channel Split</h2>
+              <div className="space-y-4">
+                <div>
+                  <div className="flex justify-between text-xs font-bold mb-2">
+                    <span className="uppercase text-red-600">Offline</span>
+                    <span className="text-slate-900">₹{todayOfflineRevenue.toLocaleString('en-IN')} ({offlinePercent}%)</span>
                   </div>
-                  <div className="font-black text-slate-900">₹{item.total.toLocaleString('en-IN')}</div>
+                  <div className="w-full bg-slate-100 rounded-full h-1.5">
+                    <div className="bg-red-600 h-1.5 rounded-full" style={{ width: `${offlinePercent}%` }}></div>
+                  </div>
                 </div>
-              ))}
+                <div>
+                  <div className="flex justify-between text-xs font-bold mb-2">
+                    <span className="uppercase text-green-600">Online</span>
+                    <span className="text-slate-900">₹{todayOnlineRevenue.toLocaleString('en-IN')} ({onlinePercent}%)</span>
+                  </div>
+                  <div className="w-full bg-slate-100 rounded-full h-1.5">
+                    <div className="bg-green-600 h-1.5 rounded-full" style={{ width: `${onlinePercent}%` }}></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div className="bg-white rounded-2xl p-6 border border-slate-100 shadow-sm">
+              <h2 className="text-xs font-bold text-slate-800 uppercase tracking-widest mb-4">Today's Top Items</h2>
+              <div className="space-y-3">
+                {todayTopItems.slice(0, 5).map((item, idx) => (
+                  <div key={idx} className="flex justify-between items-center text-xs border-b border-slate-50 pb-2 last:border-0 last:pb-0">
+                    <div>
+                      <p className="font-bold text-slate-800">{item.name}</p>
+                      <p className="text-[10px] text-slate-400">{item.qty} pcs</p>
+                    </div>
+                    <div className="font-black text-slate-900">₹{item.total.toLocaleString('en-IN')}</div>
+                  </div>
+                ))}
+                {todayTopItems.length === 0 && (
+                  <p className="text-xs text-slate-400 italic">No products sold today.</p>
+                )}
+              </div>
             </div>
           </div>
         </div>
       </div>
-    </div>
-  );
+    );
+  };
 
   const renderProductsTab = () => (
     <div className="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden animate-in fade-in duration-300">
@@ -529,7 +597,7 @@ export default function AnalyticsPage() {
             </tr>
           </thead>
           <tbody className="divide-y divide-slate-50 text-sm font-medium text-slate-900">
-            {mockAnalytics.productLeaderboard.map((prod) => (
+            {stats.leaderboard.map((prod) => (
               <tr key={prod.rank} className="hover:bg-slate-50">
                 <td className="px-6 py-4 text-slate-500">{prod.rank}</td>
                 <td className="px-6 py-4">{prod.name}</td>
@@ -538,13 +606,18 @@ export default function AnalyticsPage() {
                 <td className="px-6 py-4">
                   <div className="flex items-center justify-end gap-3">
                     <div className="w-32 bg-slate-100 rounded-full h-1.5">
-                      <div className="h-1.5 rounded-full" style={{ width: `${prod.share}%`, backgroundColor: '#b91c1c' }}></div>
+                      <div className="h-1.5 rounded-full" style={{ width: `${prod.share}%`, backgroundColor: themeColor }}></div>
                     </div>
                     <span className="text-xs text-slate-500 w-8 text-right">{prod.share}%</span>
                   </div>
                 </td>
               </tr>
             ))}
+            {stats.leaderboard.length === 0 && (
+              <tr>
+                <td colSpan={5} className="px-6 py-8 text-center text-slate-400 italic">No products sold in this period.</td>
+              </tr>
+            )}
           </tbody>
         </table>
       </div>
@@ -560,21 +633,21 @@ export default function AnalyticsPage() {
             <div className="border border-slate-100 rounded-xl p-4 flex justify-between items-center bg-slate-50/50">
               <div>
                 <span className="block text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-1">Total Discounts Given</span>
-                <span className="text-2xl font-black text-slate-900">₹{mockAnalytics.coupons.summary.totalDiscounts.toLocaleString('en-IN')}</span>
+                <span className="text-2xl font-black text-slate-900">₹{stats.coupons.totalDiscounts.toLocaleString('en-IN')}</span>
               </div>
               <div className="p-2 bg-orange-100 text-orange-600 rounded-lg"><Percent size={16} /></div>
             </div>
             <div className="border border-slate-100 rounded-xl p-4 flex justify-between items-center bg-slate-50/50">
               <div>
                 <span className="block text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-1">Discounted Orders</span>
-                <span className="text-2xl font-black text-slate-900">{mockAnalytics.coupons.summary.discountedOrders}</span>
+                <span className="text-2xl font-black text-slate-900">{stats.coupons.discountedOrders}</span>
               </div>
               <div className="p-2 bg-yellow-100 text-yellow-600 rounded-lg"><Tag size={16} /></div>
             </div>
             <div className="border border-slate-100 rounded-xl p-4 flex justify-between items-center bg-slate-50/50">
               <div>
                 <span className="block text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-1">Avg Discount Per Order</span>
-                <span className="text-2xl font-black text-slate-900">₹{mockAnalytics.coupons.summary.avgDiscount}</span>
+                <span className="text-2xl font-black text-slate-900">₹{stats.coupons.avgDiscount.toLocaleString('en-IN')}</span>
               </div>
               <div className="p-2 bg-emerald-100 text-emerald-600 rounded-lg"><IndianRupee size={16} /></div>
             </div>
@@ -597,7 +670,7 @@ export default function AnalyticsPage() {
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-50 text-xs font-bold text-slate-900">
-              {mockAnalytics.coupons.transactions.map((tx, idx) => (
+              {stats.coupons.transactions.map((tx, idx) => (
                 <tr key={idx} className="hover:bg-slate-50">
                   <td className="px-6 py-4">{tx.id}</td>
                   <td className="px-6 py-4">{tx.customer}</td>
@@ -605,6 +678,11 @@ export default function AnalyticsPage() {
                   <td className="px-6 py-4 text-right text-red-600">-₹{tx.discount.toLocaleString('en-IN')}</td>
                 </tr>
               ))}
+              {stats.coupons.transactions.length === 0 && (
+                <tr>
+                  <td colSpan={4} className="px-6 py-8 text-center text-slate-400 italic">No coupons used in this period.</td>
+                </tr>
+              )}
             </tbody>
           </table>
         </div>
@@ -614,27 +692,15 @@ export default function AnalyticsPage() {
 
   return (
     <div className="space-y-6 max-w-[1400px] mx-auto text-slate-800 relative">
-      <style jsx global>{`
-        .recharts-wrapper, 
-        .recharts-surface, 
-        .recharts-surface:focus,
-        .recharts-responsive-container,
-        .recharts-responsive-container:focus,
-        svg, path, rect, text {
-          outline: none !important;
-          -webkit-tap-highlight-color: transparent !important;
-        }
-      `}</style>
-
       {/* Header */}
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
         <div>
-          <h1 className="text-2xl font-black text-slate-900 tracking-tight">POS Analytics</h1>
-          <p className="text-xs font-medium text-slate-500 mt-1">Real-time revenue, product performance, categories breakdown, and coupon usage</p>
+          <h1 className="text-2xl font-black text-slate-900 tracking-tight">POS & E-Commerce Analytics</h1>
+          <p className="text-xs font-medium text-slate-500 mt-1">Real-time revenue, product performance, and coupon metrics connected directly to Supabase</p>
         </div>
         <button 
           onClick={handleRefresh}
-          className={`flex items-center gap-2 px-4 py-2 bg-white border border-slate-200 hover:bg-slate-50 rounded-full text-xs font-bold transition-colors shadow-sm ${isRefreshing ? 'text-slate-400 cursor-not-allowed' : 'text-slate-700'}`}
+          className={`flex items-center gap-2 px-4 py-2 bg-white border border-slate-200 hover:bg-slate-50 rounded-full text-xs font-bold transition-colors shadow-sm cursor-pointer ${isRefreshing ? 'text-slate-400' : 'text-slate-700'}`}
           disabled={isRefreshing}
         >
           <RefreshCw size={14} className={isRefreshing ? 'animate-spin text-slate-400' : ''} /> 
@@ -676,8 +742,8 @@ export default function AnalyticsPage() {
           <button
             key={tab}
             onClick={() => setActiveTab(tab)}
-            className={`pb-3 text-xs font-bold tracking-widest uppercase border-b-2 transition-colors ${
-              activeTab === tab ? 'text-slate-900' : 'text-slate-400 border-transparent hover:text-slate-600'
+            className={`pb-3 text-xs font-bold tracking-widest uppercase border-b-2 transition-colors cursor-pointer ${
+              activeTab === tab ? 'text-slate-900 border-b-[#dc2626]' : 'text-slate-400 border-transparent hover:text-slate-600'
             }`}
             style={{ borderColor: activeTab === tab ? themeColor : 'transparent' }}
           >
@@ -687,12 +753,18 @@ export default function AnalyticsPage() {
       </div>
 
       {/* Tab Content */}
-      <div className="pt-2">
-        {activeTab === 'REVENUE' && renderRevenueTab()}
-        {activeTab === "TODAY'S SALES" && renderTodaySalesTab()}
-        {activeTab === 'PRODUCTS' && renderProductsTab()}
-        {activeTab === 'COUPONS' && renderCouponsTab()}
-      </div>
+      {loading ? (
+        <div className="flex justify-center items-center py-20 bg-white border border-slate-200 shadow-sm rounded-2xl">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#dc2626]"></div>
+        </div>
+      ) : (
+        <div className="pt-2">
+          {activeTab === 'REVENUE' && renderRevenueTab()}
+          {activeTab === "TODAY'S SALES" && renderTodaySalesTab()}
+          {activeTab === 'PRODUCTS' && renderProductsTab()}
+          {activeTab === 'COUPONS' && renderCouponsTab()}
+        </div>
+      )}
 
       {/* Top Product Modal Overlay */}
       {showProductModal && (
@@ -705,7 +777,7 @@ export default function AnalyticsPage() {
               </h3>
               <button 
                 onClick={() => setShowProductModal(false)}
-                className="text-slate-400 hover:text-slate-700 transition-colors p-1"
+                className="text-slate-400 hover:text-slate-700 transition-colors p-1 cursor-pointer"
               >
                 <X size={20} />
               </button>
@@ -713,34 +785,34 @@ export default function AnalyticsPage() {
             <div className="p-6 space-y-6">
               <div>
                 <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">Product Name</p>
-                <p className="text-lg font-black text-slate-900 leading-snug">{mockAnalytics.overview.topProductName}</p>
+                <p className="text-lg font-black text-slate-900 leading-snug">{stats.topProduct.name}</p>
               </div>
               
               <div className="grid grid-cols-2 gap-4">
                 <div className="bg-slate-50 rounded-xl p-4 border border-slate-100">
                   <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-1">Total Revenue</p>
-                  <p className="text-2xl font-black text-slate-900">₹{mockAnalytics.overview.topProductRevenue.toLocaleString('en-IN')}</p>
+                  <p className="text-2xl font-black text-slate-900">₹{stats.topProduct.revenue.toLocaleString('en-IN')}</p>
                 </div>
                 <div className="bg-slate-50 rounded-xl p-4 border border-slate-100">
                   <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-1">Quantity Sold</p>
-                  <p className="text-2xl font-black text-slate-900">{mockAnalytics.overview.topProductQty} pcs</p>
+                  <p className="text-2xl font-black text-slate-900">{stats.topProduct.qty} pcs</p>
                 </div>
               </div>
 
               <div>
                 <div className="flex justify-between text-xs font-bold mb-2">
                   <span className="text-slate-500">Market Share (Products)</span>
-                  <span className="text-slate-900">{mockAnalytics.overview.topProductShare.toFixed(1)}%</span>
+                  <span className="text-slate-900">{stats.topProduct.share.toFixed(1)}%</span>
                 </div>
                 <div className="w-full bg-slate-100 rounded-full h-2">
-                  <div className="h-2 rounded-full" style={{ width: `${mockAnalytics.overview.topProductShare}%`, backgroundColor: themeColor }}></div>
+                  <div className="h-2 rounded-full" style={{ width: `${stats.topProduct.share}%`, backgroundColor: themeColor }}></div>
                 </div>
               </div>
             </div>
             <div className="p-4 bg-slate-50 border-t border-slate-100">
               <button 
                 onClick={() => setShowProductModal(false)}
-                className="w-full py-2.5 bg-slate-200 hover:bg-slate-300 text-slate-700 font-bold rounded-xl transition-colors text-sm"
+                className="w-full py-2.5 bg-slate-200 hover:bg-slate-300 text-slate-700 font-bold rounded-xl transition-colors text-sm cursor-pointer"
               >
                 Close Details
               </button>

@@ -1,14 +1,18 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import { 
   BarChart3, ShoppingBag, 
   Ticket, CreditCard, Users, 
-  Menu, X, PanelLeftClose, PanelLeftOpen, Package
+  Menu, X, PanelLeftClose, PanelLeftOpen, Package,
+  ShieldAlert, LogOut
 } from 'lucide-react';
 import { AdminProvider } from './AdminContext';
+import { useAuth } from '@/lib/useAuth';
+import { fetchProfileByUid, fetchProfiles } from '@/lib/db';
+import { createClient } from '@/lib/supabase';
 
 const WhatsAppIcon = ({ size, className }: { size?: number, className?: string }) => (
   <svg 
@@ -30,8 +34,75 @@ const WhatsAppIcon = ({ size, className }: { size?: number, className?: string }
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
+  const router = useRouter();
+  
+  const { user, loading: authLoading, signOut } = useAuth();
+  const [roleLoading, setRoleLoading] = useState(true);
+  const [isAdmin, setIsAdmin] = useState<boolean | null>(null);
+  const [adminName, setAdminName] = useState('Admin User');
+
   const [isMobileSidebarOpen, setMobileSidebarOpen] = useState(false);
   const [isDesktopSidebarCollapsed, setDesktopSidebarCollapsed] = useState(false);
+
+  useEffect(() => {
+    const checkAndBootstrap = async () => {
+      if (!user) {
+        router.push('/login');
+        return;
+      }
+
+      try {
+        const profile = await fetchProfileByUid(user.id);
+        if (profile) {
+          if (profile.role === 'Admin') {
+            setIsAdmin(true);
+            setAdminName(profile.name || user.email || 'Admin User');
+          } else {
+            setIsAdmin(false);
+          }
+          setRoleLoading(false);
+        } else {
+          // Profile does not exist. Let's seed it!
+          const allProfiles = await fetchProfiles().catch(() => []);
+          const isFirstProfile = allProfiles.length === 0;
+          const initialRole = isFirstProfile ? 'Admin' : 'Customer';
+
+          const newProfile = {
+            id: user.id,
+            email: user.email || '',
+            name: user.user_metadata?.full_name || 'Admin User',
+            mobile: '',
+            role: initialRole,
+            joined_date: new Date().toISOString()
+          };
+
+          const supabase = createClient();
+          const { error } = await supabase.from('profiles').insert([newProfile]);
+          
+          if (!error) {
+            if (initialRole === 'Admin') {
+              setIsAdmin(true);
+              setAdminName(newProfile.name);
+            } else {
+              setIsAdmin(false);
+            }
+          } else {
+            console.error('Error auto-creating user profile:', error);
+            setIsAdmin(false);
+          }
+          setRoleLoading(false);
+        }
+      } catch (err) {
+        console.error('Error in admin verification:', err);
+        setIsAdmin(false);
+        setRoleLoading(false);
+      }
+    };
+
+    if (!authLoading) {
+      checkAndBootstrap();
+    }
+  }, [user, authLoading, router]);
 
   const navigation = [
     { name: 'WhatsApp Center', href: '/admin/whatsapp', icon: WhatsAppIcon, color: 'text-[#25D366]' },
@@ -58,6 +129,51 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
       );
     });
   };
+
+  // Loading Screen
+  if (authLoading || roleLoading) {
+    return (
+      <div className="min-h-screen bg-slate-50 flex flex-col justify-center items-center gap-4">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#dc2626]"></div>
+        <p className="text-xs font-bold text-slate-500 uppercase tracking-widest">Verifying Admin Access...</p>
+      </div>
+    );
+  }
+
+  // Access Denied Screen
+  if (isAdmin === false) {
+    return (
+      <div className="min-h-screen bg-slate-50 flex items-center justify-center p-6 font-sans">
+        <div className="bg-white border border-slate-200 shadow-xl rounded-[2rem] p-10 max-w-md w-full text-center flex flex-col items-center">
+          <div className="w-16 h-16 rounded-full bg-rose-50 text-[#dc2626] flex items-center justify-center mb-6">
+            <ShieldAlert size={32} />
+          </div>
+          <h2 className="text-xl font-black text-slate-900 mb-2 uppercase tracking-wide">Access Denied</h2>
+          <p className="text-sm text-slate-500 mb-8 leading-relaxed">
+            You do not have administrative privileges to access this portal. Please log in with an authorized account or return to the storefront.
+          </p>
+          
+          <div className="flex flex-col gap-3 w-full font-bold">
+            <Link 
+              href="/"
+              className="py-3 px-6 bg-slate-900 hover:bg-slate-800 text-white rounded-xl text-xs uppercase tracking-widest transition-colors shadow-lg text-center"
+            >
+              Back to Storefront
+            </Link>
+            <button 
+              onClick={async () => {
+                await signOut();
+                router.push('/login');
+              }}
+              className="py-3 px-6 bg-white hover:bg-slate-50 border border-slate-200 text-slate-700 rounded-xl text-xs uppercase tracking-widest transition-colors flex items-center justify-center gap-2 cursor-pointer"
+            >
+              Log in with another account
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-slate-50 flex font-sans">
@@ -125,13 +241,25 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         <div className="p-4 border-t border-slate-100">
           <div className={`flex items-center gap-3 px-2 py-2 ${isDesktopSidebarCollapsed ? 'justify-center' : ''}`}>
             <div className="w-8 h-8 rounded-full bg-slate-100 text-slate-600 flex items-center justify-center font-bold text-sm shrink-0">
-              AD
+              {adminName.charAt(0).toUpperCase()}
             </div>
             {!isDesktopSidebarCollapsed && (
               <div className="flex-1 min-w-0">
-                <p className="text-sm font-bold text-slate-900 truncate">Admin User</p>
-                <p className="text-xs text-slate-500 truncate">admin@mishi.com</p>
+                <p className="text-sm font-bold text-slate-900 truncate">{adminName}</p>
+                <p className="text-xs text-slate-500 truncate">{user?.email}</p>
               </div>
+            )}
+            {!isDesktopSidebarCollapsed && (
+              <button 
+                onClick={async () => {
+                  await signOut();
+                  router.push('/login');
+                }}
+                className="text-slate-400 hover:text-red-500 transition-colors p-1"
+                title="Sign Out"
+              >
+                <LogOut size={16} />
+              </button>
             )}
           </div>
         </div>

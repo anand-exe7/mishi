@@ -1,20 +1,19 @@
 'use client';
 
 import React, { useState, useMemo } from 'react';
-import { Search, CheckCircle2, AlertCircle, Eye, X } from 'lucide-react';
-import { useAdmin, Order } from '../AdminContext';
+import { Search, CheckCircle2, AlertCircle, Eye, X, ChevronDown } from 'lucide-react';
+import { useAdmin } from '../AdminContext';
+import { Order } from '@/lib/db';
 
 const STATUS_COLORS: Record<string, string> = {
-  'New': 'bg-purple-100 text-purple-700 border-purple-200',
+  'Pending': 'bg-purple-100 text-purple-700 border-purple-200',
   'Processing': 'bg-amber-100 text-amber-700 border-amber-200',
-  'Shipped': 'bg-blue-100 text-blue-700 border-blue-200',
-  'Delivered': 'bg-emerald-100 text-emerald-700 border-emerald-200',
   'Completed': 'bg-emerald-100 text-emerald-700 border-emerald-200',
   'Cancelled': 'bg-rose-100 text-rose-700 border-rose-200',
 };
 
 export default function OrdersManagement() {
-  const { orders, updateOrderStatus } = useAdmin();
+  const { orders, updateOrderStatus, loading } = useAdmin();
   const [search, setSearch] = useState('');
   const [period, setPeriod] = useState('All Time');
   const [customFrom, setCustomFrom] = useState('');
@@ -22,19 +21,39 @@ export default function OrdersManagement() {
   
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
   const [toast, setToast] = useState<{ message: string, type: 'success' | 'error' } | null>(null);
+  const [updatingId, setUpdatingId] = useState<string | null>(null);
 
-  const themeColor = '#E75F24';
+  const themeColor = '#dc2626'; // Match Mishi Red
 
   const showToast = (message: string, type: 'success' | 'error') => {
     setToast({ message, type });
     setTimeout(() => setToast(null), 3000);
   };
 
+  const handleStatusChange = async (orderId: string, newStatus: 'Pending' | 'Processing' | 'Completed' | 'Cancelled') => {
+    try {
+      setUpdatingId(orderId);
+      await updateOrderStatus(orderId, newStatus);
+      showToast(`Order status updated to ${newStatus}`, 'success');
+      
+      // Update selected order in state if it is open in modal
+      if (selectedOrder && selectedOrder.id === orderId) {
+        setSelectedOrder(prev => prev ? { ...prev, status: newStatus } : null);
+      }
+    } catch (err) {
+      console.error(err);
+      showToast('Failed to update order status', 'error');
+    } finally {
+      setUpdatingId(null);
+    }
+  };
+
   const filteredOrders = useMemo(() => {
     return orders.filter(o => 
-      o.id.toLowerCase().includes(search.toLowerCase()) || 
-      o.customer_name.toLowerCase().includes(search.toLowerCase()) ||
-      o.customer_phone.includes(search)
+      o.id.startsWith('INV-') &&
+      (o.id.toLowerCase().includes(search.toLowerCase()) || 
+      o.customerName.toLowerCase().includes(search.toLowerCase()) ||
+      o.customerPhone.includes(search))
     );
   }, [orders, search]);
 
@@ -96,50 +115,64 @@ export default function OrdersManagement() {
         </div>
       </div>
 
-      <div className="bg-white border border-slate-200 rounded-2xl shadow-sm overflow-hidden">
-        <div className="overflow-x-auto w-full">
-          <table className="w-full text-left border-collapse whitespace-nowrap min-w-[900px]">
-            <thead>
-              <tr className="bg-slate-50 border-b border-slate-200 text-xs font-bold text-slate-500 uppercase tracking-widest">
-                <th className="px-6 py-4">Order ID</th>
-                <th className="px-6 py-4">Customer</th>
-                <th className="px-6 py-4">Date</th>
-                <th className="px-6 py-4 text-right">Total Amount</th>
-                <th className="px-6 py-4">Status</th>
-                <th className="px-6 py-4"></th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-slate-100 text-sm">
-              {filteredOrders.map((order) => (
-                <React.Fragment key={order.id}>
-                  <tr className="hover:bg-slate-50 transition-colors">
-                    <td className="px-6 py-4 font-bold text-slate-900">{order.id}</td>
-                    <td className="px-6 py-4">
-                      <p className="font-bold text-slate-900">{order.customer_name}</p>
-                      <p className="text-xs text-slate-500">{order.customer_phone}</p>
-                    </td>
-                    <td className="px-6 py-4 text-slate-500">{new Date(order.created_at).toLocaleDateString()}</td>
-                    <td className="px-6 py-4 text-right font-black text-slate-900">₹{order.total_amount.toLocaleString('en-IN')}</td>
-                    <td className="px-6 py-4">
-                      <span className={`inline-block text-[10px] font-bold rounded-full px-3 py-1.5 border uppercase tracking-widest ${STATUS_COLORS[order.status] || 'bg-slate-100 text-slate-700 border-slate-200'}`}>
-                        {order.status}
-                      </span>
-                    </td>
-                    <td className="px-6 py-4 text-right">
-                      <button 
-                        onClick={() => setSelectedOrder(order)}
-                        className="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold rounded-lg text-xs transition-colors flex items-center gap-1.5 ml-auto"
-                      >
-                        <Eye size={14} /> View
-                      </button>
+      {loading ? (
+        <div className="flex justify-center items-center py-20 bg-white rounded-2xl border border-slate-200 shadow-sm">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#dc2626]"></div>
+        </div>
+      ) : (
+        <div className="bg-white border border-slate-200 rounded-2xl shadow-sm overflow-hidden">
+          <div className="overflow-x-auto w-full">
+            <table className="w-full text-left border-collapse whitespace-nowrap min-w-[900px]">
+              <thead>
+                <tr className="bg-slate-50 border-b border-slate-200 text-xs font-bold text-slate-500 uppercase tracking-widest">
+                  <th className="px-6 py-4">Order ID</th>
+                  <th className="px-6 py-4">Customer</th>
+                  <th className="px-6 py-4">Date</th>
+                  <th className="px-6 py-4 text-right">Total Amount</th>
+                  <th className="px-6 py-4">Status</th>
+                  <th className="px-6 py-4"></th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-slate-100 text-sm">
+                {filteredOrders.length === 0 ? (
+                  <tr>
+                    <td colSpan={6} className="px-6 py-12 text-center text-slate-500 italic">
+                      No orders found matching search criteria.
                     </td>
                   </tr>
-                </React.Fragment>
-              ))}
-            </tbody>
-          </table>
+                ) : (
+                  filteredOrders.map((order) => (
+                    <tr key={order.id} className="hover:bg-slate-50 transition-colors">
+                      <td className="px-6 py-4 font-bold text-slate-900">{order.id}</td>
+                      <td className="px-6 py-4">
+                        <p className="font-bold text-slate-900">{order.customerName}</p>
+                        <p className="text-xs text-slate-500">{order.customerPhone}</p>
+                      </td>
+                      <td className="px-6 py-4 text-slate-500">
+                        {order.createdAt ? new Date(order.createdAt).toLocaleDateString() : 'N/A'}
+                      </td>
+                      <td className="px-6 py-4 text-right font-black text-slate-900">₹{order.totalPrice.toLocaleString('en-IN')}</td>
+                      <td className="px-6 py-4">
+                        <span className={`inline-block text-[10px] font-bold rounded-full px-3 py-1.5 border uppercase tracking-widest ${STATUS_COLORS[order.status] || 'bg-slate-100 text-slate-700 border-slate-200'}`}>
+                          {order.status}
+                        </span>
+                      </td>
+                      <td className="px-6 py-4 text-right">
+                        <button 
+                          onClick={() => setSelectedOrder(order)}
+                          className="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold rounded-lg text-xs transition-colors flex items-center gap-1.5 ml-auto"
+                        >
+                          <Eye size={14} /> View Details
+                        </button>
+                      </td>
+                    </tr>
+                  ))
+                )}
+              </tbody>
+            </table>
+          </div>
         </div>
-      </div>
+      )}
 
       {/* Order Details Modal */}
       {selectedOrder && (
@@ -153,7 +186,7 @@ export default function OrdersManagement() {
               </div>
               <button 
                 onClick={() => setSelectedOrder(null)}
-                className="p-2 bg-white text-slate-400 hover:text-slate-700 hover:bg-slate-100 rounded-full transition-colors border border-slate-200 shadow-sm"
+                className="p-2 bg-white text-slate-400 hover:text-slate-700 hover:bg-slate-100 rounded-full transition-colors border border-slate-200 shadow-sm cursor-pointer"
               >
                 <X size={18} />
               </button>
@@ -163,25 +196,32 @@ export default function OrdersManagement() {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div className="bg-slate-50 rounded-xl p-5 border border-slate-100">
                   <h4 className="text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-3">Customer Information</h4>
-                  <p className="font-bold text-slate-900 text-sm mb-1">{selectedOrder.customer_name}</p>
-                  <p className="text-slate-600 text-xs font-medium">{selectedOrder.customer_phone}</p>
+                  <p className="font-bold text-slate-900 text-sm mb-1">{selectedOrder.customerName}</p>
+                  <p className="text-slate-600 text-xs font-medium">{selectedOrder.customerPhone}</p>
+                  {selectedOrder.customerEmail && (
+                    <p className="text-slate-600 text-xs font-medium mt-1">{selectedOrder.customerEmail}</p>
+                  )}
                 </div>
                 
                 <div className="bg-slate-50 rounded-xl p-5 border border-slate-100">
-                  <h4 className="text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-3">Order Information</h4>
-                  <div className="space-y-2 text-xs font-medium text-slate-600">
-                    <div className="flex justify-between">
-                      <span>Date:</span>
-                      <span className="font-bold text-slate-900">{new Date(selectedOrder.created_at).toLocaleDateString()}</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span>Source:</span>
-                      <span className="font-bold uppercase tracking-widest" style={{color: themeColor}}>{selectedOrder.source}</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span>Status:</span>
-                      <span className="font-bold text-slate-900">{selectedOrder.status}</span>
-                    </div>
+                  <h4 className="text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-3">Order Status Action</h4>
+                  <div className="relative inline-block w-full">
+                    <select
+                      value={selectedOrder.status}
+                      disabled={updatingId !== null}
+                      onChange={(e) => handleStatusChange(selectedOrder.id, e.target.value as any)}
+                      className="w-full appearance-none bg-white border border-slate-200 rounded-xl px-4 py-2.5 text-xs font-bold focus:outline-none cursor-pointer uppercase text-slate-700"
+                    >
+                      <option value="Pending">Pending</option>
+                      <option value="Processing">Processing</option>
+                      <option value="Completed">Completed</option>
+                      <option value="Cancelled">Cancelled</option>
+                    </select>
+                    <ChevronDown size={14} className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
+                  </div>
+                  <div className="mt-3 flex justify-between text-xs font-medium text-slate-600">
+                    <span>Source:</span>
+                    <span className="font-bold uppercase tracking-widest text-[#dc2626]">{selectedOrder.source}</span>
                   </div>
                 </div>
               </div>
@@ -190,7 +230,7 @@ export default function OrdersManagement() {
                 <h4 className="text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-3">Shipping Address</h4>
                 <div className="bg-slate-50 rounded-xl p-5 border border-slate-100">
                   <p className="text-slate-700 text-sm whitespace-pre-wrap leading-relaxed font-medium">
-                    {selectedOrder.shipping_address || 'Walk-in / POS Purchase'}
+                    {selectedOrder.customerAddress || 'Walk-in / POS Purchase'}
                   </p>
                 </div>
               </div>
@@ -199,7 +239,7 @@ export default function OrdersManagement() {
                 <h4 className="text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-3">Order Items</h4>
                 <div className="bg-white rounded-xl border border-slate-200 overflow-hidden">
                   <div className="overflow-x-auto">
-                    <table className="w-full text-sm">
+                    <table className="w-full text-sm font-medium">
                       <thead>
                         <tr className="bg-slate-50 border-b border-slate-200 text-slate-500 font-bold text-[10px] uppercase tracking-widest">
                           <th className="py-3 px-4 text-left">Product</th>
@@ -208,16 +248,16 @@ export default function OrdersManagement() {
                           <th className="py-3 px-4 text-right">Total</th>
                         </tr>
                       </thead>
-                      <tbody className="divide-y divide-slate-100 font-medium">
+                      <tbody className="divide-y divide-slate-100">
                         {selectedOrder.items.map((item, idx) => (
                           <tr key={idx}>
                             <td className="py-3 px-4">
-                              <p className="font-bold text-slate-900">{item.product_name}</p>
-                              <p className="text-xs text-slate-500">{item.variant} • {item.size}</p>
+                              <p className="font-bold text-slate-900">{item.name}</p>
+                              {item.size && <p className="text-xs text-slate-500">Size: {item.size}</p>}
                             </td>
                             <td className="py-3 px-4 text-center text-slate-700">{item.quantity}</td>
-                            <td className="py-3 px-4 text-right text-slate-700">₹{item.unit_price.toLocaleString('en-IN')}</td>
-                            <td className="py-3 px-4 text-right font-bold text-slate-900">₹{(item.unit_price * item.quantity).toLocaleString('en-IN')}</td>
+                            <td className="py-3 px-4 text-right text-slate-700">₹{item.price.toLocaleString('en-IN')}</td>
+                            <td className="py-3 px-4 text-right font-bold text-slate-900">₹{(item.price * item.quantity).toLocaleString('en-IN')}</td>
                           </tr>
                         ))}
                       </tbody>
@@ -227,23 +267,29 @@ export default function OrdersManagement() {
                   <div className="bg-slate-50 p-4 border-t border-slate-200 space-y-2">
                     <div className="flex justify-between text-xs font-bold text-slate-500">
                       <span>Subtotal</span>
-                      <span>₹{(selectedOrder.total_amount + selectedOrder.discount_amount - selectedOrder.delivery_amount).toLocaleString('en-IN')}</span>
+                      <span>₹{selectedOrder.subtotal.toLocaleString('en-IN')}</span>
                     </div>
-                    {selectedOrder.discount_amount > 0 && (
+                    {selectedOrder.couponDiscount > 0 && (
                       <div className="flex justify-between text-xs font-bold text-red-500">
-                        <span>Discount</span>
-                        <span>-₹{selectedOrder.discount_amount.toLocaleString('en-IN')}</span>
+                        <span>Coupon Discount ({selectedOrder.couponCode})</span>
+                        <span>-₹{selectedOrder.couponDiscount.toLocaleString('en-IN')}</span>
                       </div>
                     )}
-                    {selectedOrder.delivery_amount > 0 && (
+                    {selectedOrder.manualDiscount > 0 && (
+                      <div className="flex justify-between text-xs font-bold text-red-500">
+                        <span>Manual Discount</span>
+                        <span>-₹{selectedOrder.manualDiscount.toLocaleString('en-IN')}</span>
+                      </div>
+                    )}
+                    {selectedOrder.deliveryCharge > 0 && (
                       <div className="flex justify-between text-xs font-bold text-slate-500">
                         <span>Delivery</span>
-                        <span>₹{selectedOrder.delivery_amount.toLocaleString('en-IN')}</span>
+                        <span>₹{selectedOrder.deliveryCharge.toLocaleString('en-IN')}</span>
                       </div>
                     )}
                     <div className="flex justify-between items-center text-sm font-black text-slate-900 pt-2 border-t border-slate-200 mt-2">
                       <span className="uppercase tracking-widest">Grand Total</span>
-                      <span className="text-lg">₹{selectedOrder.total_amount.toLocaleString('en-IN')}</span>
+                      <span className="text-lg">₹{selectedOrder.totalPrice.toLocaleString('en-IN')}</span>
                     </div>
                   </div>
                 </div>
