@@ -1,61 +1,80 @@
-'use client';
+"use client";
 
-import React, { useState, useMemo } from 'react';
-import { 
-  BarChart, Bar, XAxis, Tooltip as RechartsTooltip, ResponsiveContainer, Cell, LabelList
-} from 'recharts';
-import { 
-  Banknote, CheckCircle2, Store, Globe, 
-  ShoppingBag, Package, TrendingUp, Award,
-  RefreshCw, Search, Percent, Tag, IndianRupee,
-  X
-} from 'lucide-react';
-import { useAdmin } from '../AdminContext';
-import { Order } from '@/lib/db';
+import React, { useState, useMemo } from "react";
+import {
+  BarChart,
+  Bar,
+  XAxis,
+  Tooltip as RechartsTooltip,
+  ResponsiveContainer,
+  Cell,
+  LabelList,
+} from "recharts";
+import {
+  Banknote,
+  CheckCircle2,
+  Store,
+  Globe,
+  ShoppingBag,
+  Package,
+  TrendingUp,
+  Award,
+  RefreshCw,
+  Search,
+  Percent,
+  Tag,
+  IndianRupee,
+  X,
+} from "lucide-react";
+import { useAdmin } from "../AdminContext";
+import { Order } from "@/lib/db";
 
 export default function AnalyticsPage() {
   const { orders, refreshData, loading } = useAdmin();
-  
-  const [period, setPeriod] = useState('All Time');
-  const [activeTab, setActiveTab] = useState('REVENUE');
-  const [customFrom, setCustomFrom] = useState('');
-  const [customTo, setCustomTo] = useState('');
-  
+
+  const [period, setPeriod] = useState("All Time");
+  const [activeTab, setActiveTab] = useState("REVENUE");
+  const [customFrom, setCustomFrom] = useState("");
+  const [customTo, setCustomTo] = useState("");
+
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [showProductModal, setShowProductModal] = useState(false);
   const [refreshKey, setRefreshKey] = useState(0);
 
-  const themeColor = '#dc2626'; // Match Mishi Red
+  const themeColor = "#dc2626"; // Match Mishi Red
 
   const handleRefresh = async () => {
     setIsRefreshing(true);
     await refreshData();
-    setRefreshKey(prev => prev + 1);
+    setRefreshKey((prev) => prev + 1);
     setIsRefreshing(false);
   };
 
   // 1. Filter orders based on the selected period
   const filteredOrders = useMemo(() => {
     const now = new Date();
-    return orders.filter(order => {
+    return orders.filter((order) => {
       if (!order.createdAt) return false;
       const orderDate = new Date(order.createdAt);
 
-      if (period === 'Today') {
+      if (period === "Today") {
         return orderDate.toDateString() === now.toDateString();
       }
-      if (period === 'This Week') {
+      if (period === "This Week") {
         const oneWeekAgo = new Date();
         oneWeekAgo.setDate(now.getDate() - 7);
         return orderDate >= oneWeekAgo;
       }
-      if (period === 'This Month') {
-        return orderDate.getMonth() === now.getMonth() && orderDate.getFullYear() === now.getFullYear();
+      if (period === "This Month") {
+        return (
+          orderDate.getMonth() === now.getMonth() &&
+          orderDate.getFullYear() === now.getFullYear()
+        );
       }
-      if (period === 'This Year') {
+      if (period === "This Year") {
         return orderDate.getFullYear() === now.getFullYear();
       }
-      if (period === 'Custom' && customFrom && customTo) {
+      if (period === "Custom" && customFrom && customTo) {
         const from = new Date(customFrom);
         const to = new Date(customTo);
         to.setHours(23, 59, 59, 999);
@@ -73,20 +92,31 @@ export default function AnalyticsPage() {
     let totalOfflineBills = 0;
     let totalOnlineBills = 0;
     let totalItemsSold = 0;
-    
+
     // Product aggregation: { [name]: { qty, revenue } }
-    const productStats: Record<string, { name: string; qty: number; revenue: number }> = {};
-    
+    const productStats: Record<
+      string,
+      { name: string; qty: number; revenue: number }
+    > = {};
+
     // Coupon aggregation
     let totalCouponDiscounts = 0;
     let couponOrdersCount = 0;
-    const couponTxList: Array<{ id: string; customer: string; total: number; discount: number }> = [];
+    const couponTxList: Array<{
+      id: string;
+      customer: string;
+      total: number;
+      discount: number;
+    }> = [];
 
-    filteredOrders.forEach(order => {
+    filteredOrders.forEach((order) => {
       totalRevenue += order.totalPrice;
-      totalItemsSold += order.items.reduce((sum, item) => sum + item.quantity, 0);
+      totalItemsSold += order.items.reduce(
+        (sum, item) => sum + item.quantity,
+        0,
+      );
 
-      if (order.source === 'OFFLINE') {
+      if (order.source === "OFFLINE") {
         offlineRevenue += order.totalPrice;
         totalOfflineBills++;
       } else {
@@ -95,7 +125,7 @@ export default function AnalyticsPage() {
       }
 
       // Aggregate products
-      order.items.forEach(item => {
+      order.items.forEach((item) => {
         if (!productStats[item.name]) {
           productStats[item.name] = { name: item.name, qty: 0, revenue: 0 };
         }
@@ -111,20 +141,23 @@ export default function AnalyticsPage() {
           id: order.id,
           customer: order.customerName,
           total: order.totalPrice,
-          discount: order.couponDiscount
+          discount: order.couponDiscount,
         });
       }
     });
 
     // Format Product Leaderboard sorted by revenue descending
-    const leaderboard = Object.values(productStats).sort((a, b) => b.revenue - a.revenue);
-    const topProduct = leaderboard[0] || { name: 'None', qty: 0, revenue: 0 };
+    const leaderboard = Object.values(productStats).sort(
+      (a, b) => b.revenue - a.revenue,
+    );
+    const topProduct = leaderboard[0] || { name: "None", qty: 0, revenue: 0 };
     const leaderboardWithShare = leaderboard.map((prod, idx) => ({
       rank: idx + 1,
       name: prod.name,
       qty: prod.qty,
       revenue: prod.revenue,
-      share: totalRevenue > 0 ? Math.round((prod.revenue / totalRevenue) * 100) : 0
+      share:
+        totalRevenue > 0 ? Math.round((prod.revenue / totalRevenue) * 100) : 0,
     }));
 
     return {
@@ -135,30 +168,47 @@ export default function AnalyticsPage() {
       totalOfflineBills,
       totalOnlineBills,
       totalItemsSold,
-      avgOrderValue: filteredOrders.length ? Math.round(totalRevenue / filteredOrders.length) : 0,
+      avgOrderValue: filteredOrders.length
+        ? Math.round(totalRevenue / filteredOrders.length)
+        : 0,
       leaderboard: leaderboardWithShare,
       topProduct: {
         name: topProduct.name,
         revenue: topProduct.revenue,
         qty: topProduct.qty,
-        share: totalRevenue > 0 ? (topProduct.revenue / totalRevenue) * 100 : 0
+        share: totalRevenue > 0 ? (topProduct.revenue / totalRevenue) * 100 : 0,
       },
       coupons: {
         totalDiscounts: totalCouponDiscounts,
         discountedOrders: couponOrdersCount,
-        avgDiscount: couponOrdersCount ? Math.round(totalCouponDiscounts / couponOrdersCount) : 0,
-        transactions: couponTxList
-      }
+        avgDiscount: couponOrdersCount
+          ? Math.round(totalCouponDiscounts / couponOrdersCount)
+          : 0,
+        transactions: couponTxList,
+      },
     };
   }, [filteredOrders]);
 
   // 3. Compute yearly chart data (Revenue by month)
   const yearlyChartData = useMemo(() => {
-    const months = ['JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN', 'JUL', 'AUG', 'SEP', 'OCT', 'NOV', 'DEC'];
+    const months = [
+      "JAN",
+      "FEB",
+      "MAR",
+      "APR",
+      "MAY",
+      "JUN",
+      "JUL",
+      "AUG",
+      "SEP",
+      "OCT",
+      "NOV",
+      "DEC",
+    ];
     const monthlyValues = Array(12).fill(0);
     const currentYear = new Date().getFullYear();
 
-    orders.forEach(order => {
+    orders.forEach((order) => {
       if (!order.createdAt) return;
       const date = new Date(order.createdAt);
       if (date.getFullYear() === currentYear) {
@@ -171,23 +221,23 @@ export default function AnalyticsPage() {
     return months.map((name, index) => ({
       name,
       value: monthlyValues[index],
-      isMax: monthlyValues[index] === maxVal && monthlyValues[index] > 0
+      isMax: monthlyValues[index] === maxVal && monthlyValues[index] > 0,
     }));
   }, [orders]);
 
   // 4. Compute weekly chart data (Revenue by day of week)
   const weeklyChartData = useMemo(() => {
-    const days = ['MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT', 'SUN'];
+    const days = ["MON", "TUE", "WED", "THU", "FRI", "SAT", "SUN"];
     const dailyValues = Array(7).fill(0);
     const now = new Date();
-    
+
     // Get date of Monday of current week
     const day = now.getDay();
     const diff = now.getDate() - day + (day === 0 ? -6 : 1);
     const monday = new Date(now.setDate(diff));
-    monday.setHours(0,0,0,0);
+    monday.setHours(0, 0, 0, 0);
 
-    orders.forEach(order => {
+    orders.forEach((order) => {
       if (!order.createdAt) return;
       const date = new Date(order.createdAt);
       if (date >= monday) {
@@ -200,7 +250,7 @@ export default function AnalyticsPage() {
 
     return days.map((name, index) => ({
       name,
-      value: dailyValues[index]
+      value: dailyValues[index],
     }));
   }, [orders]);
 
@@ -210,45 +260,77 @@ export default function AnalyticsPage() {
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         <div className="bg-white rounded-xl border border-slate-100 shadow-sm p-5 flex flex-col justify-between h-[110px]">
           <div className="flex justify-between items-start">
-            <span className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Total Revenue</span>
-            <div className="p-1.5 bg-emerald-50 rounded-lg text-emerald-500"><Banknote size={14} /></div>
+            <span className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">
+              Total Revenue
+            </span>
+            <div className="p-1.5 bg-emerald-50 rounded-lg text-emerald-500">
+              <Banknote size={14} />
+            </div>
           </div>
           <div>
-            <h3 className="text-xl font-black text-slate-900">₹{stats.totalRevenue.toLocaleString('en-IN')}</h3>
-            <p className="text-[10px] text-slate-400 mt-1 font-medium">Selected period sales</p>
+            <h3 className="text-xl font-black text-slate-900">
+              ₹{stats.totalRevenue.toLocaleString("en-IN")}
+            </h3>
+            <p className="text-[10px] text-slate-400 mt-1 font-medium">
+              Selected period sales
+            </p>
           </div>
         </div>
 
         <div className="bg-white rounded-xl border border-slate-100 shadow-sm p-5 flex flex-col justify-between h-[110px]">
           <div className="flex justify-between items-start">
-            <span className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Completed Bills</span>
-            <div className="p-1.5 bg-green-50 rounded-lg text-green-500"><CheckCircle2 size={14} /></div>
+            <span className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">
+              Completed Bills
+            </span>
+            <div className="p-1.5 bg-green-50 rounded-lg text-green-500">
+              <CheckCircle2 size={14} />
+            </div>
           </div>
           <div>
-            <h3 className="text-xl font-black text-slate-900">{stats.completedBills}</h3>
-            <p className="text-[10px] text-slate-400 mt-1 font-medium">POS + manual bills</p>
+            <h3 className="text-xl font-black text-slate-900">
+              {stats.completedBills}
+            </h3>
+            <p className="text-[10px] text-slate-400 mt-1 font-medium">
+              POS + manual bills
+            </p>
           </div>
         </div>
 
         <div className="bg-white rounded-xl border border-slate-100 shadow-sm p-5 flex flex-col justify-between h-[110px]">
           <div className="flex justify-between items-start">
-            <span className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Offline Sales</span>
-            <div className="p-1.5 bg-blue-50 rounded-lg text-blue-500"><Store size={14} /></div>
+            <span className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">
+              Offline Sales
+            </span>
+            <div className="p-1.5 bg-blue-50 rounded-lg text-blue-500">
+              <Store size={14} />
+            </div>
           </div>
           <div>
-            <h3 className="text-xl font-black text-slate-900">₹{stats.offlineRevenue.toLocaleString('en-IN')}</h3>
-            <p className="text-[10px] text-slate-400 mt-1 font-medium">POS walk-in channel</p>
+            <h3 className="text-xl font-black text-slate-900">
+              ₹{stats.offlineRevenue.toLocaleString("en-IN")}
+            </h3>
+            <p className="text-[10px] text-slate-400 mt-1 font-medium">
+              POS walk-in channel
+            </p>
           </div>
         </div>
 
         <div className="bg-white rounded-xl border border-slate-100 shadow-sm p-5 flex flex-col justify-between h-[110px]">
           <div className="flex justify-between items-start">
-            <span className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Online Sales</span>
-            <div className="p-1.5 bg-purple-50 rounded-lg text-purple-500"><Globe size={14} /></div>
+            <span className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">
+              Online Sales
+            </span>
+            <div className="p-1.5 bg-purple-50 rounded-lg text-purple-500">
+              <Globe size={14} />
+            </div>
           </div>
           <div>
-            <h3 className="text-xl font-black text-slate-900">₹{stats.onlineRevenue.toLocaleString('en-IN')}</h3>
-            <p className="text-[10px] text-slate-400 mt-1 font-medium">Storefront WhatsApp orders</p>
+            <h3 className="text-xl font-black text-slate-900">
+              ₹{stats.onlineRevenue.toLocaleString("en-IN")}
+            </h3>
+            <p className="text-[10px] text-slate-400 mt-1 font-medium">
+              Storefront WhatsApp orders
+            </p>
           </div>
         </div>
       </div>
@@ -256,59 +338,99 @@ export default function AnalyticsPage() {
       <div className="grid grid-cols-2 lg:grid-cols-5 gap-4">
         <div className="bg-white rounded-xl border border-slate-100 shadow-sm p-5 flex flex-col justify-between h-[110px]">
           <div className="flex justify-between items-start">
-            <span className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Offline Count</span>
-            <div className="p-1.5 bg-red-50 rounded-lg text-red-500"><ShoppingBag size={14} /></div>
+            <span className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">
+              Offline Count
+            </span>
+            <div className="p-1.5 bg-red-50 rounded-lg text-red-500">
+              <ShoppingBag size={14} />
+            </div>
           </div>
           <div>
-            <h3 className="text-xl font-black text-slate-900">{stats.totalOfflineBills}</h3>
-            <p className="text-[10px] text-slate-400 mt-1 font-medium">Walk-in POS orders</p>
+            <h3 className="text-xl font-black text-slate-900">
+              {stats.totalOfflineBills}
+            </h3>
+            <p className="text-[10px] text-slate-400 mt-1 font-medium">
+              Walk-in POS orders
+            </p>
           </div>
         </div>
 
         <div className="bg-white rounded-xl border border-slate-100 shadow-sm p-5 flex flex-col justify-between h-[110px]">
           <div className="flex justify-between items-start">
-            <span className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Online Count</span>
-            <div className="p-1.5 bg-indigo-50 rounded-lg text-indigo-500"><Globe size={14} /></div>
+            <span className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">
+              Online Count
+            </span>
+            <div className="p-1.5 bg-indigo-50 rounded-lg text-indigo-500">
+              <Globe size={14} />
+            </div>
           </div>
           <div>
-            <h3 className="text-xl font-black text-slate-900">{stats.totalOnlineBills}</h3>
-            <p className="text-[10px] text-slate-400 mt-1 font-medium">Online orders processed</p>
+            <h3 className="text-xl font-black text-slate-900">
+              {stats.totalOnlineBills}
+            </h3>
+            <p className="text-[10px] text-slate-400 mt-1 font-medium">
+              Online orders processed
+            </p>
           </div>
         </div>
 
         <div className="bg-white rounded-xl border border-slate-100 shadow-sm p-5 flex flex-col justify-between h-[110px]">
           <div className="flex justify-between items-start">
-            <span className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Items Sold</span>
-            <div className="p-1.5 bg-fuchsia-50 rounded-lg text-fuchsia-500"><Package size={14} /></div>
+            <span className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">
+              Items Sold
+            </span>
+            <div className="p-1.5 bg-fuchsia-50 rounded-lg text-fuchsia-500">
+              <Package size={14} />
+            </div>
           </div>
           <div>
-            <h3 className="text-xl font-black text-slate-900">{stats.totalItemsSold} pcs</h3>
-            <p className="text-[10px] text-slate-400 mt-1 font-medium">From completed invoices</p>
+            <h3 className="text-xl font-black text-slate-900">
+              {stats.totalItemsSold} pcs
+            </h3>
+            <p className="text-[10px] text-slate-400 mt-1 font-medium">
+              From completed invoices
+            </p>
           </div>
         </div>
 
         <div className="bg-white rounded-xl border border-slate-100 shadow-sm p-5 flex flex-col justify-between h-[110px]">
           <div className="flex justify-between items-start">
-            <span className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Avg Order Value</span>
-            <div className="p-1.5 bg-orange-50 rounded-lg text-orange-500"><TrendingUp size={14} /></div>
+            <span className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">
+              Avg Order Value
+            </span>
+            <div className="p-1.5 bg-orange-50 rounded-lg text-orange-500">
+              <TrendingUp size={14} />
+            </div>
           </div>
           <div>
-            <h3 className="text-xl font-black text-slate-900">₹{stats.avgOrderValue.toLocaleString('en-IN')}</h3>
-            <p className="text-[10px] text-slate-400 mt-1 font-medium">Per invoice checkout</p>
+            <h3 className="text-xl font-black text-slate-900">
+              ₹{stats.avgOrderValue.toLocaleString("en-IN")}
+            </h3>
+            <p className="text-[10px] text-slate-400 mt-1 font-medium">
+              Per invoice checkout
+            </p>
           </div>
         </div>
 
-        <div 
+        <div
           onClick={() => setShowProductModal(true)}
           className="bg-white rounded-xl border border-slate-100 shadow-sm p-5 flex flex-col justify-between h-[110px] cursor-pointer hover:border-slate-300 hover:shadow-md transition-all group"
         >
           <div className="flex justify-between items-start">
-            <span className="text-[10px] font-bold text-slate-500 uppercase tracking-widest group-hover:text-slate-700 transition-colors">Top Product</span>
-            <div className="p-1.5 bg-pink-50 rounded-lg text-pink-500"><Award size={14} /></div>
+            <span className="text-[10px] font-bold text-slate-500 uppercase tracking-widest group-hover:text-slate-700 transition-colors">
+              Top Product
+            </span>
+            <div className="p-1.5 bg-pink-50 rounded-lg text-pink-500">
+              <Award size={14} />
+            </div>
           </div>
           <div>
-            <h3 className="text-sm font-black text-slate-900 truncate">{stats.topProduct.name}</h3>
-            <p className="text-[10px] text-slate-400 mt-1 font-medium">Click to view share metrics</p>
+            <h3 className="text-sm font-black text-slate-900 truncate">
+              {stats.topProduct.name}
+            </h3>
+            <p className="text-[10px] text-slate-400 mt-1 font-medium">
+              Click to view share metrics
+            </p>
           </div>
         </div>
       </div>
@@ -316,21 +438,55 @@ export default function AnalyticsPage() {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <div className="lg:col-span-2 bg-white rounded-2xl p-6 border border-slate-100 shadow-sm">
           <div className="flex items-baseline gap-3 mb-6">
-            <h2 className="text-xs font-bold text-slate-800 uppercase tracking-widest">Revenue Trend This Year ({new Date().getFullYear()})</h2>
+            <h2 className="text-xs font-bold text-slate-800 uppercase tracking-widest">
+              Revenue Trend This Year ({new Date().getFullYear()})
+            </h2>
           </div>
           <div className="flex items-baseline gap-3 mb-8">
-            <span className="text-2xl font-black text-slate-900">₹{stats.totalRevenue.toLocaleString('en-IN')}</span>
-            <span className="text-[10px] font-bold text-red-600">Calculated from dynamic orders</span>
+            <span className="text-2xl font-black text-slate-900">
+              ₹{stats.totalRevenue.toLocaleString("en-IN")}
+            </span>
+            <span className="text-[10px] font-bold text-red-600">
+              Calculated from dynamic orders
+            </span>
           </div>
-          
+
           <div className="w-full h-[250px] overflow-hidden">
-            <ResponsiveContainer width="100%" height="100%" key={`year-${refreshKey}`}>
-              <BarChart data={yearlyChartData} margin={{ top: 20, right: 10, bottom: 0, left: 10 }}>
-                <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fontSize: 10, fill: '#64748b', fontWeight: 600 }} dy={10} />
-                <RechartsTooltip cursor={false} contentStyle={{ borderRadius: '8px', border: '1px solid #e2e8f0', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }} />
-                <Bar dataKey="value" radius={[6, 6, 6, 6]} barSize={24} activeBar={false}>
+            <ResponsiveContainer
+              width="100%"
+              height="100%"
+              key={`year-${refreshKey}`}
+            >
+              <BarChart
+                data={yearlyChartData}
+                margin={{ top: 20, right: 10, bottom: 0, left: 10 }}
+              >
+                <XAxis
+                  dataKey="name"
+                  axisLine={false}
+                  tickLine={false}
+                  tick={{ fontSize: 10, fill: "#64748b", fontWeight: 600 }}
+                  dy={10}
+                />
+                <RechartsTooltip
+                  cursor={false}
+                  contentStyle={{
+                    borderRadius: "8px",
+                    border: "1px solid #e2e8f0",
+                    boxShadow: "0 4px 6px -1px rgb(0 0 0 / 0.1)",
+                  }}
+                />
+                <Bar
+                  dataKey="value"
+                  radius={[6, 6, 6, 6]}
+                  barSize={24}
+                  activeBar={false}
+                >
                   {yearlyChartData.map((entry, index) => (
-                    <Cell key={`cell-${index}`} fill={entry.isMax ? '#dc2626' : '#fee2e2'} />
+                    <Cell
+                      key={`cell-${index}`}
+                      fill={entry.isMax ? "#dc2626" : "#fee2e2"}
+                    />
                   ))}
                 </Bar>
               </BarChart>
@@ -340,49 +496,81 @@ export default function AnalyticsPage() {
 
         <div className="space-y-6">
           <div className="bg-white rounded-2xl p-6 border border-slate-100 shadow-sm">
-            <h2 className="text-xs font-bold text-slate-800 uppercase tracking-widest mb-6">Order Channel split</h2>
+            <h2 className="text-xs font-bold text-slate-800 uppercase tracking-widest mb-6">
+              Order Channel split
+            </h2>
             <div className="space-y-4">
               <div>
                 <div className="flex justify-between text-xs font-bold mb-2">
                   <span className="uppercase text-red-600">Offline (POS)</span>
-                  <span className="text-slate-700">{stats.totalOfflineBills}</span>
+                  <span className="text-slate-700">
+                    {stats.totalOfflineBills}
+                  </span>
                 </div>
                 <div className="w-full bg-slate-100 rounded-full h-1.5">
-                  <div className="bg-red-600 h-1.5 rounded-full" style={{ width: `${stats.completedBills > 0 ? (stats.totalOfflineBills / stats.completedBills) * 100 : 0}%` }}></div>
+                  <div
+                    className="bg-red-600 h-1.5 rounded-full"
+                    style={{
+                      width: `${stats.completedBills > 0 ? (stats.totalOfflineBills / stats.completedBills) * 100 : 0}%`,
+                    }}
+                  ></div>
                 </div>
               </div>
               <div>
                 <div className="flex justify-between text-xs font-bold mb-2">
                   <span className="uppercase text-green-600">Online</span>
-                  <span className="text-slate-700">{stats.totalOnlineBills}</span>
+                  <span className="text-slate-700">
+                    {stats.totalOnlineBills}
+                  </span>
                 </div>
                 <div className="w-full bg-slate-100 rounded-full h-1.5">
-                  <div className="bg-green-600 h-1.5 rounded-full" style={{ width: `${stats.completedBills > 0 ? (stats.totalOnlineBills / stats.completedBills) * 100 : 0}%` }}></div>
+                  <div
+                    className="bg-green-600 h-1.5 rounded-full"
+                    style={{
+                      width: `${stats.completedBills > 0 ? (stats.totalOnlineBills / stats.completedBills) * 100 : 0}%`,
+                    }}
+                  ></div>
                 </div>
               </div>
             </div>
           </div>
 
           <div className="bg-white rounded-2xl p-6 border border-slate-100 shadow-sm">
-            <h2 className="text-xs font-bold text-slate-800 uppercase tracking-widest mb-6">Top Items By Revenue</h2>
+            <h2 className="text-xs font-bold text-slate-800 uppercase tracking-widest mb-6">
+              Top Items By Revenue
+            </h2>
             <div className="space-y-5">
               {stats.leaderboard.slice(0, 3).map((item, index) => (
                 <div key={index}>
                   <div className="flex justify-between items-start text-xs font-bold mb-2">
                     <span className="text-slate-700 flex gap-2">
-                      <span className="text-slate-400">{index + 1}</span> {item.name.length > 20 ? item.name.substring(0, 17) + '...' : item.name}
+                      <span className="text-slate-400">{index + 1}</span>{" "}
+                      {item.name.length > 20
+                        ? item.name.substring(0, 17) + "..."
+                        : item.name}
                     </span>
                     <span className="text-slate-900">
-                      ₹{item.revenue.toLocaleString('en-IN')} <span className="text-[10px] text-slate-400 font-medium ml-1">{item.qty} pcs</span>
+                      ₹{item.revenue.toLocaleString("en-IN")}{" "}
+                      <span className="text-[10px] text-slate-400 font-medium ml-1">
+                        {item.qty} pcs
+                      </span>
                     </span>
                   </div>
                   <div className="w-full bg-slate-100 rounded-full h-1">
-                    <div className="h-1 rounded-full" style={{ width: `${item.share}%`, backgroundColor: themeColor }}></div>
+                    <div
+                      className="h-1 rounded-full"
+                      style={{
+                        width: `${item.share}%`,
+                        backgroundColor: themeColor,
+                      }}
+                    ></div>
                   </div>
                 </div>
               ))}
               {stats.leaderboard.length === 0 && (
-                <p className="text-xs text-slate-400 italic">No products sold in this period.</p>
+                <p className="text-xs text-slate-400 italic">
+                  No products sold in this period.
+                </p>
               )}
             </div>
           </div>
@@ -390,16 +578,45 @@ export default function AnalyticsPage() {
 
         <div className="lg:col-span-2 bg-white rounded-2xl p-6 border border-slate-100 shadow-sm">
           <div className="flex items-baseline gap-3 mb-1">
-            <h2 className="text-xs font-bold text-slate-800 uppercase tracking-widest">Revenue This Week (Mon-Sun)</h2>
+            <h2 className="text-xs font-bold text-slate-800 uppercase tracking-widest">
+              Revenue This Week (Mon-Sun)
+            </h2>
           </div>
-          <div className="text-xs text-slate-500 mb-6">Weekly trends computed dynamically</div>
-          
+          <div className="text-xs text-slate-500 mb-6">
+            Weekly trends computed dynamically
+          </div>
+
           <div className="w-full h-[250px] overflow-hidden">
-            <ResponsiveContainer width="100%" height="100%" key={`week-${refreshKey}`}>
-              <BarChart data={weeklyChartData} margin={{ top: 20, right: 10, bottom: 0, left: 10 }}>
-                <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fontSize: 10, fill: '#64748b', fontWeight: 600 }} dy={10} />
-                <RechartsTooltip cursor={false} contentStyle={{ borderRadius: '8px', border: '1px solid #e2e8f0', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }} />
-                <Bar dataKey="value" radius={[6, 6, 6, 6]} barSize={24} activeBar={false}>
+            <ResponsiveContainer
+              width="100%"
+              height="100%"
+              key={`week-${refreshKey}`}
+            >
+              <BarChart
+                data={weeklyChartData}
+                margin={{ top: 20, right: 10, bottom: 0, left: 10 }}
+              >
+                <XAxis
+                  dataKey="name"
+                  axisLine={false}
+                  tickLine={false}
+                  tick={{ fontSize: 10, fill: "#64748b", fontWeight: 600 }}
+                  dy={10}
+                />
+                <RechartsTooltip
+                  cursor={false}
+                  contentStyle={{
+                    borderRadius: "8px",
+                    border: "1px solid #e2e8f0",
+                    boxShadow: "0 4px 6px -1px rgb(0 0 0 / 0.1)",
+                  }}
+                />
+                <Bar
+                  dataKey="value"
+                  radius={[6, 6, 6, 6]}
+                  barSize={24}
+                  activeBar={false}
+                >
                   {weeklyChartData.map((entry, index) => (
                     <Cell key={`cell-${index}`} fill="#dc2626" />
                   ))}
@@ -415,26 +632,34 @@ export default function AnalyticsPage() {
   const renderTodaySalesTab = () => {
     // Filter transactions completed today
     const today = new Date().toDateString();
-    const todayOrders = orders.filter(o => o.createdAt && new Date(o.createdAt).toDateString() === today);
-    
+    const todayOrders = orders.filter(
+      (o) => o.createdAt && new Date(o.createdAt).toDateString() === today,
+    );
+
     let todayRevenue = 0;
     let todayItemsSold = 0;
     let todayOfflineRevenue = 0;
     let todayOnlineRevenue = 0;
-    const todayTopItemsMap: Record<string, { name: string; qty: number; total: number }> = {};
+    const todayTopItemsMap: Record<
+      string,
+      { name: string; qty: number; total: number }
+    > = {};
 
-    todayOrders.forEach(order => {
+    todayOrders.forEach((order) => {
       todayRevenue += order.totalPrice;
-      const orderQty = order.items.reduce((sum, item) => sum + item.quantity, 0);
+      const orderQty = order.items.reduce(
+        (sum, item) => sum + item.quantity,
+        0,
+      );
       todayItemsSold += orderQty;
 
-      if (order.source === 'OFFLINE') {
+      if (order.source === "OFFLINE") {
         todayOfflineRevenue += order.totalPrice;
       } else {
         todayOnlineRevenue += order.totalPrice;
       }
 
-      order.items.forEach(item => {
+      order.items.forEach((item) => {
         if (!todayTopItemsMap[item.name]) {
           todayTopItemsMap[item.name] = { name: item.name, qty: 0, total: 0 };
         }
@@ -443,51 +668,95 @@ export default function AnalyticsPage() {
       });
     });
 
-    const todayTopItems = Object.values(todayTopItemsMap).sort((a,b) => b.total - a.total);
-    const offlinePercent = todayRevenue > 0 ? Math.round((todayOfflineRevenue / todayRevenue) * 100) : 0;
-    const onlinePercent = todayRevenue > 0 ? Math.round((todayOnlineRevenue / todayRevenue) * 100) : 0;
+    const todayTopItems = Object.values(todayTopItemsMap).sort(
+      (a, b) => b.total - a.total,
+    );
+    const offlinePercent =
+      todayRevenue > 0
+        ? Math.round((todayOfflineRevenue / todayRevenue) * 100)
+        : 0;
+    const onlinePercent =
+      todayRevenue > 0
+        ? Math.round((todayOnlineRevenue / todayRevenue) * 100)
+        : 0;
 
     return (
       <div className="space-y-4 animate-in fade-in duration-300">
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
           <div className="bg-white rounded-xl border border-slate-100 shadow-sm p-5 flex flex-col justify-between h-[110px]">
             <div className="flex justify-between items-start">
-              <span className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Today's Revenue</span>
-              <div className="p-1.5 bg-emerald-50 rounded-lg text-emerald-500"><Banknote size={14} /></div>
+              <span className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">
+                Today's Revenue
+              </span>
+              <div className="p-1.5 bg-emerald-50 rounded-lg text-emerald-500">
+                <Banknote size={14} />
+              </div>
             </div>
             <div>
-              <h3 className="text-xl font-black text-slate-900">₹{todayRevenue.toLocaleString('en-IN')}</h3>
-              <p className="text-[10px] text-slate-400 mt-1 font-medium">Completed today</p>
+              <h3 className="text-xl font-black text-slate-900">
+                ₹{todayRevenue.toLocaleString("en-IN")}
+              </h3>
+              <p className="text-[10px] text-slate-400 mt-1 font-medium">
+                Completed today
+              </p>
             </div>
           </div>
           <div className="bg-white rounded-xl border border-slate-100 shadow-sm p-5 flex flex-col justify-between h-[110px]">
             <div className="flex justify-between items-start">
-              <span className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Today's Bills</span>
-              <div className="p-1.5 bg-blue-50 rounded-lg text-blue-500"><CheckCircle2 size={14} /></div>
+              <span className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">
+                Today's Bills
+              </span>
+              <div className="p-1.5 bg-blue-50 rounded-lg text-blue-500">
+                <CheckCircle2 size={14} />
+              </div>
             </div>
             <div>
-              <h3 className="text-xl font-black text-slate-900">{todayOrders.length}</h3>
-              <p className="text-[10px] text-slate-400 mt-1 font-medium">POS + WhatsApp checkouts</p>
+              <h3 className="text-xl font-black text-slate-900">
+                {todayOrders.length}
+              </h3>
+              <p className="text-[10px] text-slate-400 mt-1 font-medium">
+                POS + WhatsApp checkouts
+              </p>
             </div>
           </div>
           <div className="bg-white rounded-xl border border-slate-100 shadow-sm p-5 flex flex-col justify-between h-[110px]">
             <div className="flex justify-between items-start">
-              <span className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Today's Items Sold</span>
-              <div className="p-1.5 bg-purple-50 rounded-lg text-purple-500"><Package size={14} /></div>
+              <span className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">
+                Today's Items Sold
+              </span>
+              <div className="p-1.5 bg-purple-50 rounded-lg text-purple-500">
+                <Package size={14} />
+              </div>
             </div>
             <div>
-              <h3 className="text-xl font-black text-slate-900">{todayItemsSold} pcs</h3>
-              <p className="text-[10px] text-slate-400 mt-1 font-medium">Quantity sold today</p>
+              <h3 className="text-xl font-black text-slate-900">
+                {todayItemsSold} pcs
+              </h3>
+              <p className="text-[10px] text-slate-400 mt-1 font-medium">
+                Quantity sold today
+              </p>
             </div>
           </div>
           <div className="bg-white rounded-xl border border-slate-100 shadow-sm p-5 flex flex-col justify-between h-[110px]">
             <div className="flex justify-between items-start">
-              <span className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Today's Avg Bill</span>
-              <div className="p-1.5 bg-orange-50 rounded-lg text-orange-500"><TrendingUp size={14} /></div>
+              <span className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">
+                Today's Avg Bill
+              </span>
+              <div className="p-1.5 bg-orange-50 rounded-lg text-orange-500">
+                <TrendingUp size={14} />
+              </div>
             </div>
             <div>
-              <h3 className="text-xl font-black text-slate-900">₹{(todayOrders.length ? Math.round(todayRevenue / todayOrders.length) : 0).toLocaleString('en-IN')}</h3>
-              <p className="text-[10px] text-slate-400 mt-1 font-medium">Per completed order</p>
+              <h3 className="text-xl font-black text-slate-900">
+                ₹
+                {(todayOrders.length
+                  ? Math.round(todayRevenue / todayOrders.length)
+                  : 0
+                ).toLocaleString("en-IN")}
+              </h3>
+              <p className="text-[10px] text-slate-400 mt-1 font-medium">
+                Per completed order
+              </p>
             </div>
           </div>
         </div>
@@ -495,7 +764,9 @@ export default function AnalyticsPage() {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           <div className="lg:col-span-2 bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden flex flex-col">
             <div className="p-6 border-b border-slate-50 flex justify-between items-center">
-              <h2 className="text-xs font-bold text-slate-800 uppercase tracking-widest">Today's Transactions</h2>
+              <h2 className="text-xs font-bold text-slate-800 uppercase tracking-widest">
+                Today's Transactions
+              </h2>
             </div>
             <div className="overflow-x-auto w-full flex-1">
               <table className="w-full text-left text-[10px] font-bold text-slate-500 uppercase tracking-widest min-w-[600px]">
@@ -512,19 +783,32 @@ export default function AnalyticsPage() {
                   {todayOrders.map((tx) => (
                     <tr key={tx.id} className="hover:bg-slate-50">
                       <td className="px-6 py-4">{tx.id}</td>
-                      <td className="px-6 py-4 text-slate-600">{tx.customerName}</td>
+                      <td className="px-6 py-4 text-slate-600">
+                        {tx.customerName}
+                      </td>
                       <td className="px-6 py-4">
-                        <span className={`px-2 py-1 rounded-md text-[10px] uppercase tracking-widest ${tx.source === 'ONLINE' ? 'bg-green-50 text-green-700' : 'bg-red-50 text-red-700'}`}>
+                        <span
+                          className={`px-2 py-1 rounded-md text-[10px] uppercase tracking-widest ${tx.source === "ONLINE" ? "bg-green-50 text-green-700" : "bg-red-50 text-red-700"}`}
+                        >
                           {tx.source}
                         </span>
                       </td>
-                      <td className="px-6 py-4 text-center">{tx.items.reduce((a,b)=>a+b.quantity,0)}</td>
-                      <td className="px-6 py-4 text-right">₹{tx.totalPrice.toLocaleString('en-IN')}</td>
+                      <td className="px-6 py-4 text-center">
+                        {tx.items.reduce((a, b) => a + b.quantity, 0)}
+                      </td>
+                      <td className="px-6 py-4 text-right">
+                        ₹{tx.totalPrice.toLocaleString("en-IN")}
+                      </td>
                     </tr>
                   ))}
                   {todayOrders.length === 0 && (
                     <tr>
-                      <td colSpan={5} className="px-6 py-8 text-center text-slate-400 italic">No orders completed today yet.</td>
+                      <td
+                        colSpan={5}
+                        className="px-6 py-8 text-center text-slate-400 italic"
+                      >
+                        No orders completed today yet.
+                      </td>
                     </tr>
                   )}
                 </tbody>
@@ -534,43 +818,68 @@ export default function AnalyticsPage() {
 
           <div className="space-y-6">
             <div className="bg-white rounded-2xl p-6 border border-slate-100 shadow-sm">
-              <h2 className="text-xs font-bold text-slate-800 uppercase tracking-widest mb-6">Today's Channel Split</h2>
+              <h2 className="text-xs font-bold text-slate-800 uppercase tracking-widest mb-6">
+                Today's Channel Split
+              </h2>
               <div className="space-y-4">
                 <div>
                   <div className="flex justify-between text-xs font-bold mb-2">
                     <span className="uppercase text-red-600">Offline</span>
-                    <span className="text-slate-900">₹{todayOfflineRevenue.toLocaleString('en-IN')} ({offlinePercent}%)</span>
+                    <span className="text-slate-900">
+                      ₹{todayOfflineRevenue.toLocaleString("en-IN")} (
+                      {offlinePercent}%)
+                    </span>
                   </div>
                   <div className="w-full bg-slate-100 rounded-full h-1.5">
-                    <div className="bg-red-600 h-1.5 rounded-full" style={{ width: `${offlinePercent}%` }}></div>
+                    <div
+                      className="bg-red-600 h-1.5 rounded-full"
+                      style={{ width: `${offlinePercent}%` }}
+                    ></div>
                   </div>
                 </div>
                 <div>
                   <div className="flex justify-between text-xs font-bold mb-2">
                     <span className="uppercase text-green-600">Online</span>
-                    <span className="text-slate-900">₹{todayOnlineRevenue.toLocaleString('en-IN')} ({onlinePercent}%)</span>
+                    <span className="text-slate-900">
+                      ₹{todayOnlineRevenue.toLocaleString("en-IN")} (
+                      {onlinePercent}%)
+                    </span>
                   </div>
                   <div className="w-full bg-slate-100 rounded-full h-1.5">
-                    <div className="bg-green-600 h-1.5 rounded-full" style={{ width: `${onlinePercent}%` }}></div>
+                    <div
+                      className="bg-green-600 h-1.5 rounded-full"
+                      style={{ width: `${onlinePercent}%` }}
+                    ></div>
                   </div>
                 </div>
               </div>
             </div>
 
             <div className="bg-white rounded-2xl p-6 border border-slate-100 shadow-sm">
-              <h2 className="text-xs font-bold text-slate-800 uppercase tracking-widest mb-4">Today's Top Items</h2>
+              <h2 className="text-xs font-bold text-slate-800 uppercase tracking-widest mb-4">
+                Today's Top Items
+              </h2>
               <div className="space-y-3">
                 {todayTopItems.slice(0, 5).map((item, idx) => (
-                  <div key={idx} className="flex justify-between items-center text-xs border-b border-slate-50 pb-2 last:border-0 last:pb-0">
+                  <div
+                    key={idx}
+                    className="flex justify-between items-center text-xs border-b border-slate-50 pb-2 last:border-0 last:pb-0"
+                  >
                     <div>
                       <p className="font-bold text-slate-800">{item.name}</p>
-                      <p className="text-[10px] text-slate-400">{item.qty} pcs</p>
+                      <p className="text-[10px] text-slate-400">
+                        {item.qty} pcs
+                      </p>
                     </div>
-                    <div className="font-black text-slate-900">₹{item.total.toLocaleString('en-IN')}</div>
+                    <div className="font-black text-slate-900">
+                      ₹{item.total.toLocaleString("en-IN")}
+                    </div>
                   </div>
                 ))}
                 {todayTopItems.length === 0 && (
-                  <p className="text-xs text-slate-400 italic">No products sold today.</p>
+                  <p className="text-xs text-slate-400 italic">
+                    No products sold today.
+                  </p>
                 )}
               </div>
             </div>
@@ -583,7 +892,9 @@ export default function AnalyticsPage() {
   const renderProductsTab = () => (
     <div className="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden animate-in fade-in duration-300">
       <div className="p-6 border-b border-slate-50">
-        <h2 className="text-xs font-bold text-slate-800 uppercase tracking-widest">Product Sales Leaderboard</h2>
+        <h2 className="text-xs font-bold text-slate-800 uppercase tracking-widest">
+          Product Sales Leaderboard
+        </h2>
       </div>
       <div className="overflow-x-auto w-full">
         <table className="w-full text-left border-collapse min-w-[800px]">
@@ -601,21 +912,38 @@ export default function AnalyticsPage() {
               <tr key={prod.rank} className="hover:bg-slate-50">
                 <td className="px-6 py-4 text-slate-500">{prod.rank}</td>
                 <td className="px-6 py-4">{prod.name}</td>
-                <td className="px-6 py-4 text-center text-slate-600">{prod.qty} pcs</td>
-                <td className="px-6 py-4 text-right font-black">₹{prod.revenue.toLocaleString('en-IN')}</td>
+                <td className="px-6 py-4 text-center text-slate-600">
+                  {prod.qty} pcs
+                </td>
+                <td className="px-6 py-4 text-right font-black">
+                  ₹{prod.revenue.toLocaleString("en-IN")}
+                </td>
                 <td className="px-6 py-4">
                   <div className="flex items-center justify-end gap-3">
                     <div className="w-32 bg-slate-100 rounded-full h-1.5">
-                      <div className="h-1.5 rounded-full" style={{ width: `${prod.share}%`, backgroundColor: themeColor }}></div>
+                      <div
+                        className="h-1.5 rounded-full"
+                        style={{
+                          width: `${prod.share}%`,
+                          backgroundColor: themeColor,
+                        }}
+                      ></div>
                     </div>
-                    <span className="text-xs text-slate-500 w-8 text-right">{prod.share}%</span>
+                    <span className="text-xs text-slate-500 w-8 text-right">
+                      {prod.share}%
+                    </span>
                   </div>
                 </td>
               </tr>
             ))}
             {stats.leaderboard.length === 0 && (
               <tr>
-                <td colSpan={5} className="px-6 py-8 text-center text-slate-400 italic">No products sold in this period.</td>
+                <td
+                  colSpan={5}
+                  className="px-6 py-8 text-center text-slate-400 italic"
+                >
+                  No products sold in this period.
+                </td>
               </tr>
             )}
           </tbody>
@@ -628,36 +956,58 @@ export default function AnalyticsPage() {
     <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 animate-in fade-in duration-300">
       <div className="space-y-4">
         <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-6">
-          <h2 className="text-xs font-bold text-slate-800 uppercase tracking-widest mb-6">Discount Summary</h2>
+          <h2 className="text-xs font-bold text-slate-800 uppercase tracking-widest mb-6">
+            Discount Summary
+          </h2>
           <div className="space-y-4">
             <div className="border border-slate-100 rounded-xl p-4 flex justify-between items-center bg-slate-50/50">
               <div>
-                <span className="block text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-1">Total Discounts Given</span>
-                <span className="text-2xl font-black text-slate-900">₹{stats.coupons.totalDiscounts.toLocaleString('en-IN')}</span>
+                <span className="block text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-1">
+                  Total Discounts Given
+                </span>
+                <span className="text-2xl font-black text-slate-900">
+                  ₹{stats.coupons.totalDiscounts.toLocaleString("en-IN")}
+                </span>
               </div>
-              <div className="p-2 bg-orange-100 text-orange-600 rounded-lg"><Percent size={16} /></div>
+              <div className="p-2 bg-orange-100 text-orange-600 rounded-lg">
+                <Percent size={16} />
+              </div>
             </div>
             <div className="border border-slate-100 rounded-xl p-4 flex justify-between items-center bg-slate-50/50">
               <div>
-                <span className="block text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-1">Discounted Orders</span>
-                <span className="text-2xl font-black text-slate-900">{stats.coupons.discountedOrders}</span>
+                <span className="block text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-1">
+                  Discounted Orders
+                </span>
+                <span className="text-2xl font-black text-slate-900">
+                  {stats.coupons.discountedOrders}
+                </span>
               </div>
-              <div className="p-2 bg-yellow-100 text-yellow-600 rounded-lg"><Tag size={16} /></div>
+              <div className="p-2 bg-yellow-100 text-yellow-600 rounded-lg">
+                <Tag size={16} />
+              </div>
             </div>
             <div className="border border-slate-100 rounded-xl p-4 flex justify-between items-center bg-slate-50/50">
               <div>
-                <span className="block text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-1">Avg Discount Per Order</span>
-                <span className="text-2xl font-black text-slate-900">₹{stats.coupons.avgDiscount.toLocaleString('en-IN')}</span>
+                <span className="block text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-1">
+                  Avg Discount Per Order
+                </span>
+                <span className="text-2xl font-black text-slate-900">
+                  ₹{stats.coupons.avgDiscount.toLocaleString("en-IN")}
+                </span>
               </div>
-              <div className="p-2 bg-emerald-100 text-emerald-600 rounded-lg"><IndianRupee size={16} /></div>
+              <div className="p-2 bg-emerald-100 text-emerald-600 rounded-lg">
+                <IndianRupee size={16} />
+              </div>
             </div>
           </div>
         </div>
       </div>
-      
+
       <div className="lg:col-span-2 bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden flex flex-col">
         <div className="p-6 border-b border-slate-50">
-          <h2 className="text-xs font-bold text-slate-800 uppercase tracking-widest">Promo Campaign Performance</h2>
+          <h2 className="text-xs font-bold text-slate-800 uppercase tracking-widest">
+            Promo Campaign Performance
+          </h2>
         </div>
         <div className="overflow-x-auto w-full flex-1">
           <table className="w-full text-left border-collapse min-w-[600px]">
@@ -674,13 +1024,22 @@ export default function AnalyticsPage() {
                 <tr key={idx} className="hover:bg-slate-50">
                   <td className="px-6 py-4">{tx.id}</td>
                   <td className="px-6 py-4">{tx.customer}</td>
-                  <td className="px-6 py-4 text-right text-slate-600">₹{tx.total.toLocaleString('en-IN')}</td>
-                  <td className="px-6 py-4 text-right text-red-600">-₹{tx.discount.toLocaleString('en-IN')}</td>
+                  <td className="px-6 py-4 text-right text-slate-600">
+                    ₹{tx.total.toLocaleString("en-IN")}
+                  </td>
+                  <td className="px-6 py-4 text-right text-red-600">
+                    -₹{tx.discount.toLocaleString("en-IN")}
+                  </td>
                 </tr>
               ))}
               {stats.coupons.transactions.length === 0 && (
                 <tr>
-                  <td colSpan={4} className="px-6 py-8 text-center text-slate-400 italic">No coupons used in this period.</td>
+                  <td
+                    colSpan={4}
+                    className="px-6 py-8 text-center text-slate-400 italic"
+                  >
+                    No coupons used in this period.
+                  </td>
                 </tr>
               )}
             </tbody>
@@ -695,42 +1054,71 @@ export default function AnalyticsPage() {
       {/* Header */}
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
         <div>
-          <h1 className="text-2xl font-black text-slate-900 tracking-tight">POS & E-Commerce Analytics</h1>
-          <p className="text-xs font-medium text-slate-500 mt-1">Real-time revenue, product performance, and coupon metrics connected directly to Supabase</p>
+          <h1 className="text-2xl font-black text-slate-900 tracking-tight">
+            POS & E-Commerce Analytics
+          </h1>
+          <p className="text-xs font-medium text-slate-500 mt-1">
+            Real-time revenue, product performance, and coupon metrics connected
+            directly to Supabase
+          </p>
         </div>
-        <button 
+        <button
           onClick={handleRefresh}
-          className={`flex items-center gap-2 px-4 py-2 bg-white border border-slate-200 hover:bg-slate-50 rounded-full text-xs font-bold transition-colors shadow-sm cursor-pointer ${isRefreshing ? 'text-slate-400' : 'text-slate-700'}`}
+          className={`flex items-center gap-2 px-4 py-2 bg-white border border-slate-200 hover:bg-slate-50 rounded-full text-xs font-bold transition-colors shadow-sm cursor-pointer ${isRefreshing ? "text-slate-400" : "text-slate-700"}`}
           disabled={isRefreshing}
         >
-          <RefreshCw size={14} className={isRefreshing ? 'animate-spin text-slate-400' : ''} /> 
-          {isRefreshing ? 'Refreshing...' : 'Refresh'}
+          <RefreshCw
+            size={14}
+            className={isRefreshing ? "animate-spin text-slate-400" : ""}
+          />
+          {isRefreshing ? "Refreshing..." : "Refresh"}
         </button>
       </div>
 
       {/* Period Filter (Hidden for TODAY'S SALES) */}
       {activeTab !== "TODAY'S SALES" && (
         <div className="flex flex-wrap items-center gap-3">
-          <span className="text-xs font-bold text-slate-500 uppercase tracking-widest">PERIOD:</span>
+          <span className="text-xs font-bold text-slate-500 uppercase tracking-widest">
+            PERIOD:
+          </span>
           <div className="flex flex-wrap items-center bg-white rounded-full border border-slate-200 p-1 shadow-sm text-xs font-bold text-slate-600">
-            {['All Time', 'Today', 'This Week', 'This Month', 'This Year', 'Custom'].map(f => (
-              <button 
+            {[
+              "All Time",
+              "Today",
+              "This Week",
+              "This Month",
+              "This Year",
+              "Custom",
+            ].map((f) => (
+              <button
                 key={f}
                 onClick={() => setPeriod(f)}
-                className={`px-4 py-1.5 rounded-full transition-colors ${period === f ? 'text-white shadow-sm' : 'hover:bg-slate-50'}`}
-                style={{ backgroundColor: period === f ? themeColor : 'transparent' }}
+                className={`px-4 py-1.5 rounded-full transition-colors ${period === f ? "text-white shadow-sm" : "hover:bg-slate-50"}`}
+                style={{
+                  backgroundColor: period === f ? themeColor : "transparent",
+                }}
               >
                 {f}
               </button>
             ))}
           </div>
 
-          {period === 'Custom' && (
+          {period === "Custom" && (
             <div className="flex items-center gap-2 bg-white rounded-full border border-slate-200 px-3 py-1 shadow-sm text-xs font-bold text-slate-700 animate-in slide-in-from-left-2">
               <span className="text-[10px] text-slate-400">FROM</span>
-              <input type="date" value={customFrom} onChange={e => setCustomFrom(e.target.value)} className="outline-none bg-transparent" />
+              <input
+                type="date"
+                value={customFrom}
+                onChange={(e) => setCustomFrom(e.target.value)}
+                className="outline-none bg-transparent"
+              />
               <span className="text-[10px] text-slate-400">TO</span>
-              <input type="date" value={customTo} onChange={e => setCustomTo(e.target.value)} className="outline-none bg-transparent" />
+              <input
+                type="date"
+                value={customTo}
+                onChange={(e) => setCustomTo(e.target.value)}
+                className="outline-none bg-transparent"
+              />
             </div>
           )}
         </div>
@@ -738,14 +1126,18 @@ export default function AnalyticsPage() {
 
       {/* Tabs */}
       <div className="flex items-center gap-6 border-b border-slate-200 pt-2">
-        {['REVENUE', "TODAY'S SALES", 'PRODUCTS', 'COUPONS'].map(tab => (
+        {["REVENUE", "TODAY'S SALES", "PRODUCTS", "COUPONS"].map((tab) => (
           <button
             key={tab}
             onClick={() => setActiveTab(tab)}
             className={`pb-3 text-xs font-bold tracking-widest uppercase border-b-2 transition-colors cursor-pointer ${
-              activeTab === tab ? 'text-slate-900 border-b-[#dc2626]' : 'text-slate-400 border-transparent hover:text-slate-600'
+              activeTab === tab
+                ? "text-slate-900 border-b-[#dc2626]"
+                : "text-slate-400 border-transparent hover:text-slate-600"
             }`}
-            style={{ borderColor: activeTab === tab ? themeColor : 'transparent' }}
+            style={{
+              borderColor: activeTab === tab ? themeColor : "transparent",
+            }}
           >
             {tab}
           </button>
@@ -759,10 +1151,10 @@ export default function AnalyticsPage() {
         </div>
       ) : (
         <div className="pt-2">
-          {activeTab === 'REVENUE' && renderRevenueTab()}
+          {activeTab === "REVENUE" && renderRevenueTab()}
           {activeTab === "TODAY'S SALES" && renderTodaySalesTab()}
-          {activeTab === 'PRODUCTS' && renderProductsTab()}
-          {activeTab === 'COUPONS' && renderCouponsTab()}
+          {activeTab === "PRODUCTS" && renderProductsTab()}
+          {activeTab === "COUPONS" && renderCouponsTab()}
         </div>
       )}
 
@@ -775,7 +1167,7 @@ export default function AnalyticsPage() {
                 <Award size={18} className="text-pink-500" />
                 Top Product Details
               </h3>
-              <button 
+              <button
                 onClick={() => setShowProductModal(false)}
                 className="text-slate-400 hover:text-slate-700 transition-colors p-1 cursor-pointer"
               >
@@ -784,33 +1176,55 @@ export default function AnalyticsPage() {
             </div>
             <div className="p-6 space-y-6">
               <div>
-                <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">Product Name</p>
-                <p className="text-lg font-black text-slate-900 leading-snug">{stats.topProduct.name}</p>
+                <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">
+                  Product Name
+                </p>
+                <p className="text-lg font-black text-slate-900 leading-snug">
+                  {stats.topProduct.name}
+                </p>
               </div>
-              
+
               <div className="grid grid-cols-2 gap-4">
                 <div className="bg-slate-50 rounded-xl p-4 border border-slate-100">
-                  <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-1">Total Revenue</p>
-                  <p className="text-2xl font-black text-slate-900">₹{stats.topProduct.revenue.toLocaleString('en-IN')}</p>
+                  <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-1">
+                    Total Revenue
+                  </p>
+                  <p className="text-2xl font-black text-slate-900">
+                    ₹{stats.topProduct.revenue.toLocaleString("en-IN")}
+                  </p>
                 </div>
                 <div className="bg-slate-50 rounded-xl p-4 border border-slate-100">
-                  <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-1">Quantity Sold</p>
-                  <p className="text-2xl font-black text-slate-900">{stats.topProduct.qty} pcs</p>
+                  <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-1">
+                    Quantity Sold
+                  </p>
+                  <p className="text-2xl font-black text-slate-900">
+                    {stats.topProduct.qty} pcs
+                  </p>
                 </div>
               </div>
 
               <div>
                 <div className="flex justify-between text-xs font-bold mb-2">
-                  <span className="text-slate-500">Market Share (Products)</span>
-                  <span className="text-slate-900">{stats.topProduct.share.toFixed(1)}%</span>
+                  <span className="text-slate-500">
+                    Market Share (Products)
+                  </span>
+                  <span className="text-slate-900">
+                    {stats.topProduct.share.toFixed(1)}%
+                  </span>
                 </div>
                 <div className="w-full bg-slate-100 rounded-full h-2">
-                  <div className="h-2 rounded-full" style={{ width: `${stats.topProduct.share}%`, backgroundColor: themeColor }}></div>
+                  <div
+                    className="h-2 rounded-full"
+                    style={{
+                      width: `${stats.topProduct.share}%`,
+                      backgroundColor: themeColor,
+                    }}
+                  ></div>
                 </div>
               </div>
             </div>
             <div className="p-4 bg-slate-50 border-t border-slate-100">
-              <button 
+              <button
                 onClick={() => setShowProductModal(false)}
                 className="w-full py-2.5 bg-slate-200 hover:bg-slate-300 text-slate-700 font-bold rounded-xl transition-colors text-sm cursor-pointer"
               >

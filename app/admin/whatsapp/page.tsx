@@ -12,6 +12,73 @@ const WhatsAppIcon = ({ size, className }: { size?: number, className?: string }
   </svg>
 );
 
+type Inquiry = {
+  id: string;
+  created_at: string;
+  customer_name: string;
+  customer_phone: string;
+  notes: string;
+  status: string;
+  total_amount: number;
+  discount_amount: number;
+  coupon?: { code: string };
+  items: Array<{
+    product_name: string;
+    variant: string;
+    size: string;
+    quantity: number;
+    unit_price: number;
+  }>;
+};
+
+const mockInquiries: Inquiry[] = [
+  {
+    id: '1',
+    created_at: new Date().toISOString(),
+    customer_name: 'Rahul Kumar',
+    customer_phone: '7904199050',
+    notes: '123 Main Street\nINVOICE_ID: ORD-2026-0030',
+    status: 'pending',
+    total_amount: 945,
+    discount_amount: 0,
+    items: [ { product_name: 'Cup Sambrani', variant: 'Standard', size: '250g', quantity: 2, unit_price: 299 } ]
+  },
+  {
+    id: '2',
+    created_at: new Date(Date.now() - 3600000).toISOString(),
+    customer_name: 'Priya Sharma',
+    customer_phone: '8925306434',
+    notes: 'MAHALAKSHMI NAGAR...\nINVOICE_ID: ORD-2026-0029',
+    status: 'pending',
+    total_amount: 149,
+    discount_amount: 0,
+    items: [ { product_name: 'Pure Camphor', variant: 'Premium', size: '100g', quantity: 1, unit_price: 149 } ]
+  },
+  {
+    id: '3',
+    created_at: new Date(Date.now() - 86400000).toISOString(),
+    customer_name: 'Amit Singh',
+    customer_phone: '9876543210',
+    notes: '45 Anna Salai, Chennai\nINVOICE_ID: ORD-2026-0028',
+    status: 'completed',
+    total_amount: 2245,
+    discount_amount: 250,
+    coupon: { code: 'FESTIVE10' },
+    items: [ { product_name: 'Agarbathi', variant: 'Premium', size: '500g', quantity: 5, unit_price: 499 } ]
+  },
+  {
+    id: '4',
+    created_at: new Date(Date.now() - 172800000).toISOString(),
+    customer_name: 'Sneha Reddy',
+    customer_phone: '9123456789',
+    notes: 'Hitech City, Hyderabad\nINVOICE_ID: ORD-2026-0027',
+    status: 'processing',
+    total_amount: 299,
+    discount_amount: 0,
+    items: [ { product_name: 'Cone Sambrani', variant: 'Standard', size: '250g', quantity: 1, unit_price: 299 } ]
+  }
+];
+
 export default function WhatsAppCenter() {
   const { whatsappRequests, updateWhatsappStatus, refreshData, loading } = useAdmin();
   const [filter, setFilter] = useState('ALL');
