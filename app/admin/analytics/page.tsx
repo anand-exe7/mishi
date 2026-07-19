@@ -36,6 +36,10 @@ export default function AnalyticsPage() {
   const [activeTab, setActiveTab] = useState("REVENUE");
   const [customFrom, setCustomFrom] = useState("");
   const [customTo, setCustomTo] = useState("");
+  
+  const [todaySearch, setTodaySearch] = useState("");
+  const [productSearch, setProductSearch] = useState("");
+  const [couponSearch, setCouponSearch] = useState("");
 
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [showProductModal, setShowProductModal] = useState(false);
@@ -259,6 +263,9 @@ export default function AnalyticsPage() {
     }));
   }, [orders]);
 
+  const yearlyTotalRevenue = useMemo(() => yearlyChartData.reduce((acc, curr) => acc + curr.value, 0), [yearlyChartData]);
+  const weeklyTotalRevenue = useMemo(() => weeklyChartData.reduce((acc, curr) => acc + curr.value, 0), [weeklyChartData]);
+
   // Render sub-tabs helper
   const renderRevenueTab = () => (
     <div className="space-y-4 animate-in fade-in duration-300">
@@ -449,10 +456,10 @@ export default function AnalyticsPage() {
           </div>
           <div className="flex items-baseline gap-3 mb-8">
             <span className="text-2xl font-black text-slate-900">
-              ₹{stats.totalRevenue.toLocaleString("en-IN")}
+              ₹{yearlyTotalRevenue.toLocaleString("en-IN")}
             </span>
             <span className="text-[10px] font-bold text-red-600">
-              Calculated from dynamic orders
+              Calculated from all orders this year
             </span>
           </div>
 
@@ -587,8 +594,13 @@ export default function AnalyticsPage() {
               Revenue This Week (Mon-Sun)
             </h2>
           </div>
-          <div className="text-xs text-slate-500 mb-6">
-            Weekly trends computed dynamically
+          <div className="flex items-baseline gap-3 mb-6">
+            <span className="text-xl font-black text-slate-900">
+              ₹{weeklyTotalRevenue.toLocaleString("en-IN")}
+            </span>
+            <span className="text-[10px] text-slate-500">
+              Computed dynamically for current week
+            </span>
           </div>
 
           <div className="w-full h-[250px] overflow-hidden">
@@ -772,6 +784,16 @@ export default function AnalyticsPage() {
               <h2 className="text-xs font-bold text-slate-800 uppercase tracking-widest">
                 Today's Transactions
               </h2>
+              <div className="relative">
+                <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+                <input 
+                  type="text" 
+                  placeholder="Search invoice or name..." 
+                  value={todaySearch}
+                  onChange={e => setTodaySearch(e.target.value)}
+                  className="pl-8 pr-3 py-1.5 border border-slate-200 rounded-lg text-xs focus:outline-none focus:border-red-500 w-48"
+                />
+              </div>
             </div>
             <div className="overflow-x-auto w-full flex-1">
               <table className="w-full text-left text-[10px] font-bold text-slate-500 uppercase tracking-widest min-w-[600px]">
@@ -785,7 +807,10 @@ export default function AnalyticsPage() {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-50 text-xs font-bold text-slate-900">
-                  {todayOrders.map((tx) => (
+                  {todayOrders.filter(tx => 
+                    tx.id.toLowerCase().includes(todaySearch.toLowerCase()) || 
+                    (tx.customerName || '').toLowerCase().includes(todaySearch.toLowerCase())
+                  ).map((tx) => (
                     <tr key={tx.id} className="hover:bg-slate-50">
                       <td className="px-6 py-4">{tx.id}</td>
                       <td className="px-6 py-4 text-slate-600">
@@ -896,10 +921,20 @@ export default function AnalyticsPage() {
 
   const renderProductsTab = () => (
     <div className="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden animate-in fade-in duration-300">
-      <div className="p-6 border-b border-slate-50">
+      <div className="p-6 border-b border-slate-50 flex justify-between items-center">
         <h2 className="text-xs font-bold text-slate-800 uppercase tracking-widest">
           Product Sales Leaderboard
         </h2>
+        <div className="relative">
+          <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+          <input 
+            type="text" 
+            placeholder="Search product..." 
+            value={productSearch}
+            onChange={e => setProductSearch(e.target.value)}
+            className="pl-8 pr-3 py-1.5 border border-slate-200 rounded-lg text-xs focus:outline-none focus:border-red-500 w-48"
+          />
+        </div>
       </div>
       <div className="overflow-x-auto w-full">
         <table className="w-full text-left border-collapse min-w-[800px]">
@@ -913,7 +948,9 @@ export default function AnalyticsPage() {
             </tr>
           </thead>
           <tbody className="divide-y divide-slate-50 text-sm font-medium text-slate-900">
-            {stats.leaderboard.map((prod) => (
+            {stats.leaderboard
+              .filter(prod => prod.name.toLowerCase().includes(productSearch.toLowerCase()))
+              .map((prod) => (
               <tr key={prod.rank} className="hover:bg-slate-50">
                 <td className="px-6 py-4 text-slate-500">{prod.rank}</td>
                 <td className="px-6 py-4">{prod.name}</td>
@@ -1009,10 +1046,20 @@ export default function AnalyticsPage() {
       </div>
 
       <div className="lg:col-span-2 bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden flex flex-col">
-        <div className="p-6 border-b border-slate-50">
+        <div className="p-6 border-b border-slate-50 flex justify-between items-center">
           <h2 className="text-xs font-bold text-slate-800 uppercase tracking-widest">
             Promo Campaign Performance
           </h2>
+          <div className="relative">
+            <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+            <input 
+              type="text" 
+              placeholder="Search ID or name..." 
+              value={couponSearch}
+              onChange={e => setCouponSearch(e.target.value)}
+              className="pl-8 pr-3 py-1.5 border border-slate-200 rounded-lg text-xs focus:outline-none focus:border-red-500 w-48"
+            />
+          </div>
         </div>
         <div className="overflow-x-auto w-full flex-1">
           <table className="w-full text-left border-collapse min-w-[600px]">
@@ -1025,7 +1072,9 @@ export default function AnalyticsPage() {
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-50 text-xs font-bold text-slate-900">
-              {stats.coupons.transactions.map((tx, idx) => (
+              {stats.coupons.transactions
+                .filter(tx => tx.id.toLowerCase().includes(couponSearch.toLowerCase()) || tx.customer.toLowerCase().includes(couponSearch.toLowerCase()))
+                .map((tx, idx) => (
                 <tr key={idx} className="hover:bg-slate-50">
                   <td className="px-6 py-4">{tx.id}</td>
                   <td className="px-6 py-4">{tx.customer}</td>

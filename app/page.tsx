@@ -796,7 +796,6 @@ export default function Home() {
                      src={`https://www.instagram.com/p/${src}/embed/?autoplay=1`} 
                      frameBorder="0" 
                      scrolling="no" 
-                     allowTransparency={true}
                      className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-[45%] w-[110%] h-[125%] max-w-none"
                   ></iframe>
                 </div>
