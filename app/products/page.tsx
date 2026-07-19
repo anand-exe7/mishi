@@ -15,6 +15,7 @@ export default function ProductsPage() {
   const [selectedProduct, setSelectedProduct] = useState<any>(null);
   const [qty, setQty] = useState(1);
   const [selectedSize, setSelectedSize] = useState("");
+  const [cartSuccessDetails, setCartSuccessDetails] = useState<any>(null);
 
   const { products, fetchProducts, loading, error } = useProductStore();
   const addItem = useCartStore((state) => state.addItem);
@@ -73,33 +74,6 @@ export default function ProductsPage() {
 
   return (
     <div className="bg-zinc-50 min-h-screen font-sans selection:bg-amber-600/30 selection:text-amber-900 overflow-x-hidden">
-      {/* Navbar */}
-      <motion.nav
-        initial={{ y: -100 }}
-        animate={{ y: 0 }}
-        className={`fixed top-4 left-1/2 -translate-x-1/2 z-50 w-[95%] max-w-6xl rounded-full px-6 py-3 flex items-center justify-between transition-all duration-500 ${isScrolled ? "bg-white/90 backdrop-blur-xl shadow-lg border border-white/50" : "bg-white/50 backdrop-blur-md border border-white/20 shadow-sm"}`}
-      >
-        <div className="flex items-center gap-2 cursor-pointer">
-          <Link href="/">
-            <img src="/logo.webp" alt="Mishi" className="h-8 md:h-10 w-auto object-contain" />
-          </Link>
-        </div>
-        
-        <div className={`hidden md:flex gap-8 text-xs uppercase tracking-widest font-semibold text-neutral-800`}>
-           <Link href="/" className="hover:text-emerald-600 transition-colors">Home</Link>
-           <Link href="/#about" className="hover:text-emerald-600 transition-colors">Heritage</Link>
-           <Link href="/#products" className="hover:text-emerald-600 transition-colors">Collection</Link>
-           <Link href="/products" className="hover:text-emerald-600 transition-colors">Products</Link>
-        </div>
-
-        <div className={`flex gap-4 items-center text-neutral-800`}>
-          <Link href="/profile" className="p-2 hover:bg-emerald-500/10 rounded-full transition-colors"><User size={18} /></Link>
-          <Link href="/cart" className="p-2 hover:bg-emerald-500/10 rounded-full transition-colors relative">
-             <ShoppingCart size={18} />
-             <span className="absolute top-0 right-0 w-2.5 h-2.5 bg-emerald-600 rounded-full border-2 border-white"></span>
-          </Link>
-        </div>
-      </motion.nav>
 
       {/* Hero Header */}
       <section className="pt-40 pb-20 px-6 md:px-16 bg-white border-b border-zinc-200">
@@ -156,38 +130,40 @@ export default function ProductsPage() {
                   initial="hidden"
                   animate="visible"
                   onClick={() => setSelectedProduct(product)}
-                  className="group flex flex-col bg-white border border-zinc-100 rounded-3xl overflow-hidden shadow-sm hover:shadow-2xl transition-all duration-500 hover:-translate-y-2 cursor-pointer relative"
+                  className="group flex flex-col bg-white border border-zinc-100 rounded-3xl p-3 sm:p-4 shadow-sm hover:shadow-2xl transition-all duration-500 hover:-translate-y-2 cursor-pointer relative h-full"
                 >
-                  <div className="w-full h-72 overflow-hidden relative bg-zinc-100">
+                  <div className="w-full aspect-[4/5] rounded-2xl overflow-hidden mb-4 relative bg-zinc-50">
                     <img
                       src={product.imageUrl || "/placeholder.jpg"}
                       alt={product.name}
-                      className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700 ease-out"
+                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700 ease-out"
                     />
-                    <div className="absolute inset-0 bg-black/10 group-hover:bg-transparent transition-colors"></div>
+                    <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors"></div>
                     <div className="absolute bottom-4 right-4 bg-white/90 backdrop-blur-md p-3 rounded-full text-zinc-900 opacity-0 group-hover:opacity-100 transition-opacity translate-y-4 group-hover:translate-y-0 shadow-lg">
-                      <ArrowRight size={20} />
+                      <ArrowRight size={18} />
                     </div>
                   </div>
-                  <div className="p-8 flex flex-col flex-1 bg-white">
-                    <span className="text-emerald-700 text-xs font-bold uppercase tracking-wider mb-2 block">
+                  <div className="px-2 pb-2 flex flex-col flex-1">
+                    <span className="text-emerald-700 text-[10px] font-bold uppercase tracking-wider mb-1.5 block">
                       {product.category}
                     </span>
                     <h3
-                      className={`text-3xl text-zinc-900 mb-3 group-hover:text-amber-600 transition-colors ${playfair.className}`}
+                      className={`text-2xl text-zinc-900 mb-2 group-hover:text-amber-600 transition-colors ${playfair.className}`}
                     >
                       {product.name}
                     </h3>
-                    <p className="text-zinc-600 text-sm leading-relaxed mb-6 flex-1 line-clamp-2">
-                      {product.description}
-                    </p>
+                    {product.description && (
+                      <p className="text-zinc-500 text-sm mb-4 line-clamp-2">
+                        {product.description}
+                      </p>
+                    )}
                     <div className="flex items-center justify-between border-t border-zinc-100 pt-4 mt-auto">
-                      <span className="text-zinc-900 font-bold text-lg">
+                      <span className="text-zinc-900 font-bold text-base">
                         From ₹{lowestPrice}
                       </span>
-                      <button className="text-xs uppercase tracking-widest font-bold text-amber-600 hover:text-amber-700 flex items-center gap-2">
+                      <span className="text-[10px] uppercase tracking-widest font-bold text-amber-600 hover:text-amber-700">
                         View Details
-                      </button>
+                      </span>
                     </div>
                   </div>
                 </motion.div>
@@ -211,13 +187,13 @@ export default function ProductsPage() {
               setSelectedSize("");
             }}
           >
-            <motion.div
-              initial={{ scale: 0.9, y: 30, opacity: 0 }}
-              animate={{ scale: 1, y: 0, opacity: 1 }}
-              exit={{ scale: 0.9, y: 30, opacity: 0 }}
-              className="bg-white w-full max-w-4xl rounded-[2rem] overflow-hidden flex flex-col md:flex-row shadow-2xl relative"
-              onClick={(e) => e.stopPropagation()}
-            >
+              <motion.div
+                initial={{ scale: 0.9, y: 30, opacity: 0 }}
+                animate={{ scale: 1, y: 0, opacity: 1 }}
+                exit={{ scale: 0.9, y: 30, opacity: 0 }}
+                className="bg-white w-full max-w-4xl rounded-[2rem] overflow-hidden flex flex-col md:flex-row shadow-2xl relative"
+                onClick={(e) => e.stopPropagation()}
+              >
               {/* Close Button */}
               <button
                 onClick={() => {
@@ -231,16 +207,18 @@ export default function ProductsPage() {
               </button>
 
               {/* Product Image */}
-              <div className="w-full md:w-1/2 h-64 md:h-auto relative bg-zinc-100">
-                <img
-                  src={selectedProduct.imageUrl || "/placeholder.jpg"}
-                  alt={selectedProduct.name}
-                  className="w-full h-full object-cover"
-                />
+              <div className="w-full md:w-[45%] min-h-[400px] md:min-h-[500px] relative bg-zinc-50">
+                <div className="absolute inset-0 flex items-center justify-center p-6">
+                  <img
+                    src={selectedProduct.imageUrl || "/placeholder.jpg"}
+                    alt={selectedProduct.name}
+                    className="w-full h-full object-contain mix-blend-multiply"
+                  />
+                </div>
               </div>
 
               {/* Product Details */}
-              <div className="w-full md:w-1/2 p-8 md:p-12 flex flex-col justify-center">
+              <div className="w-full md:w-[55%] p-6 md:p-10 flex flex-col justify-center">
                 <span className="text-amber-600 text-xs font-bold tracking-[0.2em] uppercase mb-3">
                   Premium Quality
                 </span>
@@ -311,7 +289,34 @@ export default function ProductsPage() {
                 <button 
                   onClick={() => {
                     addItem(selectedProduct, qty, selectedSize);
-                    toast.success(`Added ${qty}x ${selectedProduct.name} (${selectedSize}) to your cart!`);
+                    
+                    toast.custom((t) => (
+                      <div
+                        className={`${
+                          t.visible ? 'animate-enter' : 'animate-leave'
+                        } max-w-sm w-full bg-zinc-900 shadow-2xl rounded-2xl pointer-events-auto flex items-center p-4 gap-4 border border-zinc-800`}
+                      >
+                        <div className="w-10 h-10 bg-emerald-500 rounded-full flex items-center justify-center shrink-0 shadow-inner">
+                          <ShoppingCart size={18} className="text-white" />
+                        </div>
+                        <div className="flex-1">
+                          <p className="text-sm font-bold text-white">
+                            Added to cart
+                          </p>
+                          <p className="text-xs text-zinc-400 mt-0.5 line-clamp-1">
+                            {qty}x {selectedProduct.name}
+                          </p>
+                        </div>
+                        <Link 
+                          href="/cart"
+                          className="bg-white text-zinc-900 px-4 py-2 rounded-full text-[10px] font-bold tracking-widest uppercase hover:bg-zinc-200 transition-colors shrink-0"
+                          onClick={() => toast.dismiss(t.id)}
+                        >
+                          View Cart
+                        </Link>
+                      </div>
+                    ), { position: 'bottom-center', duration: 4000 });
+
                     setSelectedProduct(null);
                     setQty(1);
                     setSelectedSize("");
@@ -325,6 +330,8 @@ export default function ProductsPage() {
           </motion.div>
         )}
       </AnimatePresence>
+
+      {/* Removed old massive Cart Success Modal */}
 
       {/* Footer */}
       <footer className="w-full bg-[#faf9f6]">
