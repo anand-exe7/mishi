@@ -1,8 +1,5 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
-import { Cormorant_Garamond, Outfit } from "next/font/google";
-import toast from "react-hot-toast";
 import {
   motion,
   useScroll,
@@ -31,11 +28,15 @@ import {
   ShoppingCart,
   Menu,
   X,
-  
-  
+  Star,
 } from "lucide-react";
-import { ReactLenis, useLenis } from "lenis/react";
+import { Playfair_Display } from "next/font/google";
+const playfair = Playfair_Display({ subsets: ["latin"] });
+import { useEffect, useRef, useState } from "react";
+import toast from "react-hot-toast";
+import { useCartStore, useProductStore } from "@/store/store";
 import Link from "next/link";
+
 const InstagramIcon = ({
   size = 24,
   className = "",
@@ -61,44 +62,28 @@ const InstagramIcon = ({
   </svg>
 );
 
-
-import { Playfair_Display } from "next/font/google";
-const playfair = Playfair_Display({ subsets: ["latin"] });
-const cormorant = Cormorant_Garamond({ subsets: ["latin"], weight: ["300", "400", "500", "600", "700"] });
-const outfit = Outfit({ subsets: ["latin"], weight: ["300", "400", "500", "600", "700"] });
-
-const products = [
-  {
-    name: "Cup Sambrani",
-    desc: "A traditional aromatic product used in many homes to create a pure and peaceful environment.",
-    img: "https://www.mishipoojaproducts.com/wp-content/uploads/2026/03/Product-1.jpg",
-  },
-  {
-    name: "Computer Sambrani",
-    desc: "A modern and convenient form of traditional sambrani.",
-    img: "https://www.mishipoojaproducts.com/wp-content/uploads/2026/03/Product-4.jpg",
-  },
-  {
-    name: "Cone Sambrani",
-    desc: "Crafted to spread a rich and soothing fragrance.",
-    img: "https://www.mishipoojaproducts.com/wp-content/uploads/2026/03/pr1.jpg",
-  },
-  {
-    name: "Dhoop Sticks",
-    desc: "Known for their rich and long-lasting fragrance.",
-    img: "https://www.mishipoojaproducts.com/wp-content/uploads/2026/03/pr2.jpg",
-  },
-  {
-    name: "Agarbathi",
-    desc: "Creates a calm, refreshing, and spiritually uplifting atmosphere.",
-    img: "https://www.mishipoojaproducts.com/wp-content/uploads/2026/03/pr3.jpg",
-  },
-  {
-    name: "Camphor",
-    desc: "A powerful and sacred element widely used in spiritual rituals.",
-    img: "https://www.mishipoojaproducts.com/wp-content/uploads/2026/03/pr4.jpg",
-  },
-];
+const FacebookIcon = ({
+  size = 24,
+  className = "",
+}: {
+  size?: number;
+  className?: string;
+}) => (
+  <svg
+    xmlns="http://www.w3.org/2000/svg"
+    width={size}
+    height={size}
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="2"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+    className={className}
+  >
+    <path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z" />
+  </svg>
+);
 
 const flags = [
   { name: "Malaysia", gifName: "Malaysia" },
@@ -169,7 +154,15 @@ const galleryImages = [
   "/gallery/gallery_incense_1783444391666.png",
 ];
 
-const reelVideos = ["/bg.webm", "/bg.webm", "/bg.webm", "/bg.webm"];
+// Important: To play videos without Instagram's UI, you MUST download your reels as .mp4 files 
+// and place them in the 'public' folder (e.g., 'public/reel1.mp4').
+// Then, update the names here:
+const reelVideos = [
+  "DX9JNchDWyW",
+  "DYTZ_U1idZK",
+  "DYCWOObD0x3",
+  "Daxqbe-ihQE",
+];
 
 
 
@@ -186,25 +179,70 @@ export default function Home() {
   const [isScrolled, setIsScrolled] = useState(false);
   const [activeAroma, setActiveAroma] = useState(0);
   const [openFAQ, setOpenFAQ] = useState<number | null>(0);
-  const [selectedProduct, setSelectedProduct] = useState<any>(null);
-  const [qty, setQty] = useState(1);
-  const [selectedSize, setSelectedSize] = useState("250g");
-  const lenis = useLenis();
+  const { products: storeProducts, fetchProducts } = useProductStore();
+
+  const [reviews, setReviews] = useState<any[]>([]);
+  const [newReview, setNewReview] = useState("");
+  const [newReviewName, setNewReviewName] = useState("");
+  const [newReviewRating, setNewReviewRating] = useState(5);
+  const [showReviewForm, setShowReviewForm] = useState(false);
+  const [selectedGalleryImage, setSelectedGalleryImage] = useState<string | null>(null);
+
+  useEffect(() => {
+    fetchProducts();
+  }, [fetchProducts]);
+
+  const addItem = useCartStore((state) => state.addItem);
 
   useEffect(() => {
     const handleScroll = () => {
       setIsScrolled(window.scrollY > 50);
     };
     window.addEventListener("scroll", handleScroll);
+    
+    const defaultR = [
+      { id: 1, text: "The purity and fragrance of these products are unmatched. It instantly elevates the spiritual ambiance of my home during prayers. Highly recommended for daily use!", author: "Customer 1", initial: "C", rating: 5 },
+      { id: 2, text: "Amazing aroma, highly recommend for meditation and regular pooja. Gives a very calming vibe.", author: "Customer 2", initial: "C", rating: 5 },
+      { id: 3, text: "Truly natural and relaxing fragrance. The best sambrani I've used.", author: "Customer 3", initial: "C", rating: 4 },
+      { id: 4, text: "Excellent quality and packaging.", author: "Customer 4", initial: "C", rating: 5 },
+      { id: 5, text: "Very divine and peaceful experience.", author: "Customer 5", initial: "C", rating: 5 }
+    ];
+    const saved = localStorage.getItem("mishi_reviews");
+    if (saved) {
+      try {
+        setReviews(JSON.parse(saved));
+      } catch(e) {
+        setReviews(defaultR);
+      }
+    } else {
+      setReviews(defaultR);
+    }
+    
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
+  const handleAddReview = () => {
+    if (!newReview.trim() || !newReviewName.trim()) {
+      toast.error("Please provide both name and review.");
+      return;
+    }
+    const r = { id: Date.now(), text: newReview, author: newReviewName, initial: newReviewName.charAt(0).toUpperCase(), rating: newReviewRating };
+    const updated = [r, ...reviews];
+    setReviews(updated);
+    localStorage.setItem("mishi_reviews", JSON.stringify(updated));
+    setNewReview("");
+    setNewReviewName("");
+    setNewReviewRating(5);
+    setShowReviewForm(false);
+    toast.success("Review added successfully!");
+  };
+
   const scrollTo = (id: string) => {
-    if (lenis) {
-      lenis.scrollTo(id, {
-        offset: -80,
-        duration: 1.5,
-        easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
+    const el = document.querySelector(id);
+    if (el) {
+      window.scrollTo({
+        top: el.getBoundingClientRect().top + window.scrollY - 80,
+        behavior: "smooth"
       });
     }
   };
@@ -220,24 +258,20 @@ export default function Home() {
   };
 
   const popUpVariants = {
-    hidden: { opacity: 0, scale: 0.5, y: 50 },
+    hidden: { opacity: 0, y: 30 },
     visible: (i: number) => ({
       opacity: 1,
-      scale: 1,
       y: 0,
       transition: {
         delay: i * 0.1,
-        type: "spring" as const,
-        stiffness: 150,
-        damping: 12,
-        mass: 0.8,
+        duration: 0.6,
+        ease: "easeOut" as const,
       },
     }),
   };
 
   return (
-    <ReactLenis root options={{ lerp: 0.05, smoothWheel: true }}>
-      <div className={`bg-neutral-50 text-neutral-900 min-h-screen ${outfit.className} selection:bg-emerald-600/30 selection:text-emerald-900 overflow-x-hidden`}>
+      <div className={`bg-neutral-50 text-neutral-900 min-h-screen ${playfair.className} selection:bg-emerald-600/30 selection:text-emerald-900 overflow-x-hidden`}>
         <style
           dangerouslySetInnerHTML={{
             __html: `
@@ -264,119 +298,107 @@ export default function Home() {
             text-orientation: mixed;
             transform: rotate(180deg);
           }
+          @keyframes float-word {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-8px); }
+          }
+          .animate-float-word {
+            animation: float-word 4s ease-in-out infinite;
+          }
         `,
           }}
         />
 
-        {/* New Navbar */}
-        <motion.nav
-          initial={{ y: -100 }}
-          animate={{ y: 0 }}
-          className={`fixed top-4 left-1/2 -translate-x-1/2 z-50 w-[95%] max-w-6xl rounded-full px-6 py-3 flex items-center justify-between transition-all duration-500 ${isScrolled ? "bg-white/90 backdrop-blur-xl shadow-lg border border-white/50" : "bg-white/50 backdrop-blur-md border border-white/20 shadow-sm"}`}
-        >
-          <div className="flex items-center gap-2 cursor-pointer">
-            <Link href="/">
-              <img src="/logo.webp" alt="Mishi" className="h-8 md:h-10 w-auto object-contain" />
-            </Link>
-          </div>
-          
-          <div className={`hidden md:flex gap-8 text-xs uppercase tracking-widest font-semibold text-neutral-800`}>
-           <Link href="/" className="hover:text-emerald-600 transition-colors">Home</Link>
-           <Link href="/#about" className="hover:text-emerald-600 transition-colors">Heritage</Link>
-           <Link href="/#products" className="hover:text-emerald-600 transition-colors">Collection</Link>
-           <Link href="/products" className="hover:text-emerald-600 transition-colors">Products</Link>
-        </div>
 
-          <div className={`flex gap-4 items-center text-neutral-800`}>
-            <Link href="/profile" className="p-2 hover:bg-emerald-500/10 rounded-full transition-colors"><User size={18} /></Link>
-            <Link href="/cart" className="p-2 hover:bg-emerald-500/10 rounded-full transition-colors relative">
-               <ShoppingCart size={18} />
-               <span className="absolute top-0 right-0 w-2 h-2 bg-emerald-600 rounded-full"></span>
-            </Link>
-          </div>
-        </motion.nav>
+        {/* New Hero Section (Split Layout) */}
+        <section id="home" className="w-full min-h-screen flex flex-col lg:flex-row overflow-hidden bg-[#1f3625] selection:bg-[#d5b976]/30 selection:text-white pt-20 lg:pt-0">
+          {/* Left Side: Content */}
+          <div className="w-full lg:w-1/2 relative min-h-[50vh] lg:min-h-screen flex flex-col justify-center p-8 md:p-12 lg:p-16 z-10 overflow-hidden">
+            
+            {/* Background Image Leaf */}
+            <div className="absolute inset-0 pointer-events-none z-0">
+               <img src="/gold_leaf_bg.png" alt="Leaf Background" className="w-full h-full object-cover opacity-20 mix-blend-screen" />
+            </div>
 
-        {/* New Hero Section */}
-        <section id="home" className="relative pt-32 pb-20 px-8 lg:px-20 min-h-[95vh] flex items-center justify-center overflow-hidden bg-[#fdfcf9]">
-           <div className="absolute inset-0 w-full h-full overflow-hidden z-0 pointer-events-none">
-              <motion.div 
-                 animate={{ 
-                    x: ["0%", "-10%", "10%", "0%"],
-                    y: ["0%", "10%", "-10%", "0%"],
-                    scale: [1, 1.1, 1, 1]
-                 }} 
-                 transition={{ duration: 20, repeat: Infinity, ease: "linear" }}
-                 className="absolute -top-[20%] -left-[10%] w-[60vw] h-[60vw] rounded-full bg-emerald-100/40 blur-[120px]"
-              />
-              <motion.div 
-                 animate={{ 
-                    x: ["0%", "15%", "-15%", "0%"],
-                    y: ["0%", "-15%", "15%", "0%"],
-                    scale: [1, 1.2, 0.9, 1]
-                 }} 
-                 transition={{ duration: 25, repeat: Infinity, ease: "linear" }}
-                 className="absolute top-[20%] right-[5%] w-[50vw] h-[50vw] rounded-full bg-amber-100/40 blur-[100px]"
-              />
-              <motion.div 
-                 animate={{ 
-                    x: ["0%", "-20%", "5%", "0%"],
-                    y: ["0%", "5%", "-20%", "0%"],
-                    scale: [1, 1.05, 1.1, 1]
-                 }} 
-                 transition={{ duration: 22, repeat: Infinity, ease: "linear" }}
-                 className="absolute -bottom-[10%] left-[20%] w-[40vw] h-[40vw] rounded-full bg-orange-50/50 blur-[100px]"
-              />
-              <div className="absolute inset-0 bg-white/40 backdrop-blur-[60px]"></div>
-           </div>
-           
-           <div className="relative z-10 max-w-[1400px] w-full mx-auto flex flex-col lg:flex-row items-center justify-between gap-12 lg:gap-8">
-              <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.8, ease: "easeOut" }} className="w-full lg:w-6/12 flex flex-col items-start text-left relative z-20">
-                 <div className="inline-flex items-center gap-3 px-4 py-2 rounded-full bg-white/50 border border-white/60 shadow-sm backdrop-blur-md mb-8">
-                    <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
-                    <span className="text-xs font-bold uppercase tracking-widest text-emerald-900">Crafted With Devotion</span>
-                 </div>
-
-                 <h1 className={`text-6xl md:text-7xl lg:text-[5.5rem] text-emerald-950 leading-[1.05] mb-8 font-light ${cormorant.className}`}>
-                    The Essence of <br />
-                    <span className="italic font-medium text-emerald-800 relative inline-block">
-                       Sacred Purity
-                       <motion.span 
-                          initial={{ scaleX: 0 }} animate={{ scaleX: 1 }} transition={{ delay: 0.8, duration: 0.8 }}
-                          className="absolute -bottom-2 left-0 w-full h-[2px] bg-emerald-300 origin-left rounded-full"
-                       />
-                    </span>
-                 </h1>
-
-                 <p className="text-emerald-900/80 text-lg lg:text-xl font-light mb-10 max-w-xl leading-relaxed">
-                    Experience the divine harmony of Himalayan herbs and natural resins. A timeless tradition of peace, reimagined for your modern sanctuary.
-                 </p>
-
-                 <div className="flex flex-wrap items-center gap-6">
-                    <button 
-                       onClick={() => scrollTo("#products")} 
-                       className="group relative px-8 py-4 bg-emerald-950 text-white rounded-full overflow-hidden shadow-[0_10px_40px_-10px_rgba(6,78,59,0.5)] transition-transform hover:scale-105"
-                    >
-                       <div className="absolute inset-0 w-full h-full bg-gradient-to-r from-emerald-800 to-emerald-950 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
-                       <span className="relative flex items-center gap-3 text-sm tracking-widest uppercase font-semibold">
-                          Explore Collection <ArrowRight size={16} className="group-hover:translate-x-1 transition-transform" />
-                       </span>
-                    </button>
-                    <button onClick={() => scrollTo("#about")} className="flex items-center gap-3 text-emerald-900/70 hover:text-emerald-900 transition-colors text-sm font-semibold tracking-wider uppercase">
-                       <Play size={16} className="text-emerald-600" /> Our Story
-                    </button>
-                 </div>
-              </motion.div>
-              
+            {/* Main Content */}
+            <div className="relative z-20 pl-0 lg:pl-12 max-w-xl flex flex-col justify-center h-full">
               <motion.div
-                 initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} transition={{ duration: 0.8, ease: "easeOut", delay: 0.2 }}
-                 className="w-full lg:w-5/12 aspect-[4/5] md:aspect-[3/4] lg:aspect-[4/5] rounded-[2.5rem] overflow-hidden shadow-[0_20px_60px_rgba(6,78,59,0.15)] relative group border-[8px] border-white/60 backdrop-blur-sm z-10"
+                initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.8 }}
+                className="flex items-center gap-4 mb-6"
               >
-                 <video autoPlay loop muted playsInline className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-[1.5s] ease-in-out">
-                    <source src="/bg2.mp4" type="video/mp4" />
-                 </video>
-                 <div className="absolute inset-0 bg-gradient-to-t from-emerald-950/40 via-transparent to-emerald-950/10 pointer-events-none"></div>
+                <span className="px-3 py-1 bg-[#d5b976]/20 border border-[#d5b976]/30 text-[#d5b976] rounded-full text-[10px] font-bold uppercase tracking-widest">
+                  100% Natural
+                </span>
+                <span className="px-3 py-1 bg-[#d5b976]/20 border border-[#d5b976]/30 text-[#d5b976] rounded-full text-[10px] font-bold uppercase tracking-widest">
+                  Premium Quality
+                </span>
               </motion.div>
-           </div>
+
+              <motion.h1 
+                className={`text-[3.5rem] sm:text-6xl md:text-5xl lg:text-6xl xl:text-[4.5rem] leading-[1.1] font-bold text-[#fde6a6] uppercase tracking-tight ${playfair.className}`}
+              >
+                <motion.span initial={{ opacity: 0, y: 40 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.8, delay: 0.1 }} className="inline-block">
+                  <span className="inline-block animate-float-word" style={{ animationDelay: '0s' }}>The</span>
+                </motion.span>{" "}
+                <motion.span initial={{ opacity: 0, y: 40 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.8, delay: 0.3 }} className="inline-block">
+                  <span className="inline-block animate-float-word" style={{ animationDelay: '-1s' }}>Essence</span>
+                </motion.span>
+                <br />
+                <motion.span initial={{ opacity: 0, y: 40 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.8, delay: 0.5 }} className="inline-block">
+                  <span className="inline-block animate-float-word" style={{ animationDelay: '-2s' }}>Of</span>
+                </motion.span>{" "}
+                <motion.span initial={{ opacity: 0, y: 40 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.8, delay: 0.7 }} className="inline-block text-[#d5b976]">
+                  <span className="inline-block animate-float-word" style={{ animationDelay: '-3s' }}>Serenity</span>
+                </motion.span>
+              </motion.h1>
+              <motion.p 
+                initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.8, delay: 0.9 }}
+                className={`text-xl sm:text-2xl md:text-xl text-[#fde6a6] italic mt-6 mb-10 ${playfair.className}`}
+              >
+                Curated Incense & Rare Resins for Mindful Living
+              </motion.p>
+              
+              <motion.div 
+                initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.8, delay: 1.1 }}
+                className="flex flex-col sm:flex-row gap-6 sm:items-center mt-2"
+              >
+                <button 
+                  onClick={() => scrollTo("#products")} 
+                  className="group relative px-8 py-5 md:px-10 md:py-4 border border-[#d5b976] bg-[#d5b976] text-[#1f3625] transition-colors hover:bg-transparent hover:text-[#d5b976] flex items-center justify-center gap-3 text-xs md:text-[10px] tracking-[0.2em] uppercase font-bold shadow-xl w-full sm:w-auto"
+                  style={{ borderRadius: "50px 0 50px 0" }}
+                >
+                  Discover The Collection
+                </button>
+
+                <div className="flex items-center gap-5 sm:ml-4">
+                  <div className="w-12 h-px bg-[#d5b976]/40 hidden sm:block"></div>
+                  <a href="https://www.instagram.com/mishi_sambrani/" target="_blank" rel="noopener noreferrer" className="text-[#d5b976]/70 hover:text-[#d5b976] transition-colors flex items-center gap-2">
+                    <InstagramIcon size={20} />
+                    <span className="text-[10px] uppercase font-bold tracking-widest sm:hidden">Instagram</span>
+                  </a>
+                  <a href="https://www.facebook.com/people/Mishi-Pooja-Products/100078864755122/" target="_blank" rel="noopener noreferrer" className="text-[#d5b976]/70 hover:text-[#d5b976] transition-colors flex items-center gap-2">
+                    <FacebookIcon size={20} />
+                    <span className="text-[10px] uppercase font-bold tracking-widest sm:hidden">Facebook</span>
+                  </a>
+                </div>
+              </motion.div>
+            </div>
+          </div>
+
+          {/* Right Side: Video */}
+          <div className="w-full lg:w-1/2 flex items-center justify-center p-6 lg:p-12 pt-28 lg:pt-32 relative z-10 bg-[#1f3625]">
+            {/* Video Container Box */}
+            <motion.div 
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ duration: 1, delay: 0.3 }}
+              className="relative w-full max-w-md xl:max-w-lg aspect-[3/4] rounded-[2.5rem] overflow-hidden shadow-2xl border-4 border-[#16281a]"
+            >
+              <video autoPlay loop muted playsInline className="w-full h-full object-cover">
+                 <source src="/bg2.mp4" type="video/mp4" />
+              </video>
+            </motion.div>
+          </div>
         </section>
 
         {/* New Editorial Heritage Section */}
@@ -396,10 +418,10 @@ export default function Home() {
               </motion.div>
 
               <motion.div variants={fadeBlurVariants} initial="hidden" whileInView="visible" viewport={{ once: true }} className="w-full lg:w-7/12 pt-16 lg:pt-0">
-                 <h4 className="text-emerald-600 font-bold tracking-widest uppercase text-sm mb-4">Our Legacy</h4>
-                 <h2 className={`text-4xl md:text-6xl text-emerald-950 mb-8 leading-tight ${cormorant.className}`}>A devotion to purity, <br/><span className="italic text-emerald-700">crafted by hand.</span></h2>
+                 <h4 className={`text-emerald-600 font-bold tracking-widest uppercase text-sm mb-4 ${playfair.className}`}>Our Legacy</h4>
+                 <h2 className={`text-4xl md:text-6xl text-emerald-950 mb-8 leading-tight ${playfair.className}`}>A devotion to purity, <br/><span className="italic text-emerald-700">crafted by hand.</span></h2>
                  
-                 <div className="pl-6 border-l-2 border-emerald-200">
+                 <div className={`pl-6 border-l-2 border-emerald-200 ${playfair.className}`}>
                     <p className="text-neutral-600 text-lg mb-6 leading-relaxed">
                        We believe that true peace begins with the atmosphere you create. For generations, we have perfected the art of making pure Sambrani, avoiding harsh chemicals to bring you the authentic scent of nature.
                     </p>
@@ -424,7 +446,7 @@ export default function Home() {
            <div className="absolute bottom-0 left-0 w-96 h-96 bg-emerald-950 rounded-full blur-[100px] opacity-50"></div>
            
            <div className="max-w-7xl mx-auto relative z-10 text-center mb-16">
-              <h2 className={`text-4xl md:text-6xl text-white mb-4 ${cormorant.className}`}>Elevate Your Wellbeing</h2>
+              <h2 className={`text-4xl md:text-6xl text-white mb-4 ${playfair.className}`}>Elevate Your Wellbeing</h2>
               <p className="text-emerald-200 max-w-2xl mx-auto">Discover the transformative power of natural incense on your mind, body, and space.</p>
            </div>
            
@@ -434,19 +456,19 @@ export default function Home() {
                  { icon: Wind, title: "Deepen Breath", desc: "The natural essential oils help expand the lungs and encourage slow, mindful breathing." },
                  { icon: Heart, title: "Soothe Mind", desc: "Aromatherapy elements calm the nervous system, preparing you for meditation or restful sleep." }
               ].map((b, i) => (
-                 <motion.div key={i} custom={i} variants={popUpVariants} initial="hidden" whileInView="visible" viewport={{ once: true }} className="bg-emerald-800/40 backdrop-blur-md border border-emerald-700/50 p-10 rounded-[2rem] hover:bg-emerald-800/60 transition-colors">
-                    <div className="w-14 h-14 bg-emerald-700 rounded-xl flex items-center justify-center mb-6 text-emerald-200">
+                 <motion.div key={i} custom={i} variants={popUpVariants} initial="hidden" whileInView="visible" viewport={{ once: true }} whileHover={{ y: -10, boxShadow: "0 25px 50px -12px rgba(6,78,59,0.3)" }} className="bg-emerald-800/40 backdrop-blur-md border border-emerald-700/50 p-10 rounded-[2rem] transition-all cursor-pointer group">
+                    <div className="w-14 h-14 bg-emerald-700 rounded-xl flex items-center justify-center mb-6 text-emerald-200 group-hover:scale-110 transition-transform">
                        <b.icon size={28} />
                     </div>
-                    <h3 className="text-2xl font-semibold text-white mb-3">{b.title}</h3>
-                    <p className="text-emerald-100/70 leading-relaxed">{b.desc}</p>
+                    <h3 className={`text-2xl font-semibold text-white mb-3 ${playfair.className}`}>{b.title}</h3>
+                    <p className="text-emerald-100/70 leading-relaxed font-light">{b.desc}</p>
                  </motion.div>
               ))}
            </div>
         </section>
 
         {/* EXTRA COMPONENT: Expanding Aroma Gallery */}
-        <section className="py-24 bg-white max-w-[1400px] mx-auto px-6 md:px-16">
+        <section className="py-24 max-w-[1400px] mx-auto px-6 md:px-16">
           <motion.div
             variants={fadeBlurVariants}
             initial="hidden"
@@ -570,33 +592,33 @@ export default function Home() {
         {/* New Ingredients Section */}
         <section className="py-24 px-6 max-w-7xl mx-auto">
            <div className="text-center mb-16">
-              <span className="text-emerald-600 font-bold tracking-widest uppercase text-sm">Pure Elements</span>
-              <h2 className={`text-4xl md:text-6xl text-emerald-950 mt-4 ${cormorant.className}`}>Gifts from the Earth</h2>
+              <span className={`text-emerald-600 font-bold tracking-widest uppercase text-sm ${playfair.className}`}>Pure Elements</span>
+              <h2 className={`text-5xl md:text-7xl text-emerald-950 mt-4 ${playfair.className}`}>Gifts from the Earth</h2>
            </div>
            <div className="grid grid-cols-1 md:grid-cols-4 gap-4 auto-rows-[250px]">
               <motion.div variants={popUpVariants} custom={0} initial="hidden" whileInView="visible" viewport={{ once:true }} className="md:col-span-2 md:row-span-2 relative rounded-[2rem] overflow-hidden group">
                  <img src="https://www.mishipoojaproducts.com/wp-content/uploads/2026/03/Panchagavya-Vilaku.jpg" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" alt="Panchagavya" />
                  <div className="absolute inset-0 bg-gradient-to-t from-emerald-950/80 to-transparent flex flex-col justify-end p-8 text-white">
-                    <h3 className={`text-3xl mb-2 ${cormorant.className}`}>Sacred Panchagavya</h3>
+                    <h3 className={`text-3xl mb-2 ${playfair.className}`}>Sacred Panchagavya</h3>
                     <p className="text-emerald-100/80 text-sm">The foundational element for deep spiritual cleansing.</p>
                  </div>
               </motion.div>
               <motion.div variants={popUpVariants} custom={1} initial="hidden" whileInView="visible" viewport={{ once:true }} className="md:col-span-2 bg-emerald-50 rounded-[2rem] p-8 flex flex-col justify-center border border-emerald-100 hover:border-emerald-200 transition-colors">
                  <Leaf className="text-emerald-600 mb-4" size={32} />
-                 <h3 className={`text-2xl text-emerald-950 mb-2 ${cormorant.className}`}>Himalayan Herbs</h3>
+                 <h3 className={`text-2xl text-emerald-950 mb-2 ${playfair.className}`}>Himalayan Herbs</h3>
                  <p className="text-neutral-600 text-sm">Sourced from pristine altitudes for an unadulterated fragrance.</p>
               </motion.div>
               <motion.div variants={popUpVariants} custom={2} initial="hidden" whileInView="visible" viewport={{ once:true }} className="bg-neutral-900 rounded-[2rem] p-8 flex flex-col justify-center text-white relative overflow-hidden group">
                  <div className="absolute inset-0 opacity-40 group-hover:opacity-60 transition-opacity"><img src="https://www.mishipoojaproducts.com/wp-content/uploads/2026/03/pr4.jpg" className="w-full h-full object-cover" alt="Camphor" /></div>
                  <div className="relative z-10">
                     <Sparkles className="text-amber-400 mb-4" size={32} />
-                    <h3 className={`text-2xl mb-2 ${cormorant.className}`}>Pure Camphor</h3>
+                    <h3 className={`text-2xl mb-2 ${playfair.className}`}>Pure Camphor</h3>
                     <p className="text-neutral-300 text-sm">Ignites instantly, leaving no residue.</p>
                  </div>
               </motion.div>
               <motion.div variants={popUpVariants} custom={3} initial="hidden" whileInView="visible" viewport={{ once:true }} className="bg-emerald-100 rounded-[2rem] p-8 flex flex-col justify-center border border-emerald-200">
                  <Wind className="text-emerald-800 mb-4" size={32} />
-                 <h3 className={`text-2xl text-emerald-950 mb-2 ${cormorant.className}`}>Natural Resins</h3>
+                 <h3 className={`text-2xl text-emerald-950 mb-2 ${playfair.className}`}>Natural Resins</h3>
                  <p className="text-emerald-900/70 text-sm">Rich, sweet, and deeply grounding base notes.</p>
               </motion.div>
            </div>
@@ -606,134 +628,52 @@ export default function Home() {
         <section id="products" className="py-24 bg-neutral-100/50">
            <div className="max-w-7xl mx-auto px-6">
               <div className="flex flex-col md:flex-row justify-between items-end mb-12 gap-6">
-                 <div>
-                    <span className="text-emerald-600 font-bold tracking-widest uppercase text-sm">The Collection</span>
-                    <h2 className={`text-4xl md:text-6xl text-emerald-950 mt-4 ${cormorant.className}`}>Sacred Offerings</h2>
+                  <div>
+                    <span className="text-emerald-600 font-bold tracking-widest uppercase text-sm">Our Selection</span>
+                    <h2 className={`text-4xl md:text-6xl text-zinc-900 mt-4 ${playfair.className}`}>Our Products</h2>
                  </div>
                  <Link href="/products" className="text-emerald-700 font-semibold border-b border-emerald-700 pb-1 hover:text-emerald-900 transition-colors">View All Products</Link>
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
-                 {products.map((product, i) => (
-                    <motion.div key={product.name} custom={i} variants={popUpVariants} initial="hidden" whileInView="visible" viewport={{ once: true }} className="group bg-white rounded-3xl p-4 shadow-sm hover:shadow-xl transition-all duration-300 border border-neutral-100">
-                       <div className="w-full aspect-[4/3] rounded-2xl overflow-hidden mb-6 relative bg-neutral-50 cursor-pointer" onClick={() => setSelectedProduct(product)}>
-                          <img src={product.img} alt={product.name} className="w-full h-full object-cover mix-blend-multiply group-hover:scale-105 transition-transform duration-500" />
-                          <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors flex items-center justify-center">
-                             <div className="opacity-0 group-hover:opacity-100 bg-white text-emerald-900 px-6 py-2 rounded-full font-bold text-sm translate-y-4 group-hover:translate-y-0 transition-all duration-300 shadow-lg">Quick View</div>
-                          </div>
-                       </div>
-                       <div className="px-4 pb-4">
-                          <h3 className={`text-2xl text-neutral-900 mb-2 ${cormorant.className}`}>{product.name}</h3>
-                          <p className="text-neutral-500 text-sm line-clamp-2 mb-4">{product.desc}</p>
-                          <div className="flex items-center justify-between">
-                             <span className="font-semibold text-lg text-emerald-900">₹149</span>
-                             <button 
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  toast.success(`Added ${product.name} to cart!`);
-                                }}
-                                className="w-10 h-10 rounded-full bg-emerald-50 text-emerald-700 flex items-center justify-center hover:bg-emerald-600 hover:text-white transition-colors"
-                             >
-                                <Plus size={20} />
-                             </button>
-                          </div>
-                       </div>
-                    </motion.div>
-                 ))}
+                 {storeProducts.filter(p => p.isActive !== false).slice(0, 6).map((product, i) => {
+                    const availableOptions = product.predefinedOptions ? product.predefinedOptions.filter((opt: any) => opt.isAvailable !== false) : [];
+                    const lowestPrice = availableOptions.length > 0 
+                       ? Math.min(...availableOptions.map((opt: any) => opt.price))
+                       : product.price;
+
+                    return (
+                       <Link href="/products" key={product.id || i}>
+                          <motion.div custom={i} variants={popUpVariants} initial="hidden" whileInView="visible" viewport={{ once: true }} className="group flex flex-col bg-white border border-zinc-100 rounded-3xl p-3 sm:p-4 shadow-sm hover:shadow-2xl transition-all duration-500 hover:-translate-y-2 cursor-pointer relative h-full">
+                             <div className="w-full aspect-[4/5] rounded-2xl overflow-hidden mb-4 relative bg-zinc-50">
+                                <img src={product.imageUrl || "/placeholder.jpg"} alt={product.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700 ease-out" />
+                                <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors"></div>
+                                <div className="absolute bottom-4 right-4 bg-white/90 backdrop-blur-md p-3 rounded-full text-zinc-900 opacity-0 group-hover:opacity-100 transition-opacity translate-y-4 group-hover:translate-y-0 shadow-lg">
+                                   <ArrowRight size={18} />
+                                </div>
+                             </div>
+                             <div className="px-2 pb-2 flex flex-col flex-1">
+                                 <span className="text-emerald-700 text-[10px] font-bold uppercase tracking-wider mb-1.5 block">
+                                   {product.category}
+                                 </span>
+                                 <h3 className={`text-2xl text-zinc-900 mb-2 group-hover:text-amber-600 transition-colors ${playfair.className}`}>{product.name}</h3>
+                                 {product.description && (
+                                   <p className="text-zinc-500 text-sm mb-4 line-clamp-2">{product.description}</p>
+                                 )}
+                                 <div className="flex items-center justify-between border-t border-zinc-100 pt-4 mt-auto">
+                                    <span className="text-zinc-900 font-bold text-base">From ₹{lowestPrice}</span>
+                                    <span className="text-[10px] uppercase tracking-widest font-bold text-amber-600 hover:text-amber-700">
+                                       View Details
+                                    </span>
+                                 </div>
+                             </div>
+                          </motion.div>
+                       </Link>
+                    )
+                 })}
               </div>
            </div>
         </section>
-
-        {/* Product Modal */}
-        <AnimatePresence>
-          {selectedProduct && (
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              className="fixed inset-0 z-[100] flex items-center justify-center p-4 md:p-6 bg-black/40 backdrop-blur-sm"
-              onClick={() => { setSelectedProduct(null); setQty(1); setSelectedSize("250g"); }}
-            >
-              <motion.div
-                initial={{ scale: 0.9, y: 30, opacity: 0 }}
-                animate={{ scale: 1, y: 0, opacity: 1 }}
-                exit={{ scale: 0.9, y: 30, opacity: 0 }}
-                className="bg-white w-full max-w-4xl rounded-[2rem] overflow-hidden flex flex-col md:flex-row shadow-2xl relative"
-                onClick={(e) => e.stopPropagation()}
-              >
-                <button
-                  onClick={() => { setSelectedProduct(null); setQty(1); setSelectedSize("250g"); }}
-                  className="absolute top-4 right-4 z-10 w-10 h-10 bg-white/80 backdrop-blur-md rounded-full flex items-center justify-center text-neutral-900 hover:bg-neutral-100 transition-colors shadow-sm"
-                >
-                  <Plus className="rotate-45" size={24} />
-                </button>
-
-                <div className="w-full md:w-1/2 h-64 md:h-auto relative bg-neutral-50">
-                  <img
-                    src={selectedProduct.img}
-                    alt={selectedProduct.name}
-                    className="w-full h-full object-cover mix-blend-multiply"
-                  />
-                </div>
-
-                <div className="w-full md:w-1/2 p-8 md:p-12 flex flex-col justify-center">
-                  <span className="text-emerald-600 text-xs font-bold tracking-[0.2em] uppercase mb-3">
-                    Premium Quality
-                  </span>
-                  <h2 className={`text-3xl md:text-5xl text-neutral-900 mb-4 ${cormorant.className}`}>
-                    {selectedProduct.name}
-                  </h2>
-                  <p className="text-neutral-600 font-light mb-8 leading-relaxed">
-                    {selectedProduct.desc}
-                  </p>
-
-                  <div className="space-y-6 mb-8">
-                    <div>
-                      <span className="text-xs uppercase tracking-widest font-bold text-neutral-400 block mb-3">Select Size</span>
-                      <div className="flex gap-3">
-                        {["100g", "250g", "500g"].map((size) => (
-                          <button
-                            key={size}
-                            onClick={() => setSelectedSize(size)}
-                            className={`px-5 py-2 rounded-full border text-sm font-semibold transition-all ${selectedSize === size ? "border-emerald-600 bg-emerald-50 text-emerald-700" : "border-neutral-200 text-neutral-600 hover:border-neutral-300"}`}
-                          >
-                            {size}
-                          </button>
-                        ))}
-                      </div>
-                    </div>
-
-                    <div>
-                      <span className="text-xs uppercase tracking-widest font-bold text-neutral-400 block mb-3">Quantity</span>
-                      <div className="flex items-center gap-4">
-                        <div className="flex items-center border border-neutral-200 rounded-full bg-neutral-50 overflow-hidden">
-                          <button onClick={() => setQty(Math.max(1, qty - 1))} className="px-4 py-2 text-neutral-500 hover:text-neutral-900 hover:bg-neutral-200 transition-colors"><Minus size={16} /></button>
-                          <span className="w-8 text-center font-bold text-neutral-900">{qty}</span>
-                          <button onClick={() => setQty(qty + 1)} className="px-4 py-2 text-neutral-500 hover:text-neutral-900 hover:bg-neutral-200 transition-colors"><Plus size={16} /></button>
-                        </div>
-                        <div className="text-2xl font-bold text-neutral-900">
-                          ₹{selectedSize === "100g" ? 149 * qty : selectedSize === "250g" ? 299 * qty : 499 * qty}
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-
-                  <button 
-                    onClick={() => {
-                      toast.success(`Added ${qty}x ${selectedProduct.name} (${selectedSize}) to your cart!`);
-                      setSelectedProduct(null);
-                      setQty(1);
-                      setSelectedSize("250g");
-                    }}
-                    className="w-full bg-emerald-700 hover:bg-emerald-800 text-white font-bold py-4 rounded-full uppercase tracking-widest text-sm transition-colors shadow-lg shadow-emerald-700/20"
-                  >
-                    Add to Cart
-                  </button>
-                </div>
-              </motion.div>
-            </motion.div>
-          )}
-        </AnimatePresence>
 
         {/* Gallery Section */}
         <section
@@ -771,7 +711,8 @@ export default function Home() {
                 whileInView="visible"
                 viewport={{ once: true, margin: "-50px" }}
                 custom={i}
-                className="relative rounded-2xl overflow-hidden shadow-sm group break-inside-avoid bg-white"
+                className="relative rounded-2xl overflow-hidden shadow-sm group break-inside-avoid bg-white cursor-pointer"
+                onClick={() => setSelectedGalleryImage(src)}
               >
                 <img
                   src={src}
@@ -787,20 +728,50 @@ export default function Home() {
             ))}
           </div>
         </section>
+
+        {/* Gallery Modal */}
+        <AnimatePresence>
+          {selectedGalleryImage && (
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="fixed inset-0 z-[200] flex items-center justify-center p-4 bg-black/90 backdrop-blur-sm"
+              onClick={() => setSelectedGalleryImage(null)}
+            >
+              <button
+                className="absolute top-6 right-6 text-white hover:text-amber-500 transition-colors bg-white/10 p-2 rounded-full z-[210]"
+                onClick={() => setSelectedGalleryImage(null)}
+              >
+                <X size={32} />
+              </button>
+              <motion.img
+                initial={{ scale: 0.9, opacity: 0 }}
+                animate={{ scale: 1, opacity: 1 }}
+                exit={{ scale: 0.9, opacity: 0 }}
+                src={selectedGalleryImage}
+                alt="Gallery Preview"
+                className="max-w-full max-h-[90vh] object-contain rounded-2xl shadow-2xl relative z-[205]"
+                onClick={(e) => e.stopPropagation()}
+              />
+            </motion.div>
+          )}
+        </AnimatePresence>
+
         {/* Reels Section */}
-        <section className="py-24 px-6 md:px-16 max-w-[1400px] mx-auto bg-zinc-900 rounded-b-[3rem] mb-12 text-white">
+        <section className="py-24 px-6 md:px-16 w-full bg-zinc-900 mb-12 text-white overflow-hidden">
           <motion.div
             variants={fadeBlurVariants}
             initial="hidden"
             whileInView="visible"
             viewport={{ once: true }}
-            className="mb-16 text-center"
+            className="mb-16 text-center max-w-[1400px] mx-auto"
           >
             <h3 className="text-amber-500 text-sm tracking-[0.3em] uppercase mb-4 font-bold">
-              Social Spotlight
+              Customer Stories
             </h3>
             <h2 className={`text-4xl md:text-6xl ${playfair.className}`}>
-              Behind the Scenes
+              Video Testimonials
             </h2>
             <p className="text-zinc-400 mt-4 max-w-xl mx-auto font-light">
               Watch how our sacred blends are traditionally crafted and used.
@@ -808,7 +779,7 @@ export default function Home() {
           </motion.div>
 
           {/* Reels Grid Layout */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-6xl mx-auto mb-16">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-4xl mx-auto mb-16">
             {reelVideos.map((src, i) => (
               <motion.div
                 key={i}
@@ -819,31 +790,26 @@ export default function Home() {
                 custom={i}
                 className="relative rounded-3xl overflow-hidden shadow-2xl group aspect-[9/16] bg-black border border-white/5 mx-auto w-full max-w-[400px]"
               >
-                <video
-                  src={src}
-                  autoPlay
-                  loop
-                  muted
-                  playsInline
-                  className="w-full h-full object-cover transform group-hover:scale-105 transition-transform duration-700 opacity-80 group-hover:opacity-100"
-                />
-                <div className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-black/80 opacity-60 group-hover:opacity-100 transition-opacity duration-300"></div>
-                <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
-                  <div className="w-16 h-16 rounded-full bg-white/20 backdrop-blur-md flex items-center justify-center border border-white/30 text-white pl-1 shadow-2xl">
-                    <Play size={24} className="fill-white" />
-                  </div>
+                {/* Cropping container to hide Instagram UI */}
+                <div className="absolute inset-0 w-full h-full overflow-hidden pointer-events-none">
+                  <iframe 
+                     src={`https://www.instagram.com/p/${src}/embed/?autoplay=1`} 
+                     frameBorder="0" 
+                     scrolling="no" 
+                     allowTransparency={true}
+                     className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-[45%] w-[110%] h-[125%] max-w-none"
+                  ></iframe>
                 </div>
-                <div className="absolute bottom-6 left-6 right-6 text-sm font-bold text-white flex items-center gap-3">
-                  <InstagramIcon size={18} className="text-amber-500" />
-                  <span className="truncate tracking-widest uppercase">
-                    @mishi_sambrani
-                  </span>
-                </div>
+                {/* Click overlay to still allow opening the post if needed, but prevents UI interaction */}
+                <div 
+                   className="absolute inset-0 z-10 cursor-pointer bg-transparent"
+                   onClick={() => window.open(`https://www.instagram.com/reel/${src}/`, "_blank")}
+                ></div>
               </motion.div>
             ))}
           </div>
 
-          <div className="flex justify-center">
+          <div className="flex justify-center max-w-[1400px] mx-auto">
             <a
               href="https://www.instagram.com/mishi_sambrani/"
               target="_blank"
@@ -918,7 +884,7 @@ export default function Home() {
         </section>
         {/* Customer Reviews Scrolling Marquee */}
         <section className="py-24 bg-amber-50 overflow-hidden border-y border-amber-100">
-          <div className="max-w-[1400px] mx-auto px-6 md:px-16 mb-12">
+          <div className="max-w-[1400px] mx-auto px-6 md:px-16 mb-12 flex flex-col md:flex-row justify-between items-end gap-6">
             <motion.div
               variants={fadeBlurVariants}
               initial="hidden"
@@ -928,10 +894,79 @@ export default function Home() {
               <h2
                 className={`text-4xl md:text-5xl text-zinc-900 ${playfair.className}`}
               >
-                What Our Devotees Say
+                Reviews
               </h2>
             </motion.div>
+            <button 
+              onClick={() => setShowReviewForm(!showReviewForm)}
+              className="bg-amber-600 text-white px-6 py-3 rounded-full text-sm font-bold uppercase tracking-widest shadow-md hover:bg-amber-700 transition-colors whitespace-nowrap"
+            >
+              {showReviewForm ? "Cancel" : "Add a Review"}
+            </button>
           </div>
+
+          <AnimatePresence>
+            {showReviewForm && (
+              <motion.div 
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                className="fixed inset-0 z-[200] flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm"
+                onClick={() => setShowReviewForm(false)}
+              >
+                <motion.div 
+                   initial={{ scale: 0.9, y: 20 }}
+                   animate={{ scale: 1, y: 0 }}
+                   exit={{ scale: 0.9, y: 20 }}
+                   onClick={(e) => e.stopPropagation()}
+                   className="bg-white p-8 rounded-3xl shadow-2xl w-full max-w-md relative"
+                >
+                   <button onClick={() => setShowReviewForm(false)} className="absolute top-4 right-4 text-zinc-400 hover:text-zinc-600">
+                     <X size={24} />
+                   </button>
+                   <h3 className="text-2xl font-bold text-zinc-900 mb-6">Write a Review</h3>
+                   <div className="space-y-4">
+                     <div>
+                       <label className="text-xs font-bold uppercase tracking-wider text-zinc-500 mb-2 block">Your Name</label>
+                       <input 
+                         type="text" 
+                         placeholder="John Doe"
+                         value={newReviewName}
+                         onChange={(e) => setNewReviewName(e.target.value)}
+                         className="w-full bg-zinc-50 border border-zinc-200 rounded-xl px-4 py-3 outline-none focus:border-amber-400 transition-colors text-zinc-700"
+                       />
+                     </div>
+                     <div>
+                       <label className="text-xs font-bold uppercase tracking-wider text-zinc-500 mb-2 block">Rating</label>
+                       <div className="flex gap-2">
+                         {[1, 2, 3, 4, 5].map((star) => (
+                           <button key={star} onClick={() => setNewReviewRating(star)} className="focus:outline-none">
+                             <Star size={24} className={star <= newReviewRating ? "fill-amber-400 text-amber-400" : "text-zinc-300"} />
+                           </button>
+                         ))}
+                       </div>
+                     </div>
+                     <div>
+                       <label className="text-xs font-bold uppercase tracking-wider text-zinc-500 mb-2 block">Review</label>
+                       <textarea 
+                         placeholder="Share your experience..."
+                         value={newReview}
+                         onChange={(e) => setNewReview(e.target.value)}
+                         rows={4}
+                         className="w-full bg-zinc-50 border border-zinc-200 rounded-xl px-4 py-3 outline-none focus:border-amber-400 transition-colors text-zinc-700 resize-none"
+                       />
+                     </div>
+                     <button 
+                       onClick={handleAddReview}
+                       className="w-full bg-amber-600 text-white px-6 py-3 rounded-xl text-sm font-bold shadow-md hover:bg-amber-700 transition-colors"
+                     >
+                       Submit Review
+                     </button>
+                   </div>
+                </motion.div>
+              </motion.div>
+            )}
+          </AnimatePresence>
 
           <div className="relative w-full flex overflow-hidden">
             {/* Fade edges */}
@@ -944,25 +979,27 @@ export default function Home() {
                   key={arrayIndex}
                   className="flex gap-4 md:gap-8 px-2 md:px-4"
                 >
-                  {[1, 2, 3, 4, 5].map((i) => (
+                  {reviews.map((r, i) => (
                     <div
-                      key={i}
+                      key={`${arrayIndex}-${r.id}-${i}`}
                       className="w-[300px] md:w-[400px] bg-white p-6 md:p-10 rounded-3xl shadow-sm border border-amber-100/50 flex-shrink-0"
                     >
+                      <div className="flex gap-1 mb-4">
+                        {[...Array(5)].map((_, idx) => (
+                          <Star key={idx} size={16} className={idx < (r.rating || 5) ? "fill-amber-400 text-amber-400" : "text-amber-100"} />
+                        ))}
+                      </div>
                       <Quote className="text-amber-300 mb-6" size={40} />
                       <p className="text-zinc-600 italic mb-8 font-light leading-relaxed text-sm md:text-base">
-                        &quot;The purity and fragrance of these products are
-                        unmatched. It instantly elevates the spiritual ambiance
-                        of my home during prayers. Highly recommended for daily
-                        use!&quot;
+                        &quot;{r.text}&quot;
                       </p>
                       <div className="flex items-center gap-4 border-t border-zinc-100 pt-6">
                         <div className="w-12 h-12 bg-amber-100 rounded-full flex items-center justify-center text-amber-700 font-bold text-lg">
-                          {String.fromCharCode(64 + i)}
+                          {r.initial}
                         </div>
                         <div>
                           <h4 className="font-bold text-zinc-900 text-xs md:text-sm uppercase tracking-wider">
-                            Devotee {i}
+                            {r.author}
                           </h4>
                           <p className="text-[10px] md:text-xs text-zinc-500 mt-1">
                             Verified Buyer
@@ -982,7 +1019,7 @@ export default function Home() {
            <div className="bg-emerald-950 rounded-[3rem] overflow-hidden flex flex-col lg:flex-row shadow-2xl relative">
               <div className="w-full lg:w-1/2 p-12 md:p-20 relative z-10 flex flex-col justify-center">
                  <span className="text-emerald-400 font-bold tracking-widest uppercase text-sm mb-4">Get in Touch</span>
-                 <h2 className={`text-4xl md:text-5xl text-white mb-8 ${cormorant.className}`}>Visit Our Sanctuary</h2>
+                 <h2 className={`text-4xl md:text-5xl text-white mb-8 ${playfair.className}`}>Visit Our Shop</h2>
                  <p className="text-emerald-100/70 mb-12 text-lg">We welcome bulk inquiries and wholesale partnerships. Connect with us to share the gift of purity.</p>
                  
                  <div className="space-y-8">
@@ -1002,28 +1039,89 @@ export default function Home() {
               </div>
               
               <div className="w-full lg:w-1/2 h-[400px] lg:h-auto p-4">
-                 <div className="w-full h-full rounded-[2rem] overflow-hidden">
+                 <div className="w-full h-full rounded-[2rem] overflow-hidden relative group bg-neutral-100">
                     <iframe
                       src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3887.054593925763!2d80.0381669!3d13.032223!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x3a528acaf3c9f2b3%3A0xc6ed7fb0c92bb214!2sChembarambakkam%2C%20Tamil%20Nadu!5e0!3m2!1sen!2sin!4v1700000000000!5m2!1sen!2sin"
                       width="100%" height="100%" style={{ border: 0 }} allowFullScreen={false} loading="lazy"
-                      className="filter grayscale contrast-125 opacity-90"
+                      className="pointer-events-none"
                     ></iframe>
+                    <div className="absolute inset-0 bg-black/0 group-hover:bg-black/30 transition-colors flex items-center justify-center pointer-events-auto">
+                       <a href="https://maps.google.com/?q=13.032223,80.0381669" target="_blank" rel="noreferrer" className="opacity-0 group-hover:opacity-100 bg-white text-emerald-900 px-6 py-3 rounded-full font-bold text-sm translate-y-4 group-hover:translate-y-0 transition-all duration-300 shadow-xl flex items-center gap-2">
+                         <MapPin size={18}/> Open in Google Maps
+                       </a>
+                    </div>
                  </div>
               </div>
            </div>
         </section>
 
         {/* New Footer */}
-        <footer className="bg-neutral-950 py-12 text-center text-neutral-400 text-sm">
-           <div className="flex items-center justify-center gap-4 mb-6 text-neutral-300">
-              <a href="#" className="hover:text-emerald-500 transition-colors"><span>FB</span></a>
-              <a href="#" className="hover:text-emerald-500 transition-colors"><InstagramIcon size={20}/></a>
-              <a href="#" className="hover:text-emerald-500 transition-colors"><span>TW</span></a>
-           </div>
-           <p className="mb-2">© 2026 Mishi Pooja Products. Purity in every breath.</p>
-           <p className="text-xs text-neutral-600 mt-4 uppercase tracking-widest">Designed with devotion by Cenexa Systems</p>
+        <footer className="bg-[#05140b] pt-16 pb-8 px-6 lg:px-20 text-neutral-300 font-sans">
+          <div className="max-w-7xl mx-auto flex flex-col md:flex-row justify-between gap-12 mb-16">
+            
+            {/* Left Column */}
+            <div className="w-full md:w-1/3 flex flex-col items-start">
+              <img src="/logo.webp" alt="Mishi Pooja Products" className="h-16 w-auto object-contain mb-6" />
+              <p className="text-sm text-neutral-300 leading-relaxed max-w-sm">
+                Bringing you the divine essence of pure, hand-crafted Himalayan herbs and natural resins. Create a peaceful sanctuary in your everyday life.
+              </p>
+            </div>
+
+            {/* Middle Column */}
+            <div className="w-full md:w-1/3 flex flex-col items-start md:items-center">
+              <div className="flex flex-col items-start">
+                <h4 className="text-emerald-100/60 font-bold tracking-[0.1em] uppercase text-[10px] mb-6">Explore</h4>
+                <div className="flex flex-col gap-4 text-xs font-semibold text-neutral-200">
+                  <Link href="/" className="hover:text-emerald-400 transition-colors">Home</Link>
+                  <Link href="/#about" className="hover:text-emerald-400 transition-colors">About</Link>
+                  <Link href="/#products" className="hover:text-emerald-400 transition-colors">Categories</Link>
+                  <Link href="/products" className="hover:text-emerald-400 transition-colors">Shop</Link>
+                </div>
+              </div>
+            </div>
+
+            {/* Right Column */}
+            <div className="w-full md:w-1/3 flex flex-col items-start md:items-end">
+              <div className="flex flex-col items-start">
+                <h4 className="text-emerald-100/60 font-bold tracking-[0.1em] uppercase text-[10px] mb-6">Contact Us</h4>
+                <div className="flex flex-col gap-4 text-xs text-neutral-300 font-medium">
+                  <div>
+                    <p className="font-bold text-white mb-1">Address:</p>
+                    <p>213/6A, Eripattai, Chembarambakkam,</p>
+                    <p>Chennai – 600123</p>
+                  </div>
+                  <div>
+                    <p className="font-bold text-white mb-1">Email:</p>
+                    <p>mishipoojaproducts@gmail.com</p>
+                  </div>
+                  <div>
+                    <p className="font-bold text-white mb-1">Phone:</p>
+                    <p>+91 80561 01114</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+          </div>
+          
+          <div className="max-w-7xl mx-auto pt-8 border-t border-white/5 flex flex-col md:flex-row items-center justify-between gap-6 text-[10px] md:text-xs text-neutral-400 font-medium">
+            <div className="w-full md:w-1/3 text-left">
+              <p>© 2026 Mishi Pooja Products. All Rights Reserved</p>
+            </div>
+            <div className="w-full md:w-1/3 text-center">
+              <p>Powered by <span className="text-white font-semibold">Cenexa Systems</span> © 2026</p>
+            </div>
+            <div className="w-full md:w-1/3 text-right flex justify-start md:justify-end">
+              <div className="flex gap-4 text-[10px] uppercase tracking-[0.2em] font-bold text-neutral-300">
+                <span>Purity</span>
+                <span>•</span>
+                <span>Devotion</span>
+                <span>•</span>
+                <span>Tradition</span>
+              </div>
+            </div>
+          </div>
         </footer>
       </div>
-    </ReactLenis>
   );
 }
