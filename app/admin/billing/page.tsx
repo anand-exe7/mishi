@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import { User, FileText, Trash2, CheckCircle2, ChevronDown, Search, Plus } from 'lucide-react';
 import { useAdmin } from '../AdminContext';
-import { fetchProducts, fetchCoupons, Product, Coupon, Order, OrderItem } from '@/lib/db';
+import { fetchProducts, fetchCoupons, Product, Coupon, Order, OrderItem, generateSequentialOrderId } from '@/lib/db';
 
 export default function POSBillingPanel() {
   const { addOrder } = useAdmin();
@@ -25,9 +25,15 @@ export default function POSBillingPanel() {
   const [amountReceived, setAmountReceived] = useState('');
 
   // Catalog selection states
+  const [isCatalogModalOpen, setIsCatalogModalOpen] = useState(false);
   const [catalogSearch, setCatalogSearch] = useState('');
-  const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
-  const [selectedSize, setSelectedSize] = useState('');
+  const [catalogQuantities, setCatalogQuantities] = useState<Record<string, number>>({});
+
+  const getCatalogQty = (id: string, size: string) => catalogQuantities[`${id}-${size}`] || 1;
+  const updateCatalogQty = (id: string, size: string, delta: number) => {
+    const key = `${id}-${size}`;
+    setCatalogQuantities(prev => ({ ...prev, [key]: Math.max(1, (prev[key] || 1) + delta) }));
+  };
 
   useEffect(() => {
     const loadCatalogData = async () => {
@@ -52,46 +58,7 @@ export default function POSBillingPanel() {
     p.name.toLowerCase().includes(catalogSearch.toLowerCase()) && p.isAvailable !== false
   );
 
-  const handleProductSelect = (product: Product) => {
-    setSelectedProduct(product);
-    if (product.sizes.length > 0) {
-      setSelectedSize(product.sizes[0].size);
-    } else {
-      setSelectedSize('Standard');
-    }
-  };
 
-  const addSelectedProductToBill = () => {
-    if (!selectedProduct) return;
-    
-    let price = 0;
-    if (selectedProduct.sizes.length > 0) {
-      const sizeObj = selectedProduct.sizes.find(s => s.size === selectedSize);
-      price = sizeObj ? sizeObj.price : selectedProduct.sizes[0].price;
-    }
-
-    const existingIndex = items.findIndex(
-      i => i.productId === selectedProduct.id && i.size === selectedSize
-    );
-
-    if (existingIndex > -1) {
-      setItems(items.map((item, idx) => 
-        idx === existingIndex ? { ...item, qty: item.qty + 1 } : item
-      ));
-    } else {
-      setItems([...items, {
-        productId: selectedProduct.id,
-        name: selectedProduct.name,
-        size: selectedSize,
-        qty: 1,
-        price: price
-      }]);
-    }
-
-    // Reset selection
-    setSelectedProduct(null);
-    setCatalogSearch('');
-  };
 
   const addCustomItem = () => {
     setItems([...items, { 
@@ -144,9 +111,11 @@ export default function POSBillingPanel() {
     const received = Number(amountReceived) || 0;
     const change = Math.max(0, received - grandTotal);
 
+    const orderId = await generateSequentialOrderId(orderType === 'ONLINE');
+
     // Generate Supabase compatible Order object
     const newOrder: Order = {
-      id: `INV-${new Date().getFullYear()}-${Math.floor(1000 + Math.random() * 9000)}`,
+      id: orderId,
       createdAt: new Date().toISOString(),
       customerName: customerName,
       customerPhone: cleanPhone,
@@ -175,18 +144,33 @@ export default function POSBillingPanel() {
       await addOrder(newOrder);
 
       // 2. Format WhatsApp Message
+      const wave = String.fromCodePoint(0x1F44B);
+      const bag = String.fromCodePoint(0x1F6CD);
+      const star = String.fromCodePoint(0x2B50);
+      const doc = String.fromCodePoint(0x1F4C4);
+      const check = String.fromCodePoint(0x2705);
+      
       const itemsText = items.map(i => `• ${i.name} (${i.size}) - ${i.qty} x ₹${i.price} = ₹${i.qty * i.price}`).join('%0A');
-      let message = `Hello ${customerName}, thank you for purchasing from Mishi!%0A%0A`;
-      message += `*Your Bill Details:*%0A${itemsText}%0A%0A`;
-      message += `Subtotal: ₹${subtotal}%0A`;
-      if (couponDiscount > 0) message += `Coupon Discount (${selectedCouponCode}): -₹${couponDiscount}%0A`;
-      if (calculatedManualDiscount > 0) message += `Manual Discount: -₹${calculatedManualDiscount}%0A`;
-      if (delivery > 0) message += `Delivery: ₹${delivery}%0A`;
-      message += `*Grand Total: ₹${grandTotal}*%0A%0A`;
-      message += `Have a great day!`;
+      
+      let message = `Hello ${customerName} ${wave}%0A%0A`;
+      message += `Thank you for shopping with Mishi! ${bag}%0A%0A`;
+      message += `*Your Order Details:*%0A${itemsText}%0A%0A`;
+      
+      if (couponDiscount > 0 || calculatedManualDiscount > 0 || delivery > 0) {
+        message += `Subtotal: ₹${subtotal}%0A`;
+        if (couponDiscount > 0) message += `Coupon Discount (${selectedCouponCode}): -₹${couponDiscount}%0A`;
+        if (calculatedManualDiscount > 0) message += `Manual Discount: -₹${calculatedManualDiscount}%0A`;
+        if (delivery > 0) message += `Delivery: ₹${delivery}%0A`;
+        message += `%0A`;
+      }
+      
+      message += `*Grand Total: ₹${grandTotal}* ${check}%0A%0A`;
+      message += `*Please look at this for your invoice:* ${doc}%0A`;
+      message += `Invoice ID: ${orderId}%0A%0A`;
+      message += `Have a great day! ${star}`;
 
       // 3. Open WhatsApp Web
-      window.open(`https://wa.me/91${cleanPhone}?text=${message}`, '_blank');
+      window.open(`https://api.whatsapp.com/send/?phone=91${cleanPhone}&text=${message}`, '_blank');
 
       // 4. Reset checkout form
       setCustomerName('');
@@ -287,75 +271,7 @@ export default function POSBillingPanel() {
             </div>
           </div>
 
-          {/* Browse Catalog Search */}
-          <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-6">
-            <h2 className="flex items-center gap-2 text-sm font-bold text-slate-800 mb-4">
-              <Search size={18} className="text-[#dc2626]" /> Browse Catalog
-            </h2>
-            
-            <div className="flex flex-col md:flex-row gap-4 mb-4">
-              <div className="relative flex-1">
-                <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
-                <input
-                  type="text"
-                  placeholder="Search products in catalog..."
-                  value={catalogSearch}
-                  onChange={e => setCatalogSearch(e.target.value)}
-                  className="w-full pl-9 pr-4 py-2.5 border border-slate-200 rounded-xl text-sm focus:outline-none focus:border-slate-300"
-                />
-              </div>
-            </div>
 
-            {catalogSearch.trim().length > 0 && (
-              <div className="border border-slate-100 rounded-xl bg-slate-50 p-2 max-h-48 overflow-y-auto mb-4 divide-y divide-slate-100">
-                {filteredProducts.map(p => (
-                  <button
-                    key={p.id}
-                    onClick={() => handleProductSelect(p)}
-                    className="w-full text-left p-3 hover:bg-white hover:shadow-sm rounded-lg transition-all flex justify-between items-center text-xs font-bold"
-                  >
-                    <span>{p.name}</span>
-                    <span className="text-slate-400 uppercase tracking-widest">{p.category}</span>
-                  </button>
-                ))}
-                {filteredProducts.length === 0 && (
-                  <div className="p-3 text-center text-xs text-slate-400 italic">No products found</div>
-                )}
-              </div>
-            )}
-
-            {selectedProduct && (
-              <div className="bg-[#dc2626]/5 border border-[#dc2626]/10 rounded-xl p-4 flex flex-wrap justify-between items-center gap-4 animate-in fade-in duration-200">
-                <div>
-                  <h3 className="font-bold text-xs text-slate-900">Selected: {selectedProduct.name}</h3>
-                  <p className="text-[10px] text-slate-400 mt-1 uppercase tracking-widest">{selectedProduct.category}</p>
-                </div>
-                
-                <div className="flex items-center gap-3">
-                  {selectedProduct.sizes.length > 0 && (
-                    <div className="relative">
-                      <select
-                        value={selectedSize}
-                        onChange={e => setSelectedSize(e.target.value)}
-                        className="appearance-none bg-white border border-slate-200 rounded-lg px-3 py-1.5 pr-8 text-xs font-bold focus:outline-none cursor-pointer"
-                      >
-                        {selectedProduct.sizes.map(s => (
-                          <option key={s.size} value={s.size}>{s.size} - ₹{s.price}</option>
-                        ))}
-                      </select>
-                      <ChevronDown size={12} className="absolute right-2 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
-                    </div>
-                  )}
-                  <button
-                    onClick={addSelectedProductToBill}
-                    className="bg-[#dc2626] hover:bg-red-700 text-white font-bold px-4 py-1.5 rounded-lg text-xs flex items-center gap-1 cursor-pointer"
-                  >
-                    <Plus size={14} /> Add to Bill
-                  </button>
-                </div>
-              </div>
-            )}
-          </div>
 
           {/* Order Items */}
           <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-6">
@@ -363,18 +279,24 @@ export default function POSBillingPanel() {
               <h2 className="flex items-center gap-2 text-sm font-bold text-slate-800">
                 <FileText size={18} className="text-[#dc2626]" /> Order Items
               </h2>
-              <div className="flex gap-3">
+              <div className="flex flex-wrap gap-2">
                 <button 
-                  onClick={() => setItems([])}
-                  className="px-4 py-2 text-xs font-bold text-slate-600 bg-slate-100 hover:bg-slate-200 rounded-full transition-colors cursor-pointer"
+                  onClick={() => setIsCatalogModalOpen(true)}
+                  className="px-4 py-2 text-xs font-bold text-blue-600 bg-blue-50 hover:bg-blue-100 border border-blue-100 rounded-full transition-colors cursor-pointer flex items-center gap-1"
                 >
-                  Clear Order
+                  <Search size={14} /> Catalog
                 </button>
                 <button 
                   onClick={addCustomItem}
                   className="px-4 py-2 text-xs font-bold text-red-600 bg-red-50 hover:bg-red-100 border border-red-100 rounded-full transition-colors cursor-pointer"
                 >
-                  + Add Custom Item
+                  + Custom Item
+                </button>
+                <button 
+                  onClick={() => setItems([])}
+                  className="px-4 py-2 text-xs font-bold text-slate-600 bg-slate-100 hover:bg-slate-200 rounded-full transition-colors cursor-pointer"
+                >
+                  Clear Order
                 </button>
               </div>
             </div>
@@ -568,6 +490,125 @@ export default function POSBillingPanel() {
           </div>
         </div>
       </div>
+      {/* Catalog Modal */}
+      {isCatalogModalOpen && (
+        <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-sm">
+          <div className="bg-white rounded-[2rem] shadow-2xl w-full max-w-4xl max-h-[90vh] flex flex-col overflow-hidden animate-in zoom-in-95 duration-200">
+            <div className="p-6 border-b border-slate-100 flex justify-between items-center bg-slate-50">
+              <h2 className="text-lg font-black text-slate-900 flex items-center gap-2">
+                <Search className="text-[#dc2626]" /> Product Catalog
+              </h2>
+              <button 
+                onClick={() => setIsCatalogModalOpen(false)}
+                className="w-8 h-8 rounded-full bg-slate-200 text-slate-600 hover:bg-slate-300 flex items-center justify-center font-bold cursor-pointer transition-colors"
+              >
+                ✕
+              </button>
+            </div>
+            
+            <div className="p-6 border-b border-slate-100">
+              <div className="relative">
+                <Search size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" />
+                <input
+                  type="text"
+                  placeholder="Search products..."
+                  value={catalogSearch}
+                  onChange={e => setCatalogSearch(e.target.value)}
+                  className="w-full pl-12 pr-4 py-3 border-2 border-slate-200 rounded-xl text-sm font-bold text-slate-900 focus:outline-none focus:border-[#dc2626] transition-colors"
+                />
+              </div>
+            </div>
+
+            <div className="flex-1 overflow-y-auto p-6 bg-slate-50/50">
+              {filteredProducts.length === 0 ? (
+                <div className="text-center py-12 text-slate-500 italic">No products found.</div>
+              ) : (
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                  {filteredProducts.map(p => (
+                    <div key={p.id} className="bg-white border border-slate-200 rounded-xl p-4 shadow-sm hover:border-[#dc2626] transition-colors flex flex-col justify-between">
+                      <div>
+                        <h3 className="font-bold text-slate-900 text-sm mb-1">{p.name}</h3>
+                        <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest bg-slate-100 px-2 py-0.5 rounded">{p.category}</span>
+                      </div>
+                      
+                      <div className="mt-4 space-y-2">
+                        {p.sizes && p.sizes.length > 0 ? (
+                          p.sizes.map(s => (
+                            <div key={s.size} className="flex justify-between items-center text-xs">
+                              <span className="font-medium text-slate-600">{s.size} - ₹{s.price}</span>
+                              <div className="flex items-center gap-2">
+                                <div className="flex items-center border border-slate-200 rounded-lg overflow-hidden h-7 bg-white">
+                                  <button onClick={() => updateCatalogQty(p.id, s.size, -1)} className="px-2 text-slate-500 hover:bg-slate-50 hover:text-red-500 font-bold cursor-pointer">-</button>
+                                  <span className="text-xs font-bold w-6 text-center text-slate-700">{getCatalogQty(p.id, s.size)}</span>
+                                  <button onClick={() => updateCatalogQty(p.id, s.size, 1)} className="px-2 text-slate-500 hover:bg-slate-50 hover:text-emerald-500 font-bold cursor-pointer">+</button>
+                                </div>
+                                <button 
+                                  onClick={() => {
+                                    const qty = getCatalogQty(p.id, s.size);
+                                    setItems(prev => {
+                                      const existingIndex = prev.findIndex(i => i.productId === p.id && i.size === s.size);
+                                      if (existingIndex > -1) {
+                                        return prev.map((item, idx) => idx === existingIndex ? { ...item, qty: item.qty + qty } : item);
+                                      } else {
+                                        return [...prev, { productId: p.id, name: p.name, size: s.size, qty: qty, price: s.price }];
+                                      }
+                                    });
+                                    setCatalogQuantities(prev => ({ ...prev, [`${p.id}-${s.size}`]: 1 }));
+                                  }}
+                                  className="px-3 py-1 bg-slate-100 hover:bg-[#dc2626] hover:text-white text-slate-700 font-bold rounded-lg transition-colors cursor-pointer"
+                                >
+                                  Add
+                                </button>
+                              </div>
+                            </div>
+                          ))
+                        ) : (
+                          <div className="flex justify-between items-center text-xs">
+                            <span className="font-medium text-slate-600">Standard - ₹{(p as any).price}</span>
+                            <div className="flex items-center gap-2">
+                                <div className="flex items-center border border-slate-200 rounded-lg overflow-hidden h-7 bg-white">
+                                  <button onClick={() => updateCatalogQty(p.id, 'Standard', -1)} className="px-2 text-slate-500 hover:bg-slate-50 hover:text-red-500 font-bold cursor-pointer">-</button>
+                                  <span className="text-xs font-bold w-6 text-center text-slate-700">{getCatalogQty(p.id, 'Standard')}</span>
+                                  <button onClick={() => updateCatalogQty(p.id, 'Standard', 1)} className="px-2 text-slate-500 hover:bg-slate-50 hover:text-emerald-500 font-bold cursor-pointer">+</button>
+                                </div>
+                                <button 
+                                  onClick={() => {
+                                    const qty = getCatalogQty(p.id, 'Standard');
+                                    setItems(prev => {
+                                      const existingIndex = prev.findIndex(i => i.productId === p.id && i.size === 'Standard');
+                                      if (existingIndex > -1) {
+                                        return prev.map((item, idx) => idx === existingIndex ? { ...item, qty: item.qty + qty } : item);
+                                      } else {
+                                        return [...prev, { productId: p.id, name: p.name, size: 'Standard', qty: qty, price: (p as any).price || 0 }];
+                                      }
+                                    });
+                                    setCatalogQuantities(prev => ({ ...prev, [`${p.id}-Standard`]: 1 }));
+                                  }}
+                                  className="px-3 py-1 bg-slate-100 hover:bg-[#dc2626] hover:text-white text-slate-700 font-bold rounded-lg transition-colors cursor-pointer"
+                                >
+                                  Add
+                                </button>
+                              </div>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+            
+            <div className="p-6 border-t border-slate-100 bg-white flex justify-end">
+              <button 
+                onClick={() => setIsCatalogModalOpen(false)}
+                className="px-6 py-2.5 bg-slate-900 hover:bg-slate-800 text-white font-bold rounded-xl text-sm transition-colors cursor-pointer"
+              >
+                Done
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

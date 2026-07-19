@@ -5,6 +5,7 @@ import { Playfair_Display } from "next/font/google";
 import { motion } from "framer-motion";
 import { User, ShoppingCart, LogOut, Package, ChevronRight, Clock, CheckCircle2 } from "lucide-react";
 import Link from "next/link";
+import toast from "react-hot-toast";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/lib/useAuth";
 import { fetchOrdersByEmail } from "@/lib/db";
@@ -64,33 +65,6 @@ export default function ProfilePage() {
 
   return (
     <div className="bg-zinc-50 min-h-screen font-sans selection:bg-amber-600/30 selection:text-amber-900">
-      {/* Navbar */}
-      <motion.nav
-        initial={{ y: -100 }}
-        animate={{ y: 0 }}
-        className={`fixed top-4 left-1/2 -translate-x-1/2 z-50 w-[95%] max-w-6xl rounded-full px-6 py-3 flex items-center justify-between transition-all duration-500 ${isScrolled ? "bg-white/90 backdrop-blur-xl shadow-lg border border-white/50" : "bg-white/50 backdrop-blur-md border border-white/20 shadow-sm"}`}
-      >
-        <div className="flex items-center gap-2 cursor-pointer">
-          <Link href="/">
-            <img src="/logo.webp" alt="Mishi" className="h-8 md:h-10 w-auto object-contain" />
-          </Link>
-        </div>
-        
-        <div className={`hidden md:flex gap-8 text-xs uppercase tracking-widest font-semibold text-neutral-800`}>
-           <Link href="/" className="hover:text-emerald-600 transition-colors">Home</Link>
-           <Link href="/#about" className="hover:text-emerald-600 transition-colors">Heritage</Link>
-           <Link href="/#products" className="hover:text-emerald-600 transition-colors">Collection</Link>
-           <Link href="/products" className="hover:text-emerald-600 transition-colors">Products</Link>
-        </div>
-
-        <div className={`flex gap-4 items-center text-neutral-800`}>
-          <Link href="/profile" className="p-2 hover:bg-emerald-500/10 rounded-full transition-colors"><User size={18} /></Link>
-          <Link href="/cart" className="p-2 hover:bg-emerald-500/10 rounded-full transition-colors relative">
-             <ShoppingCart size={18} />
-             <span className="absolute top-0 right-0 w-2 h-2 bg-emerald-600 rounded-full"></span>
-          </Link>
-        </div>
-      </motion.nav>
 
       {/* Main Content */}
       <section className="pt-40 pb-24 px-6 md:px-16 max-w-[1400px] mx-auto min-h-[80vh] flex items-center justify-center">
@@ -111,10 +85,7 @@ export default function ProfilePage() {
                   <p className="text-zinc-500 mt-1">{user.email}</p>
                 </div>
               </div>
-              <button 
-                onClick={handleLogout} 
-                className="flex items-center gap-2 text-sm font-bold text-zinc-500 hover:text-red-500 transition-colors bg-white px-6 py-3 rounded-full border border-zinc-200 shadow-sm cursor-pointer"
-              >
+              <button onClick={handleLogout} className="flex items-center gap-2 text-sm font-bold text-white bg-red-500 hover:bg-red-600 transition-colors px-6 py-3 rounded-full border border-red-600 shadow-sm">
                 <LogOut size={16} /> Sign Out
               </button>
             </div>
