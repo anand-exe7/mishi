@@ -45,14 +45,18 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   const [isDesktopSidebarCollapsed, setDesktopSidebarCollapsed] = useState(false);
 
   useEffect(() => {
+    let active = true;
+
     const checkAndBootstrap = async () => {
       if (!user) {
-        router.push('/login');
+        if (active) router.push('/login');
         return;
       }
 
       try {
         const profile = await fetchProfileByUid(user.id);
+        if (!active) return;
+
         if (profile) {
           if (profile.role === 'Admin') {
             setIsAdmin(true);
@@ -64,6 +68,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         } else {
           // Profile does not exist. Let's seed it!
           const allProfiles = await fetchProfiles().catch(() => []);
+          if (!active) return;
           const isFirstProfile = allProfiles.length === 0;
           const initialRole = isFirstProfile ? 'Admin' : 'Customer';
 
@@ -77,7 +82,8 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
           };
 
           const supabase = createClient();
-          const { error } = await supabase.from('profiles').insert([newProfile]);
+          const { error } = await supabase.from('profiles').upsert(newProfile);
+          if (!active) return;
           
           if (!error) {
             if (initialRole === 'Admin') {
@@ -93,6 +99,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
           setRoleLoading(false);
         }
       } catch (err) {
+        if (!active) return;
         console.error('Error in admin verification:', err);
         setIsAdmin(false);
         setRoleLoading(false);
@@ -102,6 +109,10 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     if (!authLoading) {
       checkAndBootstrap();
     }
+
+    return () => {
+      active = false;
+    };
   }, [user, authLoading, router]);
 
   const navigation = [
