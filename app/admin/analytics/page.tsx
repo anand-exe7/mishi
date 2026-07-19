@@ -40,6 +40,11 @@ export default function AnalyticsPage() {
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [showProductModal, setShowProductModal] = useState(false);
   const [refreshKey, setRefreshKey] = useState(0);
+  const [isMounted, setIsMounted] = useState(false);
+
+  React.useEffect(() => {
+    setIsMounted(true);
+  }, []);
 
   const themeColor = "#dc2626"; // Match Mishi Red
 
@@ -1048,6 +1053,10 @@ export default function AnalyticsPage() {
       </div>
     </div>
   );
+
+  if (!isMounted) {
+    return null;
+  }
 
   return (
     <div className="space-y-6 max-w-[1400px] mx-auto text-slate-800 relative">

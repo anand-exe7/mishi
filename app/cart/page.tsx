@@ -7,7 +7,7 @@ import { User, ShoppingCart, Trash2, ArrowRight, Plus, Minus } from "lucide-reac
 import Link from "next/link";
 import toast from "react-hot-toast";
 import { useCartStore } from "@/store/store";
-import { fetchCoupons, insertWhatsappRequest, Order, OrderItem, Coupon } from "@/lib/db";
+import { fetchCoupons, insertWhatsappRequest, Order, OrderItem, Coupon, generateSequentialOrderId } from "@/lib/db";
 import { useAuth } from "@/lib/useAuth";
 
 const playfair = Playfair_Display({ subsets: ["latin"] });
@@ -36,12 +36,7 @@ export default function CartPage() {
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
-  // Generate a random order ID (e.g. ORD-2026-A1B2C3D)
-  const generateOrderId = (isOnline: boolean = true) => {
-    const prefix = isOnline ? "ORD-2026-" : "INV-2026-";
-    const randomChars = Math.random().toString(36).substring(2, 9).toUpperCase();
-    return `${prefix}${randomChars}`;
-  };
+
 
   // Helper to get item price based on selected size
   const getItemPrice = (item: any) => {
@@ -112,8 +107,12 @@ export default function CartPage() {
       toast.error("Your cart is empty!");
       return;
     }
+    if (formData.phone.length !== 10) {
+      toast.error("Please enter a valid 10-digit mobile number");
+      return;
+    }
 
-    const orderId = generateOrderId(true);
+    const orderId = await generateSequentialOrderId(true);
     const subtotal = calculateSubtotal();
     const couponDiscount = calculateDiscount();
     const finalTotal = subtotal - couponDiscount;
@@ -154,30 +153,50 @@ export default function CartPage() {
       toast.success("Order saved to database!");
 
       // 2. Format WhatsApp redirect message
-      const adminWhatsApp = process.env.NEXT_PUBLIC_ADMIN_WHATSAPP || "919876543210"; 
+      let rawWhatsApp = process.env.NEXT_PUBLIC_ADMIN_WHATSAPP || "919894609057";
+      const adminWhatsApp = rawWhatsApp.length === 10 ? `91${rawWhatsApp}` : rawWhatsApp;
       let itemsSummary = items
         .map((item) => `- ${item.quantity}x ${item.product.name} (${item.unit}) - ₹${getItemPrice(item) * item.quantity}`)
         .join("\n");
 
-      let discountText = couponDiscount > 0 ? `\n\n*Subtotal:* ₹${subtotal}\n*Discount (${appliedCoupon?.code}):* -₹${couponDiscount}` : "";
-      const message = `Hello Mishi Pooja Products!\n\nI would like to place an order.\n\n*Order ID:* ${orderId}\n\n*Customer Details:*\nName: ${formData.name}\nPhone: ${formData.phone}\nAddress: ${formData.address}\n\n*Order Summary:*\n${itemsSummary}${discountText}\n\n*Final Total:* ₹${finalTotal}\n\nPlease confirm my order. Thank you!`;
+      const ePray = String.fromCodePoint(0x1F64F);
+      const ePackage = String.fromCodePoint(0x1F4E6);
+      const ePerson = String.fromCodePoint(0x1F464);
+      const eCart = String.fromCodePoint(0x1F6D2);
+      const eCard = String.fromCodePoint(0x1F4B3);
+      const eMobile = String.fromCodePoint(0x1F4F1);
+      const eTruck = String.fromCodePoint(0x1F69A);
+      const eSparkle = String.fromCodePoint(0x2728);
+
+      let discountText = couponDiscount > 0 ? `\n\n*Subtotal:* ₹${subtotal}\n*Discount (${appliedCoupon?.code}):* -₹${couponDiscount}` : `\n\n*Subtotal:* ₹${subtotal}`;
+      const message = `${ePray} *Hello Mishi Pooja Products!*\n\nI would like to place an order. ${ePackage}\n\n*Order ID:* ${orderId}\n\n${ePerson} *Customer Details:*\n*Name:* ${formData.name}\n*Phone:* ${formData.phone}\n*Address:* ${formData.address}\n\n${eCart} *Order Summary:*\n${itemsSummary}${discountText}\n\n${eCard} *Final Total:* ₹${finalTotal}\n\n${eMobile} *GPay Number:* 9894609057\n\n${eTruck} _Delivery charges may vary based on location._\n\nPlease confirm my order. Thank you! ${eSparkle}`;
       
       // 3. Clear Zustand cart and redirect to WhatsApp
       clearCart();
-      window.open(`https://wa.me/${adminWhatsApp}?text=${encodeURIComponent(message)}`, "_blank");
+      window.open(`https://api.whatsapp.com/send/?phone=${adminWhatsApp}&text=${encodeURIComponent(message)}`, "_blank");
     } catch (err: any) {
       console.error("Error creating order:", err?.message || err);
       toast.error(`Failed to place order in database: ${err?.message || "Unknown error"}. Redirecting to WhatsApp anyway...`);
       
       // Fallback redirect even if DB insert fails
-      const adminWhatsApp = process.env.NEXT_PUBLIC_ADMIN_WHATSAPP || "919876543210"; 
+      let rawWhatsAppFallback = process.env.NEXT_PUBLIC_ADMIN_WHATSAPP || "919894609057";
+      const adminWhatsAppFallback = rawWhatsAppFallback.length === 10 ? `91${rawWhatsAppFallback}` : rawWhatsAppFallback;
       let itemsSummary = items
         .map((item) => `- ${item.quantity}x ${item.product.name} (${item.unit}) - ₹${getItemPrice(item) * item.quantity}`)
         .join("\n");
       
-      let discountText = couponDiscount > 0 ? `\n\n*Subtotal:* ₹${subtotal}\n*Discount (${appliedCoupon?.code}):* -₹${couponDiscount}` : "";
-      const message = `Hello Mishi Pooja Products!\n\nI would like to place an order.\n\n*Customer Details:*\nName: ${formData.name}\nPhone: ${formData.phone}\nAddress: ${formData.address}\n\n*Order Summary:*\n${itemsSummary}${discountText}\n\n*Final Total:* ₹${finalTotal}\n\nPlease confirm my order. Thank you!`;
-      window.open(`https://wa.me/${adminWhatsApp}?text=${encodeURIComponent(message)}`, "_blank");
+      const ePray = String.fromCodePoint(0x1F64F);
+      const ePackage = String.fromCodePoint(0x1F4E6);
+      const ePerson = String.fromCodePoint(0x1F464);
+      const eCart = String.fromCodePoint(0x1F6D2);
+      const eCard = String.fromCodePoint(0x1F4B3);
+      const eMobile = String.fromCodePoint(0x1F4F1);
+      const eTruck = String.fromCodePoint(0x1F69A);
+      const eSparkle = String.fromCodePoint(0x2728);
+
+      let discountText = couponDiscount > 0 ? `\n\n*Subtotal:* ₹${subtotal}\n*Discount (${appliedCoupon?.code}):* -₹${couponDiscount}` : `\n\n*Subtotal:* ₹${subtotal}`;
+      const message = `${ePray} *Hello Mishi Pooja Products!*\n\nI would like to place an order. ${ePackage}\n\n*Order ID:* ${orderId}\n\n${ePerson} *Customer Details:*\n*Name:* ${formData.name}\n*Phone:* ${formData.phone}\n*Address:* ${formData.address}\n\n${eCart} *Order Summary:*\n${itemsSummary}${discountText}\n\n${eCard} *Final Total:* ₹${finalTotal}\n\n${eMobile} *GPay Number:* 9894609057\n\n${eTruck} _Delivery charges may vary based on location._\n\nPlease confirm my order. Thank you! ${eSparkle}`;
+      window.open(`https://api.whatsapp.com/send/?phone=${adminWhatsAppFallback}&text=${encodeURIComponent(message)}`, "_blank");
     }
   };
 
@@ -199,35 +218,6 @@ export default function CartPage() {
 
   return (
     <div className="bg-zinc-50 min-h-screen font-sans selection:bg-amber-600/30 selection:text-amber-900">
-      {/* Navbar */}
-      <motion.nav
-        initial={{ y: -100 }}
-        animate={{ y: 0 }}
-        className={`fixed top-4 left-1/2 -translate-x-1/2 z-50 w-[95%] max-w-6xl rounded-full px-6 py-3 flex items-center justify-between transition-all duration-500 ${isScrolled ? "bg-white/90 backdrop-blur-xl shadow-lg border border-white/50" : "bg-white/50 backdrop-blur-md border border-white/20 shadow-sm"}`}
-      >
-        <div className="flex items-center gap-2 cursor-pointer">
-          <Link href="/">
-            <img src="/logo.webp" alt="Mishi" className="h-8 md:h-10 w-auto object-contain" />
-          </Link>
-        </div>
-        
-        <div className={`hidden md:flex gap-8 text-xs uppercase tracking-widest font-semibold text-neutral-800`}>
-           <Link href="/" className="hover:text-emerald-600 transition-colors">Home</Link>
-           <Link href="/#about" className="hover:text-emerald-600 transition-colors">Heritage</Link>
-           <Link href="/#products" className="hover:text-emerald-600 transition-colors">Collection</Link>
-           <Link href="/products" className="hover:text-emerald-600 transition-colors">Products</Link>
-        </div>
-
-        <div className={`flex gap-4 items-center text-neutral-800`}>
-          <Link href="/profile" className="p-2 hover:bg-emerald-500/10 rounded-full transition-colors"><User size={18} /></Link>
-          <Link href="/cart" className="p-2 hover:bg-emerald-500/10 rounded-full transition-colors relative">
-             <ShoppingCart size={18} />
-             {items.length > 0 && (
-               <span className="absolute top-0 right-0 w-2.5 h-2.5 bg-emerald-600 rounded-full border-2 border-white"></span>
-             )}
-          </Link>
-        </div>
-      </motion.nav>
 
       {/* Cart Content */}
       <section className="pt-40 pb-24 px-6 md:px-16 max-w-[1400px] mx-auto">
@@ -317,15 +307,18 @@ export default function CartPage() {
                 <form onSubmit={handleCheckout} className="space-y-4 mb-8">
                   <div>
                     <label className="text-xs font-bold text-zinc-500 uppercase tracking-wider mb-2 block">Full Name</label>
-                    <input required value={formData.name} onChange={(e) => setFormData({...formData, name: e.target.value})} type="text" className="w-full bg-zinc-50 border border-zinc-200 rounded-xl px-4 py-3 focus:outline-none focus:border-amber-500 transition-colors placeholder-zinc-400" placeholder="e.g. John Doe" />
+                    <input required value={formData.name} onChange={(e) => setFormData({...formData, name: e.target.value})} type="text" className="w-full bg-zinc-50 border border-zinc-200 rounded-xl px-4 py-3 focus:outline-none focus:border-amber-500 transition-colors placeholder-zinc-400 text-zinc-900" placeholder="e.g. John Doe" />
                   </div>
                   <div>
                     <label className="text-xs font-bold text-zinc-500 uppercase tracking-wider mb-2 block">Mobile Number</label>
-                    <input required value={formData.phone} onChange={(e) => setFormData({...formData, phone: e.target.value})} type="tel" className="w-full bg-zinc-50 border border-zinc-200 rounded-xl px-4 py-3 focus:outline-none focus:border-amber-500 transition-colors placeholder-zinc-400" placeholder="e.g. +91 98765 43210" />
+                    <input required value={formData.phone} onChange={(e) => {
+                      const val = e.target.value.replace(/\D/g, '').slice(0, 10);
+                      setFormData({...formData, phone: val});
+                    }} type="tel" pattern="[0-9]{10}" maxLength={10} className="w-full bg-zinc-50 border border-zinc-200 rounded-xl px-4 py-3 focus:outline-none focus:border-amber-500 transition-colors placeholder-zinc-400 text-zinc-900" placeholder="e.g. 9876543210" />
                   </div>
                   <div>
                     <label className="text-xs font-bold text-zinc-500 uppercase tracking-wider mb-2 block">Complete Address</label>
-                    <textarea required value={formData.address} onChange={(e) => setFormData({...formData, address: e.target.value})} className="w-full bg-zinc-50 border border-zinc-200 rounded-xl px-4 py-3 focus:outline-none focus:border-amber-500 transition-colors min-h-[100px] resize-none placeholder-zinc-400" placeholder="Door No, Street Name, City, Pincode"></textarea>
+                    <textarea required value={formData.address} onChange={(e) => setFormData({...formData, address: e.target.value})} className="w-full bg-zinc-50 border border-zinc-200 rounded-xl px-4 py-3 focus:outline-none focus:border-amber-500 transition-colors min-h-[100px] resize-none placeholder-zinc-400 text-zinc-900" placeholder="Door No, Street Name, City, Pincode"></textarea>
                   </div>
 
                   <div className="border-t border-zinc-100 pt-6 mt-6 space-y-4">
@@ -335,7 +328,7 @@ export default function CartPage() {
                         placeholder="Enter Coupon Code" 
                         value={couponInput}
                         onChange={(e) => setCouponInput(e.target.value)}
-                        className="flex-1 bg-zinc-50 border border-zinc-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-amber-500 placeholder-zinc-400 uppercase" 
+                        className="flex-1 bg-zinc-50 border border-zinc-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-amber-500 placeholder-zinc-400 text-zinc-900 uppercase" 
                       />
                       <button 
                         type="button" 

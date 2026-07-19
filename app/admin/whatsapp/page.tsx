@@ -165,12 +165,25 @@ Subtotal: ₹${inq.subtotal.toLocaleString('en-IN')}${discountText}
         return new Date(inq.createdAt).toDateString() === today;
       }
       if (filter === 'WEEK') {
-        const oneWeekAgo = Date.now() - 7 * 24 * 60 * 60 * 1000;
-        return new Date(inq.createdAt).getTime() >= oneWeekAgo;
+        const now = new Date();
+        const dayOfWeek = now.getDay() || 7; // Mon=1 to Sun=7
+        const startOfWeek = new Date(now);
+        startOfWeek.setDate(now.getDate() - dayOfWeek + 1);
+        startOfWeek.setHours(0,0,0,0);
+        
+        const endOfWeek = new Date(startOfWeek);
+        endOfWeek.setDate(startOfWeek.getDate() + 6);
+        endOfWeek.setHours(23,59,59,999);
+
+        const time = new Date(inq.createdAt).getTime();
+        return time >= startOfWeek.getTime() && time <= endOfWeek.getTime();
       }
       if (filter === 'MONTH') {
-        const oneMonthAgo = Date.now() - 30 * 24 * 60 * 60 * 1000;
-        return new Date(inq.createdAt).getTime() >= oneMonthAgo;
+        const now = new Date();
+        const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+        const endOfMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59, 999);
+        const time = new Date(inq.createdAt).getTime();
+        return time >= startOfMonth.getTime() && time <= endOfMonth.getTime();
       }
       if (filter === 'CUSTOM' && customFrom && customTo) {
         const from = new Date(customFrom).getTime();
@@ -299,52 +312,135 @@ Subtotal: ₹${inq.subtotal.toLocaleString('en-IN')}${discountText}
                   </tr>
                 ) : (
                   filteredInquiries.map((inq) => (
-                    <tr key={inq.id} className="hover:bg-slate-50 transition-colors group">
-                      <td className="px-6 py-4 font-bold text-slate-700">{inq.id}</td>
-                      <td className="px-6 py-4 font-medium text-slate-900">{inq.customerName}</td>
-                      <td className="px-6 py-4 text-slate-600">{inq.customerPhone}</td>
-                      <td className="px-6 py-4 text-slate-500 max-w-[150px] truncate">{inq.customerAddress || 'N/A'}</td>
-                      <td className="px-6 py-4 text-center">
-                        <span className="w-6 h-6 rounded-full bg-blue-50 text-blue-600 font-bold text-xs inline-flex items-center justify-center">
-                          {inq.totalItems}
-                        </span>
-                      </td>
-                      <td className="px-6 py-4 font-black text-slate-900">₹{inq.totalPrice.toLocaleString('en-IN')}</td>
-                      <td className="px-6 py-4 text-slate-500 text-xs">
-                        {new Date(inq.createdAt).toLocaleDateString('en-US', { month: 'short', day: '2-digit', year: 'numeric' })} <br/>
-                        {new Date(inq.createdAt).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })}
-                      </td>
-                      <td className="px-6 py-4">
-                        <div className="relative inline-block w-[130px]">
-                          <select
-                            value={inq.status}
-                            onChange={(e) => handleStatusChange(inq.id, e.target.value as any)}
-                            className={`appearance-none w-full outline-none font-bold text-xs px-3 py-1.5 pr-8 rounded-full border cursor-pointer uppercase ${
-                              inq.status === 'Pending' ? 'bg-amber-50 text-amber-600 border-amber-200' : 
-                              inq.status === 'Processing' ? 'bg-blue-50 text-blue-600 border-blue-200' :
-                              'bg-emerald-50 text-emerald-600 border-emerald-200'
-                            }`}
+                    <React.Fragment key={inq.id}>
+                      <tr className="hover:bg-slate-50 transition-colors group">
+                        <td className="px-6 py-4 font-bold text-slate-700">{inq.id}</td>
+                        <td className="px-6 py-4 font-medium text-slate-900">{inq.customerName}</td>
+                        <td className="px-6 py-4 text-slate-600">{inq.customerPhone}</td>
+                        <td className="px-6 py-4 text-slate-500 min-w-[200px] whitespace-pre-wrap">{inq.customerAddress || 'N/A'}</td>
+                        <td className="px-6 py-4 text-center">
+                          <span className="w-6 h-6 rounded-full bg-blue-50 text-blue-600 font-bold text-xs inline-flex items-center justify-center">
+                            {inq.totalItems}
+                          </span>
+                        </td>
+                        <td className="px-6 py-4 font-black text-slate-900">₹{inq.totalPrice.toLocaleString('en-IN')}</td>
+                        <td className="px-6 py-4 text-slate-500 text-xs">
+                          {new Date(inq.createdAt).toLocaleDateString('en-US', { month: 'short', day: '2-digit', year: 'numeric' })} <br/>
+                          {new Date(inq.createdAt).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })}
+                        </td>
+                        <td className="px-6 py-4">
+                          <div className="relative inline-block w-[130px]">
+                            <select
+                              value={inq.status}
+                              onChange={(e) => handleStatusChange(inq.id, e.target.value as any)}
+                              className={`appearance-none w-full outline-none font-bold text-xs px-3 py-1.5 pr-8 rounded-full border cursor-pointer uppercase ${
+                                inq.status === 'Pending' ? 'bg-amber-50 text-amber-600 border-amber-200' : 
+                                inq.status === 'Processing' ? 'bg-blue-50 text-blue-600 border-blue-200' :
+                                'bg-emerald-50 text-emerald-600 border-emerald-200'
+                              }`}
+                            >
+                              <option value="Pending">PENDING</option>
+                              <option value="Processing">PROCESSING</option>
+                              <option value="Completed">COMPLETED</option>
+                              <option value="Cancelled">CANCELLED</option>
+                            </select>
+                            <ChevronDown size={14} className={`absolute right-2.5 top-1/2 -translate-y-1/2 pointer-events-none ${
+                                inq.status === 'Pending' ? 'text-amber-600' : 
+                                inq.status === 'Processing' ? 'text-blue-600' : 'text-emerald-600'
+                            }`} />
+                          </div>
+                        </td>
+                        <td className="px-6 py-4 text-right">
+                          <button 
+                            onClick={() => setExpandedRow(expandedRow === inq.id ? null : inq.id)}
+                            className="px-4 py-1.5 bg-blue-50 hover:bg-blue-100 text-blue-600 font-bold rounded-full text-xs transition-colors cursor-pointer"
                           >
-                            <option value="Pending">PENDING</option>
-                            <option value="Processing">PROCESSING</option>
-                            <option value="Completed">COMPLETED</option>
-                            <option value="Cancelled">CANCELLED</option>
-                          </select>
-                          <ChevronDown size={14} className={`absolute right-2.5 top-1/2 -translate-y-1/2 pointer-events-none ${
-                              inq.status === 'Pending' ? 'text-amber-600' : 
-                              inq.status === 'Processing' ? 'text-blue-600' : 'text-emerald-600'
-                          }`} />
-                        </div>
-                      </td>
-                      <td className="px-6 py-4 text-right">
-                        <button 
-                          onClick={() => setExpandedRow(expandedRow === inq.id ? null : inq.id)}
-                          className="px-4 py-1.5 bg-blue-50 hover:bg-blue-100 text-blue-600 font-bold rounded-full text-xs transition-colors cursor-pointer"
-                        >
-                          {expandedRow === inq.id ? 'Hide' : 'View'}
-                        </button>
-                      </td>
-                    </tr>
+                            {expandedRow === inq.id ? 'Hide' : 'View'}
+                          </button>
+                        </td>
+                      </tr>
+                      
+                      {expandedRow === inq.id && (
+                        <tr>
+                          <td colSpan={9} className="p-0 border-b border-slate-100 bg-slate-50">
+                            <div className="p-6 shadow-inner animate-in slide-in-from-top-2">
+                              <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                                <div className="col-span-1 space-y-4">
+                                  <div>
+                                    <h4 className="text-xs font-bold text-slate-500 uppercase tracking-widest mb-1">Customer Info</h4>
+                                    <p className="font-bold text-slate-900">{inq.customerName}</p>
+                                    <p className="text-slate-600">{inq.customerPhone}</p>
+                                    {inq.customerEmail && <p className="text-slate-500 text-xs">{inq.customerEmail}</p>}
+                                  </div>
+                                  <div>
+                                    <h4 className="text-xs font-bold text-slate-500 uppercase tracking-widest mb-1">Delivery Address</h4>
+                                    <p className="text-slate-600 text-sm whitespace-pre-wrap leading-relaxed">{inq.customerAddress || 'No address provided.'}</p>
+                                  </div>
+                                  <button 
+                                    onClick={() => copyMessage(inq)}
+                                    className="flex items-center justify-center gap-2 w-full py-2.5 bg-[#dc2626] hover:bg-red-700 text-white font-bold rounded-xl transition-colors cursor-pointer"
+                                  >
+                                    {copiedId === inq.id ? <><Check size={16} /> Copied</> : <><Copy size={16} /> Copy Message</>}
+                                  </button>
+                                </div>
+
+                                <div className="col-span-1 lg:col-span-2 bg-white rounded-xl border border-slate-200 p-4 shadow-sm">
+                                  <h4 className="text-xs font-bold text-slate-500 uppercase tracking-widest mb-3">Order Items</h4>
+                                  <div className="overflow-x-auto w-full">
+                                    <table className="w-full text-sm min-w-[500px] font-medium">
+                                      <thead>
+                                        <tr className="border-b border-slate-100 text-slate-400 font-semibold text-[10px] uppercase tracking-widest">
+                                          <th className="pb-2 text-left">Product</th>
+                                          <th className="pb-2 text-center">Qty</th>
+                                          <th className="pb-2 text-right">Price</th>
+                                          <th className="pb-2 text-right">Total</th>
+                                        </tr>
+                                      </thead>
+                                      <tbody className="divide-y divide-slate-50">
+                                        {inq.items.map((item: any, idx: number) => (
+                                          <tr key={idx}>
+                                            <td className="py-3">
+                                              <p className="font-bold text-slate-900">{item.name}</p>
+                                              {item.size && <p className="text-xs text-slate-500">Size: {item.size}</p>}
+                                            </td>
+                                            <td className="py-3 text-center text-slate-700 font-bold">{item.quantity}</td>
+                                            <td className="py-3 text-right text-slate-700">₹{item.price.toLocaleString('en-IN')}</td>
+                                            <td className="py-3 text-right font-black text-slate-900">₹{(item.price * item.quantity).toLocaleString('en-IN')}</td>
+                                          </tr>
+                                        ))}
+                                      </tbody>
+                                    </table>
+                                  </div>
+                                  
+                                  <div className="mt-4 pt-4 border-t border-slate-100 space-y-2 text-sm">
+                                    <div className="flex justify-between text-slate-600 font-medium">
+                                      <span>Subtotal</span>
+                                      <span>₹{inq.subtotal.toLocaleString('en-IN')}</span>
+                                    </div>
+                                    {inq.discount > 0 && (
+                                      <div className="flex justify-between text-[#dc2626] font-bold">
+                                        <span>Discount Applied ({inq.couponCode || 'Manual'})</span>
+                                        <span>-₹{inq.discount.toLocaleString('en-IN')}</span>
+                                      </div>
+                                    )}
+                                    {inq.deliveryCharge > 0 && (
+                                      <div className="flex justify-between text-slate-600 font-medium">
+                                        <span>Delivery</span>
+                                        <span>₹{inq.deliveryCharge.toLocaleString('en-IN')}</span>
+                                      </div>
+                                    )}
+                                    <div className="flex justify-between text-base font-black text-slate-900 pt-2 border-t border-slate-50">
+                                      <span>Grand Total</span>
+                                      <span>₹{inq.totalPrice.toLocaleString('en-IN')}</span>
+                                    </div>
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
+                          </td>
+                        </tr>
+                      )}
+                    </React.Fragment>
                   ))
                 )}
               </tbody>
@@ -353,89 +449,6 @@ Subtotal: ₹${inq.subtotal.toLocaleString('en-IN')}${discountText}
         )}
       </div>
 
-      {/* Expanded Row Content */}
-      {expandedRow && (
-        (() => {
-          const inq = filteredInquiries.find(x => x.id === expandedRow);
-          if (!inq) return null;
-          return (
-            <div className="bg-slate-50 p-6 rounded-2xl border border-slate-200 shadow-inner mt-4 animate-in slide-in-from-top-2">
-              <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                <div className="col-span-1 space-y-4">
-                  <div>
-                    <h4 className="text-xs font-bold text-slate-500 uppercase tracking-widest mb-1">Customer Info</h4>
-                    <p className="font-bold text-slate-900">{inq.customerName}</p>
-                    <p className="text-slate-600">{inq.customerPhone}</p>
-                    {inq.customerEmail && <p className="text-slate-500 text-xs">{inq.customerEmail}</p>}
-                  </div>
-                  <div>
-                    <h4 className="text-xs font-bold text-slate-500 uppercase tracking-widest mb-1">Delivery Address</h4>
-                    <p className="text-slate-600 text-sm whitespace-pre-wrap leading-relaxed">{inq.customerAddress || 'No address provided.'}</p>
-                  </div>
-                  <button 
-                    onClick={() => copyMessage(inq)}
-                    className="flex items-center justify-center gap-2 w-full py-2.5 bg-[#dc2626] hover:bg-red-700 text-white font-bold rounded-xl transition-colors cursor-pointer"
-                  >
-                    {copiedId === inq.id ? <><Check size={16} /> Copied</> : <><Copy size={16} /> Copy Message</>}
-                  </button>
-                </div>
-
-                <div className="col-span-1 lg:col-span-2 bg-white rounded-xl border border-slate-200 p-4 shadow-sm">
-                  <h4 className="text-xs font-bold text-slate-500 uppercase tracking-widest mb-3">Order Items</h4>
-                  <div className="overflow-x-auto w-full">
-                    <table className="w-full text-sm min-w-[500px] font-medium">
-                      <thead>
-                        <tr className="border-b border-slate-100 text-slate-400 font-semibold text-[10px] uppercase tracking-widest">
-                          <th className="pb-2 text-left">Product</th>
-                          <th className="pb-2 text-center">Qty</th>
-                          <th className="pb-2 text-right">Price</th>
-                          <th className="pb-2 text-right">Total</th>
-                        </tr>
-                      </thead>
-                      <tbody className="divide-y divide-slate-50">
-                        {inq.items.map((item: any, idx: number) => (
-                          <tr key={idx}>
-                            <td className="py-3">
-                              <p className="font-bold text-slate-900">{item.name}</p>
-                              {item.size && <p className="text-xs text-slate-500">Size: {item.size}</p>}
-                            </td>
-                            <td className="py-3 text-center text-slate-700 font-bold">{item.quantity}</td>
-                            <td className="py-3 text-right text-slate-700">₹{item.price.toLocaleString('en-IN')}</td>
-                            <td className="py-3 text-right font-black text-slate-900">₹{(item.price * item.quantity).toLocaleString('en-IN')}</td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                  </div>
-                  
-                  <div className="mt-4 pt-4 border-t border-slate-100 space-y-2 text-sm">
-                    <div className="flex justify-between text-slate-600 font-medium">
-                      <span>Subtotal</span>
-                      <span>₹{inq.subtotal.toLocaleString('en-IN')}</span>
-                    </div>
-                    {inq.discount > 0 && (
-                      <div className="flex justify-between text-[#dc2626] font-bold">
-                        <span>Discount Applied ({inq.couponCode || 'Manual'})</span>
-                        <span>-₹{inq.discount.toLocaleString('en-IN')}</span>
-                      </div>
-                    )}
-                    {inq.deliveryCharge > 0 && (
-                      <div className="flex justify-between text-slate-600 font-medium">
-                        <span>Delivery</span>
-                        <span>₹{inq.deliveryCharge.toLocaleString('en-IN')}</span>
-                      </div>
-                    )}
-                    <div className="flex justify-between text-base font-black text-slate-900 pt-2 border-t border-slate-50">
-                      <span>Grand Total</span>
-                      <span>₹{inq.totalPrice.toLocaleString('en-IN')}</span>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          );
-        })()
-      )}
     </div>
   );
 }
