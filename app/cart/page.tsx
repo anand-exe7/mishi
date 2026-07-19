@@ -217,7 +217,7 @@ export default function CartPage() {
   }
 
   return (
-    <div className="bg-zinc-50 min-h-screen font-sans selection:bg-amber-600/30 selection:text-amber-900">
+    <div className="bg-zinc-50 min-h-screen font-sans selection:bg-amber-600/30 selection:text-amber-900 overflow-x-hidden">
 
       {/* Cart Content */}
       <section className="pt-40 pb-24 px-6 md:px-16 max-w-[1400px] mx-auto">
@@ -322,19 +322,19 @@ export default function CartPage() {
                   </div>
 
                   <div className="border-t border-zinc-100 pt-6 mt-6 space-y-4">
-                    <div className="flex gap-4">
+                    <div className="flex gap-2 sm:gap-4">
                       <input 
                         type="text" 
                         placeholder="Enter Coupon Code" 
                         value={couponInput}
                         onChange={(e) => setCouponInput(e.target.value)}
-                        className="flex-1 bg-zinc-50 border border-zinc-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-amber-500 placeholder-zinc-400 text-zinc-900 uppercase" 
+                        className="flex-1 min-w-0 bg-zinc-50 border border-zinc-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-amber-500 placeholder-zinc-400 text-zinc-900 uppercase" 
                       />
                       <button 
                         type="button" 
                         onClick={handleApplyCoupon}
                         disabled={isApplyingCoupon || !couponInput.trim()}
-                        className="bg-zinc-900 text-white px-6 py-3 rounded-xl text-sm font-bold uppercase tracking-widest hover:bg-zinc-800 transition-colors disabled:opacity-50"
+                        className="bg-zinc-900 text-white px-4 sm:px-6 py-3 rounded-xl text-sm font-bold uppercase tracking-widest hover:bg-zinc-800 transition-colors disabled:opacity-50 flex-shrink-0"
                       >
                         {isApplyingCoupon ? '...' : 'Apply'}
                       </button>
@@ -356,9 +356,9 @@ export default function CartPage() {
                         <span>-₹{calculateDiscount()}</span>
                       </div>
                     )}
-                    <div className="flex justify-between text-sm items-center">
+                    <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center text-sm gap-1 sm:gap-0 pt-2">
                       <span className="text-zinc-500">Delivery</span>
-                      <span className="font-bold text-red-500">Calculated on WhatsApp</span>
+                      <span className="font-bold text-red-500 sm:text-right">Calculated on WhatsApp</span>
                     </div>
                     <div className="flex justify-between text-lg font-bold text-zinc-900 pt-3 border-t border-zinc-100">
                       <span>Total</span>

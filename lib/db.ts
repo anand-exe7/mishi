@@ -341,7 +341,7 @@ export const fetchOrdersByEmail = async (email: string): Promise<Order[]> => {
     
   if (oError) throw oError;
 
-  return ordersData.map((o: any) => ({
+  const standardOrders = ordersData.map((o: any) => ({
     id: o.id,
     customerName: o.customer_name,
     customerPhone: o.customer_phone,
@@ -366,6 +366,36 @@ export const fetchOrdersByEmail = async (email: string): Promise<Order[]> => {
     cashReceived: o.cash_received,
     changeReturned: o.change_returned,
   }));
+
+  const { data: whatsappData, error: wError } = await supabase
+    .from('whatsapp_requests')
+    .select('*')
+    .eq('customer_email', email)
+    .order('created_at', { ascending: false });
+
+  if (wError) throw wError;
+
+  const whatsappOrders = whatsappData.map((o: any) => ({
+    id: o.id,
+    customerName: o.customer_name,
+    customerPhone: o.customer_phone,
+    customerEmail: o.customer_email,
+    customerAddress: o.customer_address,
+    source: 'ONLINE',
+    items: o.items || [],
+    subtotal: o.total_price,
+    totalPrice: o.total_price,
+    status: o.status,
+    createdAt: o.created_at,
+    couponCode: '',
+    couponDiscount: 0,
+    manualDiscount: 0,
+    deliveryCharge: 0,
+    cashReceived: 0,
+    changeReturned: 0,
+  }));
+
+  return [...standardOrders, ...whatsappOrders].sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
 };
 
 export const insertOrder = async (order: Order) => {
@@ -418,6 +448,18 @@ export const updateOrderStatusDb = async (id: string, status: string) => {
 // WHATSAPP REQUESTS
 // ============================
 export const insertWhatsappRequest = async (order: Order) => {
+  const itemsWithMeta = [...(order.items || [])];
+  if (order.couponDiscount > 0) {
+    itemsWithMeta.push({
+      productId: 'META_DISCOUNT',
+      name: `Discount Applied: ${order.couponCode || 'Manual'}`,
+      size: 'Discount',
+      quantity: 1,
+      price: -order.couponDiscount,
+      isMeta: true
+    } as any);
+  }
+
   const { error } = await supabase.from('whatsapp_requests').insert([{
     id: order.id,
     customer_name: order.customerName,
@@ -426,7 +468,7 @@ export const insertWhatsappRequest = async (order: Order) => {
     customer_address: order.customerAddress || '',
     total_price: order.totalPrice,
     status: order.status || 'Pending',
-    items: order.items || [],
+    items: itemsWithMeta,
   }]);
   if (error) throw error;
 
@@ -471,3 +513,26 @@ export const updateWhatsappRequestStatus = async (id: string, status: string) =>
   const { error } = await supabase.from('whatsapp_requests').update({ status }).eq('id', id);
   if (error) throw error;
 };
+
+export const generateSequentialOrderId = async (isOnline: boolean = true) => {
+  if (!isOnline) {
+    const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+    let randomString = '';
+    for (let i = 0; i < 5; i++) {
+      randomString += chars.charAt(Math.floor(Math.random() * chars.length));
+    }
+    return `INV-2026-${randomString}`;
+  }
+  
+  const prefix = "ORD-2026-";
+  try {
+    const { count: c1 } = await supabase.from('orders').select('*', { count: 'exact', head: true });
+    const { count: c2 } = await supabase.from('whatsapp_requests').select('*', { count: 'exact', head: true });
+    const nextVal = (c1 || 0) + (c2 || 0) + 1;
+    return `${prefix}${String(nextVal).padStart(5, '0')}`;
+  } catch (e) {
+    const randomChars = Math.random().toString(36).substring(2, 7).toUpperCase();
+    return `${prefix}${randomChars}`;
+  }
+};
+

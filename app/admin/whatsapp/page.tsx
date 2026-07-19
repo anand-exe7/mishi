@@ -97,15 +97,26 @@ export default function WhatsAppCenter() {
 
   const processedData = useMemo(() => {
     return whatsappRequests.map(inq => {
-      const subtotal = inq.subtotal || inq.items.reduce((acc, item) => acc + (item.price * item.quantity), 0);
-      const totalItems = inq.items.reduce((acc, item) => acc + item.quantity, 0);
-      const discount = (inq.couponDiscount || 0) + (inq.manualDiscount || 0);
+      const metaItem = inq.items.find((i: any) => i.isMeta && i.productId === 'META_DISCOUNT');
+      const standardItems = inq.items.filter((i: any) => !i.isMeta);
+
+      let subtotal = inq.subtotal || standardItems.reduce((acc, item) => acc + (item.price * item.quantity), 0);
+      const totalItems = standardItems.reduce((acc, item) => acc + item.quantity, 0);
+      let discount = (inq.couponDiscount || 0) + (inq.manualDiscount || 0);
+      let couponCode = inq.couponCode || '';
+
+      if (metaItem) {
+        discount = Math.abs(metaItem.price);
+        couponCode = metaItem.name.replace('Discount Applied: ', '');
+      }
 
       return {
         ...inq,
+        items: standardItems,
         subtotal,
         totalItems,
-        discount
+        discount,
+        couponCode
       };
     });
   }, [whatsappRequests]);
