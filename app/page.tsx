@@ -164,7 +164,67 @@ const reelVideos = [
   "Daxqbe-ihQE",
 ];
 
+// Add intersection observer lazy video component
+const LazyReelVideo = ({ src, onClick, index, variants }: { src: string, onClick: () => void, index: number, variants: any }) => {
+  const [isInView, setIsInView] = useState(false);
+  const ref = useRef<HTMLDivElement>(null);
 
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          setIsInView(true);
+          observer.disconnect();
+        }
+      },
+      { rootMargin: '300px' } // Load slightly before it comes into view
+    );
+    if (ref.current) observer.observe(ref.current);
+    return () => observer.disconnect();
+  }, []);
+
+  return (
+    <motion.div
+      variants={variants}
+      initial="hidden"
+      whileInView="visible"
+      viewport={{ once: true, margin: "-50px" }}
+      custom={index}
+      ref={ref}
+      className="relative rounded-[2rem] overflow-hidden shadow-2xl group aspect-[9/16] bg-zinc-900 border border-white/10 mx-auto w-full max-w-[320px] cursor-pointer"
+      onClick={onClick}
+    >
+      {!isInView && (
+        <div className="absolute inset-0 bg-[#0a0a0a] flex flex-col items-center justify-center animate-pulse">
+          <div className="flex gap-2">
+            <div className="w-2 h-2 bg-zinc-700 rounded-full animate-bounce"></div>
+            <div className="w-2 h-2 bg-zinc-700 rounded-full animate-bounce" style={{ animationDelay: '0.1s' }}></div>
+            <div className="w-2 h-2 bg-zinc-700 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
+          </div>
+        </div>
+      )}
+      {isInView && (
+        <video 
+          src={`/${src}.mp4`}
+          className="absolute inset-0 w-full h-full object-cover opacity-70 group-hover:opacity-100 transition-opacity duration-500"
+          muted playsInline loop autoPlay
+        />
+      )}
+      {/* Custom Play Button Overlay */}
+      <div className="absolute inset-0 flex items-center justify-center z-10 pointer-events-none">
+        <div className="w-16 h-16 bg-black/40 backdrop-blur-md rounded-full flex items-center justify-center text-white border border-white/20 group-hover:scale-110 group-hover:bg-pink-600/80 transition-all duration-300">
+          <Play size={24} className="ml-1 fill-white" />
+        </div>
+      </div>
+      
+      {/* Small indicator label */}
+      <div className="absolute bottom-4 left-4 bg-black/60 backdrop-blur-sm px-3 py-1.5 rounded-full flex items-center gap-2 z-10 pointer-events-none">
+        <InstagramIcon size={14} className="text-white" />
+        <span className="text-[10px] font-bold text-white uppercase tracking-widest">Reel</span>
+      </div>
+    </motion.div>
+  );
+};
 
 export default function Home() {
   const { scrollYProgress } = useScroll();
@@ -188,6 +248,13 @@ export default function Home() {
   const [showReviewForm, setShowReviewForm] = useState(false);
   const [selectedGalleryImage, setSelectedGalleryImage] = useState<string | null>(null);
   const [selectedReel, setSelectedReel] = useState<string | null>(null);
+  const [isSiteLoaded, setIsSiteLoaded] = useState(false);
+
+  useEffect(() => {
+    // Artificial delay for premium splash screen feel
+    const timer = setTimeout(() => setIsSiteLoaded(true), 1200);
+    return () => clearTimeout(timer);
+  }, []);
 
   useEffect(() => {
     fetchProducts();
@@ -272,7 +339,33 @@ export default function Home() {
   };
 
   return (
-      <div className={`bg-neutral-50 text-neutral-900 min-h-screen ${playfair.className} selection:bg-emerald-600/30 selection:text-emerald-900 overflow-x-hidden`}>
+    <div className={`bg-neutral-50 text-neutral-900 min-h-screen ${playfair.className} selection:bg-emerald-600/30 selection:text-emerald-900 overflow-x-hidden`}>
+        
+        {/* Premium Splash Screen Loader */}
+        <AnimatePresence>
+          {!isSiteLoaded && (
+            <motion.div
+              initial={{ opacity: 1 }}
+              exit={{ opacity: 0, transition: { duration: 0.8, ease: "easeInOut" } }}
+              className="fixed inset-0 z-[999] bg-[#faf9f6] flex flex-col items-center justify-center"
+            >
+              <motion.div
+                initial={{ scale: 0.8, opacity: 0 }}
+                animate={{ scale: 1, opacity: 1 }}
+                transition={{ duration: 0.5 }}
+                className="flex flex-col items-center"
+              >
+                <img src="/logo.webp" alt="Mishi Logo" className="h-16 mb-8 object-contain" />
+                <div className="flex gap-2">
+                  <motion.div animate={{ y: [0, -10, 0] }} transition={{ repeat: Infinity, duration: 1, delay: 0 }} className="w-3 h-3 bg-emerald-600 rounded-full" />
+                  <motion.div animate={{ y: [0, -10, 0] }} transition={{ repeat: Infinity, duration: 1, delay: 0.2 }} className="w-3 h-3 bg-emerald-600 rounded-full" />
+                  <motion.div animate={{ y: [0, -10, 0] }} transition={{ repeat: Infinity, duration: 1, delay: 0.4 }} className="w-3 h-3 bg-emerald-600 rounded-full" />
+                </div>
+              </motion.div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+
         <style
           dangerouslySetInnerHTML={{
             __html: `
@@ -782,39 +875,13 @@ export default function Home() {
           {/* Reels Grid Layout */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 max-w-[1400px] mx-auto mb-16">
             {reelVideos.map((src, i) => (
-              <motion.div
-                key={i}
+              <LazyReelVideo 
+                key={src} 
+                src={src} 
+                index={i} 
                 variants={popUpVariants}
-                initial="hidden"
-                whileInView="visible"
-                viewport={{ once: true, margin: "-50px" }}
-                custom={i}
-                className="relative rounded-[2rem] overflow-hidden shadow-2xl group aspect-[9/16] bg-zinc-900 border border-white/10 mx-auto w-full max-w-[320px] cursor-pointer"
-                onClick={() => setSelectedReel(src)}
-              >
-                {/* Embed iframe for preview - Heavily cropped to hide UI */}
-                <div className="absolute inset-0 w-full h-full overflow-hidden pointer-events-none opacity-80 group-hover:opacity-100 transition-opacity duration-300">
-                  <iframe 
-                     src={`https://www.instagram.com/p/${src}/embed/`} 
-                     frameBorder="0" 
-                     scrolling="no" 
-                     className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-[45%] w-[150%] h-[150%] max-w-none"
-                  ></iframe>
-                </div>
-                
-                {/* Custom Play Button Overlay */}
-                <div className="absolute inset-0 flex items-center justify-center">
-                  <div className="w-16 h-16 bg-black/40 backdrop-blur-md rounded-full flex items-center justify-center text-white border border-white/20 group-hover:scale-110 group-hover:bg-pink-600/80 transition-all duration-300">
-                    <Play size={24} className="ml-1 fill-white" />
-                  </div>
-                </div>
-                
-                {/* Small indicator label */}
-                <div className="absolute bottom-4 left-4 bg-black/60 backdrop-blur-sm px-3 py-1.5 rounded-full flex items-center gap-2">
-                  <InstagramIcon size={14} className="text-white" />
-                  <span className="text-[10px] font-bold text-white uppercase tracking-widest">Reel</span>
-                </div>
-              </motion.div>
+                onClick={() => setSelectedReel(src)} 
+              />
             ))}
           </div>
 
@@ -843,15 +910,15 @@ export default function Home() {
                     <X size={20} />
                   </button>
                   
-                  {/* Instagram Iframe Player - Cropped heavily to hide UI */}
-                  <div className="relative w-full aspect-[9/16] max-h-[75vh] bg-black flex items-center justify-center overflow-hidden">
-                    <iframe 
-                      src={`https://www.instagram.com/reel/${selectedReel}/embed/?autoplay=1`}
-                      frameBorder="0" 
-                      scrolling="no" 
-                      allow="autoplay"
-                      className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-[45%] w-[135%] h-[135%] max-w-none pointer-events-auto"
-                    ></iframe>
+                  {/* Native Video Player */}
+                  <div className="relative w-full aspect-[9/16] max-h-[75vh] bg-black flex items-center justify-center">
+                    <video 
+                      src={`/${selectedReel}.mp4`}
+                      className="w-full h-full object-contain"
+                      controls
+                      autoPlay
+                      playsInline
+                    />
                   </div>
 
                   {/* Footer matched from screenshot */}
