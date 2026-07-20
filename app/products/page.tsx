@@ -191,7 +191,7 @@ export default function ProductsPage() {
                 initial={{ scale: 0.9, y: 30, opacity: 0 }}
                 animate={{ scale: 1, y: 0, opacity: 1 }}
                 exit={{ scale: 0.9, y: 30, opacity: 0 }}
-                className="bg-white w-full max-w-4xl rounded-[2rem] overflow-hidden flex flex-col md:flex-row shadow-2xl relative"
+                className="bg-white w-full max-w-4xl max-h-[90vh] overflow-y-auto rounded-[2rem] flex flex-col md:flex-row shadow-2xl relative"
                 onClick={(e) => e.stopPropagation()}
               >
               {/* Close Button */}
@@ -207,7 +207,7 @@ export default function ProductsPage() {
               </button>
 
               {/* Product Image */}
-              <div className="w-full md:w-[45%] min-h-[400px] md:min-h-[500px] relative bg-zinc-50">
+              <div className="w-full md:w-[45%] min-h-[250px] sm:min-h-[300px] md:min-h-[500px] shrink-0 relative bg-zinc-50">
                 <div className="absolute inset-0 flex items-center justify-center p-6">
                   <img
                     src={selectedProduct.imageUrl || "/placeholder.jpg"}
@@ -317,6 +317,7 @@ export default function ProductsPage() {
                       </div>
                     ), { position: 'bottom-center', duration: 4000 });
 
+                    setCartSuccessDetails({ product: selectedProduct, qty, selectedSize });
                     setSelectedProduct(null);
                     setQty(1);
                     setSelectedSize("");
@@ -331,7 +332,52 @@ export default function ProductsPage() {
         )}
       </AnimatePresence>
 
-      {/* Removed old massive Cart Success Modal */}
+      {/* Cart Success Modal */}
+      <AnimatePresence>
+        {cartSuccessDetails && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-[110] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm"
+            onClick={() => setCartSuccessDetails(null)}
+          >
+            <motion.div
+              initial={{ scale: 0.9, y: 30, opacity: 0 }}
+              animate={{ scale: 1, y: 0, opacity: 1 }}
+              exit={{ scale: 0.9, y: 30, opacity: 0 }}
+              className="bg-white w-full max-w-lg rounded-[2rem] overflow-hidden shadow-2xl relative"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div className="p-8 md:p-10 text-center">
+                <div className="w-20 h-20 bg-emerald-100 text-emerald-600 rounded-full flex items-center justify-center mx-auto mb-6">
+                  <ShoppingCart size={40} />
+                </div>
+                <h3 className={`text-3xl text-zinc-900 mb-4 ${playfair.className}`}>Added to Cart!</h3>
+                <p className="text-zinc-500 mb-8 font-light text-lg">
+                  You have successfully added <strong className="text-zinc-900">{cartSuccessDetails.qty}x {cartSuccessDetails.product.name}</strong> 
+                  {cartSuccessDetails.selectedSize && ` (${cartSuccessDetails.selectedSize})`} to your cart.
+                </p>
+                
+                <div className="flex flex-col sm:flex-row gap-4 justify-center">
+                  <button
+                    onClick={() => setCartSuccessDetails(null)}
+                    className="px-6 py-4 rounded-full border border-zinc-200 text-zinc-600 font-bold text-xs sm:text-sm uppercase tracking-widest hover:bg-zinc-50 transition-colors w-full sm:w-auto flex-1"
+                  >
+                    Continue Shopping
+                  </button>
+                  <Link
+                    href="/cart"
+                    className="px-6 py-4 rounded-full bg-amber-600 text-white font-bold text-xs sm:text-sm uppercase tracking-widest hover:bg-amber-700 transition-colors shadow-lg shadow-amber-600/20 text-center w-full sm:w-auto flex-1"
+                  >
+                    Go to Checkout
+                  </Link>
+                </div>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {/* Footer */}
       <footer className="w-full bg-[#faf9f6]">

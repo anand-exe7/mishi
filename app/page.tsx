@@ -187,6 +187,7 @@ export default function Home() {
   const [newReviewRating, setNewReviewRating] = useState(5);
   const [showReviewForm, setShowReviewForm] = useState(false);
   const [selectedGalleryImage, setSelectedGalleryImage] = useState<string | null>(null);
+  const [selectedReel, setSelectedReel] = useState<string | null>(null);
 
   useEffect(() => {
     fetchProducts();
@@ -408,20 +409,20 @@ export default function Home() {
                  <div className="aspect-[3/4] rounded-[2rem] overflow-hidden shadow-2xl relative z-10">
                     <img src="https://www.mishipoojaproducts.com/wp-content/uploads/2026/03/img1.jpg" className="w-full h-full object-cover" alt="Heritage 1" />
                  </div>
-                 <motion.div initial={{ opacity:0, y:40, x:-20 }} whileInView={{ opacity:1, y:0, x:0 }} viewport={{ once:true }} transition={{ delay: 0.3 }} className="absolute -bottom-16 -right-16 w-64 aspect-square rounded-full overflow-hidden shadow-xl border-8 border-[#faf9f6] z-20">
+                 <motion.div initial={{ opacity:0, y:40, x:-20 }} whileInView={{ opacity:1, y:0, x:0 }} viewport={{ once:true }} transition={{ delay: 0.3 }} className="absolute -bottom-8 -right-8 w-40 md:w-48 aspect-square rounded-full overflow-hidden shadow-xl border-8 border-[#faf9f6] z-20">
                     <img src="https://www.mishipoojaproducts.com/wp-content/uploads/2026/03/img2.jpg" className="w-full h-full object-cover" alt="Heritage 2" />
                  </motion.div>
-                 <motion.div initial={{ opacity:0, scale:0 }} whileInView={{ opacity:1, scale:1 }} viewport={{ once:true }} transition={{ delay: 0.6 }} className="absolute -top-10 -left-10 w-32 h-32 bg-emerald-100 rounded-full flex flex-col items-center justify-center text-emerald-800 z-20 shadow-lg">
-                    <span className="text-2xl font-bold">100%</span>
-                    <span className="text-xs uppercase tracking-widest font-semibold">Natural</span>
+                 <motion.div initial={{ opacity:0, scale:0 }} whileInView={{ opacity:1, scale:1 }} viewport={{ once:true }} transition={{ delay: 0.6 }} className="absolute -top-6 -left-6 w-24 h-24 md:w-32 md:h-32 bg-emerald-100 rounded-full flex flex-col items-center justify-center text-emerald-800 z-20 shadow-lg">
+                    <span className="text-xl md:text-2xl font-bold">100%</span>
+                    <span className="text-[10px] md:text-xs uppercase tracking-widest font-semibold">Natural</span>
                  </motion.div>
               </motion.div>
 
-              <motion.div variants={fadeBlurVariants} initial="hidden" whileInView="visible" viewport={{ once: true }} className="w-full lg:w-7/12 pt-16 lg:pt-0">
-                 <h4 className={`text-emerald-600 font-bold tracking-widest uppercase text-sm mb-4 ${playfair.className}`}>Our Legacy</h4>
+              <motion.div variants={fadeBlurVariants} initial="hidden" whileInView="visible" viewport={{ once: true }} className="w-full lg:w-7/12 pt-16 lg:pt-0 text-center md:text-left">
+                 <h4 className={`text-emerald-600 font-bold tracking-widest uppercase text-sm mb-4 ${playfair.className}`}>About Us</h4>
                  <h2 className={`text-4xl md:text-6xl text-emerald-950 mb-8 leading-tight ${playfair.className}`}>A devotion to purity, <br/><span className="italic text-emerald-700">crafted by hand.</span></h2>
                  
-                 <div className={`pl-6 border-l-2 border-emerald-200 ${playfair.className}`}>
+                 <div className={`md:pl-6 md:border-l-2 md:border-emerald-200 ${playfair.className}`}>
                     <p className="text-neutral-600 text-lg mb-6 leading-relaxed">
                        We believe that true peace begins with the atmosphere you create. For generations, we have perfected the art of making pure Sambrani, avoiding harsh chemicals to bring you the authentic scent of nature.
                     </p>
@@ -429,9 +430,9 @@ export default function Home() {
                        Every product is a testament to our commitment to quality, tradition, and spiritual wellbeing. We don't just sell incense; we offer a gateway to a place of stillness.
                     </p>
                  </div>
-                 <div className="mt-10 flex items-center gap-4">
+                 <div className="mt-10 flex flex-col md:flex-row items-center gap-4">
                     <img src="https://ui-avatars.com/api/?name=Mishi&background=fda4af&color=881337" alt="Founder" className="w-12 h-12 rounded-full" />
-                    <div>
+                    <div className="text-center md:text-left">
                        <p className="font-bold text-emerald-950">Mishi Founders</p>
                        <p className="text-xs uppercase tracking-widest text-neutral-500">Master Crafters</p>
                     </div>
@@ -627,12 +628,12 @@ export default function Home() {
         {/* New Products Section */}
         <section id="products" className="py-24 bg-neutral-100/50">
            <div className="max-w-7xl mx-auto px-6">
-              <div className="flex flex-col md:flex-row justify-between items-end mb-12 gap-6">
-                  <div>
+              <div className="flex flex-col md:flex-row justify-between items-center md:items-end text-center md:text-left mb-12 gap-6">
+                  <div className="w-full flex flex-col items-center md:items-start">
                     <span className="text-emerald-600 font-bold tracking-widest uppercase text-sm">Our Selection</span>
                     <h2 className={`text-4xl md:text-6xl text-zinc-900 mt-4 ${playfair.className}`}>Our Products</h2>
                  </div>
-                 <Link href="/products" className="text-emerald-700 font-semibold border-b border-emerald-700 pb-1 hover:text-emerald-900 transition-colors">View All Products</Link>
+                 <Link href="/products" className="text-emerald-700 font-semibold border-b border-emerald-700 pb-1 hover:text-emerald-900 transition-colors whitespace-nowrap mx-auto md:mx-0">View All Products</Link>
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
@@ -779,7 +780,7 @@ export default function Home() {
           </motion.div>
 
           {/* Reels Grid Layout */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-4xl mx-auto mb-16">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 max-w-[1400px] mx-auto mb-16">
             {reelVideos.map((src, i) => (
               <motion.div
                 key={i}
@@ -788,25 +789,89 @@ export default function Home() {
                 whileInView="visible"
                 viewport={{ once: true, margin: "-50px" }}
                 custom={i}
-                className="relative rounded-3xl overflow-hidden shadow-2xl group aspect-[9/16] bg-black border border-white/5 mx-auto w-full max-w-[400px]"
+                className="relative rounded-[2rem] overflow-hidden shadow-2xl group aspect-[9/16] bg-zinc-900 border border-white/10 mx-auto w-full max-w-[320px] cursor-pointer"
+                onClick={() => setSelectedReel(src)}
               >
-                {/* Cropping container to hide Instagram UI */}
-                <div className="absolute inset-0 w-full h-full overflow-hidden pointer-events-none">
+                {/* Embed iframe for preview - Heavily cropped to hide UI */}
+                <div className="absolute inset-0 w-full h-full overflow-hidden pointer-events-none opacity-80 group-hover:opacity-100 transition-opacity duration-300">
                   <iframe 
-                     src={`https://www.instagram.com/p/${src}/embed/?autoplay=1`} 
+                     src={`https://www.instagram.com/p/${src}/embed/`} 
                      frameBorder="0" 
                      scrolling="no" 
-                     className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-[45%] w-[110%] h-[125%] max-w-none"
+                     className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-[45%] w-[150%] h-[150%] max-w-none"
                   ></iframe>
                 </div>
-                {/* Click overlay to still allow opening the post if needed, but prevents UI interaction */}
-                <div 
-                   className="absolute inset-0 z-10 cursor-pointer bg-transparent"
-                   onClick={() => window.open(`https://www.instagram.com/reel/${src}/`, "_blank")}
-                ></div>
+                
+                {/* Custom Play Button Overlay */}
+                <div className="absolute inset-0 flex items-center justify-center">
+                  <div className="w-16 h-16 bg-black/40 backdrop-blur-md rounded-full flex items-center justify-center text-white border border-white/20 group-hover:scale-110 group-hover:bg-pink-600/80 transition-all duration-300">
+                    <Play size={24} className="ml-1 fill-white" />
+                  </div>
+                </div>
+                
+                {/* Small indicator label */}
+                <div className="absolute bottom-4 left-4 bg-black/60 backdrop-blur-sm px-3 py-1.5 rounded-full flex items-center gap-2">
+                  <InstagramIcon size={14} className="text-white" />
+                  <span className="text-[10px] font-bold text-white uppercase tracking-widest">Reel</span>
+                </div>
               </motion.div>
             ))}
           </div>
+
+          {/* Reel Video Modal */}
+          <AnimatePresence>
+            {selectedReel && (
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                className="fixed inset-0 z-[200] flex items-center justify-center p-4 bg-black/95 backdrop-blur-md"
+                onClick={() => setSelectedReel(null)}
+              >
+                <motion.div
+                  initial={{ scale: 0.9, opacity: 0, y: 20 }}
+                  animate={{ scale: 1, opacity: 1, y: 0 }}
+                  exit={{ scale: 0.9, opacity: 0, y: 20 }}
+                  className="w-full max-w-sm bg-[#0a0a0a] rounded-[2rem] overflow-hidden shadow-2xl relative border border-white/10"
+                  onClick={(e) => e.stopPropagation()}
+                >
+                  {/* Close button matching screenshot */}
+                  <button
+                    className="absolute top-4 right-4 z-20 w-10 h-10 bg-black/60 backdrop-blur-md rounded-full flex items-center justify-center text-white/80 hover:text-white hover:bg-white/20 transition-colors"
+                    onClick={() => setSelectedReel(null)}
+                  >
+                    <X size={20} />
+                  </button>
+                  
+                  {/* Instagram Iframe Player - Cropped heavily to hide UI */}
+                  <div className="relative w-full aspect-[9/16] max-h-[75vh] bg-black flex items-center justify-center overflow-hidden">
+                    <iframe 
+                      src={`https://www.instagram.com/reel/${selectedReel}/embed/?autoplay=1`}
+                      frameBorder="0" 
+                      scrolling="no" 
+                      allow="autoplay"
+                      className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-[45%] w-[135%] h-[135%] max-w-none pointer-events-auto"
+                    ></iframe>
+                  </div>
+
+                  {/* Footer matched from screenshot */}
+                  <div className="p-4 md:p-5 flex items-center justify-between bg-[#111] border-t border-white/10 relative z-10">
+                    <span className="text-zinc-500 text-[11px] md:text-xs font-semibold tracking-wide">
+                      Mishi Video Testimonial
+                    </span>
+                    <a 
+                      href={`https://www.instagram.com/reel/${selectedReel}/`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-pink-500 hover:text-pink-400 text-[11px] md:text-xs font-bold transition-colors flex items-center gap-1"
+                    >
+                      View on Instagram <ArrowRight size={14} />
+                    </a>
+                  </div>
+                </motion.div>
+              </motion.div>
+            )}
+          </AnimatePresence>
 
           <div className="flex justify-center max-w-[1400px] mx-auto">
             <a
@@ -883,12 +948,13 @@ export default function Home() {
         </section>
         {/* Customer Reviews Scrolling Marquee */}
         <section className="py-24 bg-amber-50 overflow-hidden border-y border-amber-100">
-          <div className="max-w-[1400px] mx-auto px-6 md:px-16 mb-12 flex flex-col md:flex-row justify-between items-end gap-6">
+          <div className="max-w-[1400px] mx-auto px-6 md:px-16 mb-12 flex flex-col md:flex-row justify-between items-center md:items-end gap-6 text-center md:text-left">
             <motion.div
               variants={fadeBlurVariants}
               initial="hidden"
               whileInView="visible"
               viewport={{ once: true }}
+              className="w-full"
             >
               <h2
                 className={`text-4xl md:text-5xl text-zinc-900 ${playfair.className}`}
@@ -898,7 +964,7 @@ export default function Home() {
             </motion.div>
             <button 
               onClick={() => setShowReviewForm(!showReviewForm)}
-              className="bg-amber-600 text-white px-6 py-3 rounded-full text-sm font-bold uppercase tracking-widest shadow-md hover:bg-amber-700 transition-colors whitespace-nowrap"
+              className="bg-amber-600 text-white px-6 py-3 rounded-full text-sm font-bold uppercase tracking-widest shadow-md hover:bg-amber-700 transition-colors whitespace-nowrap mx-auto md:mx-0"
             >
               {showReviewForm ? "Cancel" : "Add a Review"}
             </button>
@@ -1023,15 +1089,15 @@ export default function Home() {
                  
                  <div className="space-y-8">
                     <div className="flex items-center gap-6">
-                       <div className="w-12 h-12 rounded-full bg-emerald-800/50 flex items-center justify-center text-emerald-300"><MapPin size={20}/></div>
+                       <div className="w-12 h-12 shrink-0 rounded-full bg-emerald-800/50 flex items-center justify-center text-emerald-300"><MapPin size={20}/></div>
                        <p className="text-white text-sm">213/6A, Eripattai, Chembarambakkam, Chennai – 600123</p>
                     </div>
                     <div className="flex items-center gap-6">
-                       <div className="w-12 h-12 rounded-full bg-emerald-800/50 flex items-center justify-center text-emerald-300"><Phone size={20}/></div>
+                       <div className="w-12 h-12 shrink-0 rounded-full bg-emerald-800/50 flex items-center justify-center text-emerald-300"><Phone size={20}/></div>
                        <p className="text-white text-sm">+91 80561 01114</p>
                     </div>
                     <div className="flex items-center gap-6">
-                       <div className="w-12 h-12 rounded-full bg-emerald-800/50 flex items-center justify-center text-emerald-300"><Mail size={20}/></div>
+                       <div className="w-12 h-12 shrink-0 rounded-full bg-emerald-800/50 flex items-center justify-center text-emerald-300"><Mail size={20}/></div>
                        <p className="text-white text-sm">mishipoojaproducts@gmail.com</p>
                     </div>
                  </div>
@@ -1059,7 +1125,7 @@ export default function Home() {
           <div className="max-w-7xl mx-auto flex flex-col md:flex-row justify-between gap-12 mb-16">
             
             {/* Left Column */}
-            <div className="w-full md:w-1/3 flex flex-col items-start">
+            <div className="w-full md:w-1/3 flex flex-col items-center md:items-start text-center md:text-left">
               <img src="/logo.webp" alt="Mishi Pooja Products" className="h-16 w-auto object-contain mb-6" />
               <p className="text-sm text-neutral-300 leading-relaxed max-w-sm">
                 Bringing you the divine essence of pure, hand-crafted Himalayan herbs and natural resins. Create a peaceful sanctuary in your everyday life.
@@ -1067,8 +1133,8 @@ export default function Home() {
             </div>
 
             {/* Middle Column */}
-            <div className="w-full md:w-1/3 flex flex-col items-start md:items-center">
-              <div className="flex flex-col items-start">
+            <div className="w-full md:w-1/3 flex flex-col items-center md:items-center">
+              <div className="flex flex-col items-center md:items-start text-center md:text-left">
                 <h4 className="text-emerald-100/60 font-bold tracking-[0.1em] uppercase text-[10px] mb-6">Explore</h4>
                 <div className="flex flex-col gap-4 text-xs font-semibold text-neutral-200">
                   <Link href="/" className="hover:text-emerald-400 transition-colors">Home</Link>
@@ -1080,8 +1146,8 @@ export default function Home() {
             </div>
 
             {/* Right Column */}
-            <div className="w-full md:w-1/3 flex flex-col items-start md:items-end">
-              <div className="flex flex-col items-start">
+            <div className="w-full md:w-1/3 flex flex-col items-center md:items-end">
+              <div className="flex flex-col items-center md:items-start text-center md:text-left">
                 <h4 className="text-emerald-100/60 font-bold tracking-[0.1em] uppercase text-[10px] mb-6">Contact Us</h4>
                 <div className="flex flex-col gap-4 text-xs text-neutral-300 font-medium">
                   <div>
@@ -1104,13 +1170,13 @@ export default function Home() {
           </div>
           
           <div className="max-w-7xl mx-auto pt-8 border-t border-white/5 flex flex-col md:flex-row items-center justify-between gap-6 text-[10px] md:text-xs text-neutral-400 font-medium">
-            <div className="w-full md:w-1/3 text-left">
+            <div className="w-full md:w-1/3 text-center md:text-left">
               <p>© 2026 Mishi Pooja Products. All Rights Reserved</p>
             </div>
             <div className="w-full md:w-1/3 text-center">
               <p>Powered by <span className="text-white font-semibold">Cenexa Systems</span> © 2026</p>
             </div>
-            <div className="w-full md:w-1/3 text-right flex justify-start md:justify-end">
+            <div className="w-full md:w-1/3 text-center md:text-right flex justify-center md:justify-end">
               <div className="flex gap-4 text-[10px] uppercase tracking-[0.2em] font-bold text-neutral-300">
                 <span>Purity</span>
                 <span>•</span>

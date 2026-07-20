@@ -38,7 +38,7 @@ export default function GlobalNav() {
         </div>
         
         <div className={`hidden md:flex gap-8 text-xs uppercase tracking-widest font-semibold text-neutral-800`}>
-          <Link href="/" className="hover:text-emerald-600 transition-colors">Home</Link>
+          <Link href="/" onClick={(e) => { if (pathname === "/") { e.preventDefault(); window.scrollTo({ top: 0, behavior: "smooth" }); } }} className="hover:text-emerald-600 transition-colors">Home</Link>
           <Link href="/#about" className="hover:text-emerald-600 transition-colors">About</Link>
           <Link href="/#products" className="hover:text-emerald-600 transition-colors">Categories</Link>
           <Link href="/products" className="hover:text-emerald-600 transition-colors">Shop</Link>
@@ -74,7 +74,7 @@ export default function GlobalNav() {
             exit={{ opacity: 0, y: -20 }}
             className="fixed top-[80px] left-1/2 -translate-x-1/2 w-[95%] z-40 bg-white/95 backdrop-blur-xl shadow-xl rounded-2xl border border-neutral-100 p-6 md:hidden flex flex-col gap-6 items-center"
           >
-            <Link href="/" onClick={() => setIsMenuOpen(false)} className="text-sm uppercase tracking-widest font-semibold text-neutral-800 hover:text-emerald-600">Home</Link>
+            <Link href="/" onClick={(e) => { if (pathname === "/") { e.preventDefault(); window.scrollTo({ top: 0, behavior: "smooth" }); } setIsMenuOpen(false); }} className="text-sm uppercase tracking-widest font-semibold text-neutral-800 hover:text-emerald-600">Home</Link>
             <Link href="/#about" onClick={() => setIsMenuOpen(false)} className="text-sm uppercase tracking-widest font-semibold text-neutral-800 hover:text-emerald-600">About</Link>
             <Link href="/#products" onClick={() => setIsMenuOpen(false)} className="text-sm uppercase tracking-widest font-semibold text-neutral-800 hover:text-emerald-600">Categories</Link>
             <Link href="/products" onClick={() => setIsMenuOpen(false)} className="text-sm uppercase tracking-widest font-semibold text-neutral-800 hover:text-emerald-600">Shop</Link>
