@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import { Playfair_Display } from "next/font/google";
 import { motion } from "framer-motion";
-import { User, ShoppingCart, Trash2, ArrowRight, Plus, Minus } from "lucide-react";
+import { ShoppingCart, Trash2, Plus, Minus } from "lucide-react";
 import Link from "next/link";
 import toast from "react-hot-toast";
 import { useCartStore } from "@/store/store";
@@ -13,7 +13,6 @@ import { useAuth } from "@/lib/useAuth";
 const playfair = Playfair_Display({ subsets: ["latin"] });
 
 export default function CartPage() {
-  const [isScrolled, setIsScrolled] = useState(false);
   const [isMounted, setIsMounted] = useState(false);
   const { user } = useAuth();
   const [formData, setFormData] = useState({
@@ -27,16 +26,10 @@ export default function CartPage() {
   const [couponInput, setCouponInput] = useState("");
   const [appliedCoupon, setAppliedCoupon] = useState<Coupon | null>(null);
   const [isApplyingCoupon, setIsApplyingCoupon] = useState(false);
+
   useEffect(() => {
     setIsMounted(true);
-    const handleScroll = () => {
-      setIsScrolled(window.scrollY > 50);
-    };
-    window.addEventListener("scroll", handleScroll);
-    return () => window.removeEventListener("scroll", handleScroll);
   }, []);
-
-
 
   // Helper to get item price based on selected size
   const getItemPrice = (item: any) => {
@@ -202,9 +195,7 @@ export default function CartPage() {
 
   const handleSizeChange = (item: any, newUnit: string) => {
     removeItem(item.product.id, item.unit);
-    // Add item back with the same quantity but the new unit/size
     const productToAdd = item.product;
-    // We add delay/timeout or directly use store since we can insert
     useCartStore.getState().addItem(productToAdd, item.quantity, newUnit);
   };
 
@@ -218,76 +209,82 @@ export default function CartPage() {
 
   return (
     <div className="bg-zinc-50 min-h-screen font-sans selection:bg-amber-600/30 selection:text-amber-900 overflow-x-hidden">
-
       {/* Cart Content */}
-      <section className="pt-40 pb-24 px-6 md:px-16 max-w-[1400px] mx-auto">
+      <section className="pt-24 sm:pt-28 md:pt-36 pb-16 sm:pb-24 px-3 sm:px-6 md:px-16 max-w-[1400px] mx-auto">
         <motion.div
-          initial={{ opacity: 0, y: 20 }}
+          initial={{ opacity: 0, y: 15 }}
           animate={{ opacity: 1, y: 0 }}
-          className="mb-12"
+          className="mb-6 sm:mb-10 text-center sm:text-left"
         >
-          <h1 className={`text-4xl md:text-5xl text-zinc-900 ${playfair.className}`}>
+          <h1 className={`text-2xl sm:text-4xl md:text-5xl text-zinc-900 font-bold ${playfair.className}`}>
             Your Shopping Cart
           </h1>
         </motion.div>
 
         {items.length === 0 ? (
-          <div className="bg-white rounded-3xl p-12 text-center border border-zinc-200 shadow-sm max-w-2xl mx-auto flex flex-col items-center">
-            <ShoppingCart className="text-zinc-300 w-16 h-16 mb-4 animate-pulse" />
-            <h2 className="text-2xl font-bold text-zinc-800 mb-2">Your cart is empty</h2>
-            <p className="text-zinc-500 mb-6">Discover the divine fragrances of Mishi to fill your sacred space.</p>
+          <div className="bg-white rounded-2xl sm:rounded-3xl p-8 sm:p-12 text-center border border-zinc-200 shadow-sm max-w-xl mx-auto flex flex-col items-center">
+            <ShoppingCart className="text-zinc-300 w-12 h-12 sm:w-16 sm:h-16 mb-4 animate-pulse" />
+            <h2 className="text-xl sm:text-2xl font-bold text-zinc-800 mb-2">Your cart is empty</h2>
+            <p className="text-xs sm:text-sm text-zinc-500 mb-6">Discover the divine fragrances & herbal purity of Mishi.</p>
             <Link href="/products" className="bg-amber-600 hover:bg-amber-700 text-white font-bold py-3 px-8 rounded-full uppercase tracking-wider text-xs transition-colors shadow-lg shadow-amber-600/20">
               Browse Products
             </Link>
           </div>
         ) : (
-          <div className="flex flex-col lg:flex-row gap-12">
-            {/* Cart Items */}
-            <div className="w-full lg:w-7/12 space-y-6">
+          <div className="flex flex-col lg:flex-row gap-6 lg:gap-12">
+            {/* Cart Items List */}
+            <div className="w-full lg:w-7/12 space-y-3 sm:space-y-6">
               {items.map((item) => {
                 const itemPrice = getItemPrice(item);
                 const hasOptions = item.product.predefinedOptions && item.product.predefinedOptions.length > 0;
 
                 return (
-                  <div key={`${item.product.id}-${item.unit}`} className="bg-white rounded-3xl p-6 md:p-8 border border-zinc-200 shadow-sm flex flex-col sm:flex-row items-center gap-6">
-                    <div className="w-32 h-32 bg-zinc-100 rounded-2xl overflow-hidden shrink-0">
+                  <div key={`${item.product.id}-${item.unit}`} className="bg-white rounded-2xl sm:rounded-3xl p-3.5 sm:p-6 border border-zinc-200/80 shadow-sm flex flex-row items-start gap-3 sm:gap-6">
+                    <div className="w-20 h-20 sm:w-28 sm:h-28 bg-zinc-100 rounded-xl overflow-hidden shrink-0 border border-zinc-100">
                       <img src={item.product.imageUrl || "/placeholder.jpg"} alt={item.product.name} className="w-full h-full object-cover" />
                     </div>
-                    <div className="flex-1 text-center sm:text-left w-full">
-                      <div className="flex justify-between items-start">
-                        <h3 className="text-xl font-bold text-zinc-900">{item.product.name}</h3>
-                        <button onClick={() => {
-                          removeItem(item.product.id, item.unit);
-                          toast.success("Removed item from cart!");
-                        }} className="text-red-400 hover:text-red-600 transition-colors p-2 bg-red-50 hover:bg-red-100 rounded-full">
-                          <Trash2 size={20} />
+                    
+                    <div className="flex-1 min-w-0">
+                      <div className="flex justify-between items-start gap-2">
+                        <h3 className="text-xs sm:text-lg font-bold text-zinc-900 line-clamp-1">{item.product.name}</h3>
+                        <button
+                          onClick={() => {
+                            removeItem(item.product.id, item.unit);
+                            toast.success("Removed item from cart!");
+                          }}
+                          className="text-red-400 hover:text-red-600 transition-colors p-1.5 bg-red-50 hover:bg-red-100 rounded-full shrink-0"
+                          aria-label="Remove item"
+                        >
+                          <Trash2 size={16} />
                         </button>
                       </div>
                       
-                      <div className="mt-3 flex flex-wrap items-center justify-center sm:justify-start gap-4">
+                      <div className="mt-2.5 flex flex-wrap items-center justify-between gap-2">
                         {/* Size Selector */}
                         {hasOptions ? (
                           <select 
                             value={item.unit}
                             onChange={(e) => handleSizeChange(item, e.target.value)}
-                            className="bg-zinc-50 border border-zinc-200 rounded-lg px-3 py-1.5 text-sm font-semibold text-zinc-700 outline-none focus:border-amber-500 cursor-pointer"
+                            className="bg-zinc-50 border border-zinc-200 rounded-md px-2 py-1 text-xs font-semibold text-zinc-700 outline-none focus:border-amber-500 cursor-pointer"
                           >
                             {item.product.predefinedOptions.map((opt) => (
                               <option key={opt.label} value={opt.label}>{opt.label}</option>
                             ))}
                           </select>
                         ) : (
-                          <span className="bg-zinc-100 text-zinc-600 rounded-lg px-3 py-1.5 text-xs font-bold uppercase tracking-wider">{item.unit}</span>
+                          <span className="bg-zinc-100 text-zinc-600 rounded-md px-2 py-1 text-[10px] font-bold uppercase tracking-wider">{item.unit}</span>
                         )}
 
                         {/* Quantity Selector */}
                         <div className="flex items-center border border-zinc-200 rounded-lg bg-zinc-50 overflow-hidden">
-                          <button onClick={() => updateQuantity(item.product.id, item.unit, Math.max(1, item.quantity - 1))} className="px-3 py-1.5 text-zinc-500 hover:text-zinc-900 hover:bg-zinc-200 transition-colors"><Minus size={14} /></button>
-                          <span className="w-8 text-center text-sm font-bold text-zinc-900">{item.quantity}</span>
-                          <button onClick={() => updateQuantity(item.product.id, item.unit, item.quantity + 1)} className="px-3 py-1.5 text-zinc-500 hover:text-zinc-900 hover:bg-zinc-200 transition-colors"><Plus size={14} /></button>
+                          <button onClick={() => updateQuantity(item.product.id, item.unit, Math.max(1, item.quantity - 1))} className="px-2 py-1 text-zinc-500 hover:text-zinc-900 hover:bg-zinc-200 transition-colors"><Minus size={12} /></button>
+                          <span className="w-6 text-center text-xs font-bold text-zinc-900">{item.quantity}</span>
+                          <button onClick={() => updateQuantity(item.product.id, item.unit, item.quantity + 1)} className="px-2 py-1 text-zinc-500 hover:text-zinc-900 hover:bg-zinc-200 transition-colors"><Plus size={12} /></button>
                         </div>
-                        
-                        <span className="font-bold text-lg text-amber-600 ml-auto">
+                      </div>
+
+                      <div className="mt-2 text-right">
+                        <span className="font-bold text-sm sm:text-base text-amber-600">
                           ₹{itemPrice * item.quantity}
                         </span>
                       </div>
@@ -299,75 +296,75 @@ export default function CartPage() {
 
             {/* Checkout Form & Summary */}
             <div className="w-full lg:w-5/12">
-              <div className="bg-white rounded-3xl p-8 border border-zinc-200 shadow-sm sticky top-32">
-                <h2 className="text-xl font-bold text-zinc-900 mb-6 uppercase tracking-widest text-sm border-b border-zinc-100 pb-4">
+              <div className="bg-white rounded-2xl sm:rounded-3xl p-5 sm:p-8 border border-zinc-200/80 shadow-sm sticky top-28">
+                <h2 className="text-xs sm:text-sm font-bold text-zinc-900 mb-4 uppercase tracking-widest border-b border-zinc-100 pb-3">
                   Delivery Details
                 </h2>
                 
-                <form onSubmit={handleCheckout} className="space-y-4 mb-8">
+                <form onSubmit={handleCheckout} className="space-y-3.5 sm:space-y-4">
                   <div>
-                    <label className="text-xs font-bold text-zinc-500 uppercase tracking-wider mb-2 block">Full Name</label>
-                    <input required value={formData.name} onChange={(e) => setFormData({...formData, name: e.target.value})} type="text" className="w-full bg-zinc-50 border border-zinc-200 rounded-xl px-4 py-3 focus:outline-none focus:border-amber-500 transition-colors placeholder-zinc-400 text-zinc-900" placeholder="e.g. John Doe" />
+                    <label className="text-[10px] font-bold text-zinc-500 uppercase tracking-wider mb-1 block">Full Name</label>
+                    <input required value={formData.name} onChange={(e) => setFormData({...formData, name: e.target.value})} type="text" className="w-full bg-zinc-50 border border-zinc-200 rounded-xl px-3.5 py-2.5 sm:py-3 text-xs sm:text-sm focus:outline-none focus:border-amber-500 transition-colors placeholder-zinc-400 text-zinc-900" placeholder="e.g. John Doe" />
                   </div>
                   <div>
-                    <label className="text-xs font-bold text-zinc-500 uppercase tracking-wider mb-2 block">Mobile Number</label>
+                    <label className="text-[10px] font-bold text-zinc-500 uppercase tracking-wider mb-1 block">Mobile Number</label>
                     <input required value={formData.phone} onChange={(e) => {
                       const val = e.target.value.replace(/\D/g, '').slice(0, 10);
                       setFormData({...formData, phone: val});
-                    }} type="tel" pattern="[0-9]{10}" maxLength={10} className="w-full bg-zinc-50 border border-zinc-200 rounded-xl px-4 py-3 focus:outline-none focus:border-amber-500 transition-colors placeholder-zinc-400 text-zinc-900" placeholder="e.g. 9876543210" />
+                    }} type="tel" pattern="[0-9]{10}" maxLength={10} className="w-full bg-zinc-50 border border-zinc-200 rounded-xl px-3.5 py-2.5 sm:py-3 text-xs sm:text-sm focus:outline-none focus:border-amber-500 transition-colors placeholder-zinc-400 text-zinc-900" placeholder="e.g. 9876543210" />
                   </div>
                   <div>
-                    <label className="text-xs font-bold text-zinc-500 uppercase tracking-wider mb-2 block">Complete Address</label>
-                    <textarea required value={formData.address} onChange={(e) => setFormData({...formData, address: e.target.value})} className="w-full bg-zinc-50 border border-zinc-200 rounded-xl px-4 py-3 focus:outline-none focus:border-amber-500 transition-colors min-h-[100px] resize-none placeholder-zinc-400 text-zinc-900" placeholder="Door No, Street Name, City, Pincode"></textarea>
+                    <label className="text-[10px] font-bold text-zinc-500 uppercase tracking-wider mb-1 block">Complete Address</label>
+                    <textarea required value={formData.address} onChange={(e) => setFormData({...formData, address: e.target.value})} className="w-full bg-zinc-50 border border-zinc-200 rounded-xl px-3.5 py-2.5 sm:py-3 text-xs sm:text-sm focus:outline-none focus:border-amber-500 transition-colors min-h-[90px] resize-none placeholder-zinc-400 text-zinc-900" placeholder="Door No, Street Name, City, Pincode"></textarea>
                   </div>
 
-                  <div className="border-t border-zinc-100 pt-6 mt-6 space-y-4">
-                    <div className="flex gap-2 sm:gap-4">
+                  <div className="border-t border-zinc-100 pt-4 mt-4 space-y-3">
+                    <div className="flex gap-2">
                       <input 
                         type="text" 
-                        placeholder="Enter Coupon Code" 
+                        placeholder="Coupon Code" 
                         value={couponInput}
                         onChange={(e) => setCouponInput(e.target.value)}
-                        className="flex-1 min-w-0 bg-zinc-50 border border-zinc-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-amber-500 placeholder-zinc-400 text-zinc-900 uppercase" 
+                        className="flex-1 min-w-0 bg-zinc-50 border border-zinc-200 rounded-xl px-3 py-2 text-xs focus:outline-none focus:border-amber-500 placeholder-zinc-400 text-zinc-900 uppercase" 
                       />
                       <button 
                         type="button" 
                         onClick={handleApplyCoupon}
                         disabled={isApplyingCoupon || !couponInput.trim()}
-                        className="bg-zinc-900 text-white px-4 sm:px-6 py-3 rounded-xl text-sm font-bold uppercase tracking-widest hover:bg-zinc-800 transition-colors disabled:opacity-50 flex-shrink-0"
+                        className="bg-zinc-900 text-white px-4 py-2 rounded-xl text-xs font-bold uppercase tracking-wider hover:bg-zinc-800 transition-colors disabled:opacity-50 flex-shrink-0"
                       >
                         {isApplyingCoupon ? '...' : 'Apply'}
                       </button>
                     </div>
                     {appliedCoupon && (
-                      <div className="flex justify-between items-center text-xs font-bold text-emerald-600 bg-emerald-50 px-4 py-2 rounded-lg border border-emerald-100">
+                      <div className="flex justify-between items-center text-[11px] font-bold text-emerald-600 bg-emerald-50 px-3 py-1.5 rounded-lg border border-emerald-100">
                         <span>Coupon applied: {appliedCoupon.code}</span>
                         <button type="button" onClick={() => setAppliedCoupon(null)} className="text-red-500 hover:underline">Remove</button>
                       </div>
                     )}
 
-                    <div className="flex justify-between text-sm text-zinc-500 pt-2">
+                    <div className="flex justify-between text-xs text-zinc-500 pt-1">
                       <span>Subtotal</span>
-                      <span>₹{calculateSubtotal()}</span>
+                      <span className="font-semibold">₹{calculateSubtotal()}</span>
                     </div>
                     {appliedCoupon && (
-                      <div className="flex justify-between text-sm text-emerald-600 font-bold">
+                      <div className="flex justify-between text-xs text-emerald-600 font-bold">
                         <span>Discount ({appliedCoupon.discount}%)</span>
                         <span>-₹{calculateDiscount()}</span>
                       </div>
                     )}
-                    <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center text-sm gap-1 sm:gap-0 pt-2">
+                    <div className="flex justify-between items-center text-xs pt-1">
                       <span className="text-zinc-500">Delivery</span>
-                      <span className="font-bold text-red-500 sm:text-right">Calculated on WhatsApp</span>
+                      <span className="font-bold text-emerald-700 text-[11px]">Calculated on WhatsApp</span>
                     </div>
-                    <div className="flex justify-between text-lg font-bold text-zinc-900 pt-3 border-t border-zinc-100">
+                    <div className="flex justify-between text-base font-bold text-zinc-900 pt-3 border-t border-zinc-100">
                       <span>Total</span>
                       <span className="text-amber-600">₹{calculateSubtotal() - calculateDiscount()}</span>
                     </div>
                   </div>
 
-                  <button type="submit" className="w-full bg-emerald-500 hover:bg-emerald-600 text-white font-bold py-4 rounded-xl uppercase tracking-widest text-sm transition-colors shadow-lg shadow-emerald-500/20 mt-6 flex items-center justify-center gap-2">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 21l1.65-3.8a9 9 0 1 1 3.4 2.9L3 21"/><path d="M9 10a.5.5 0 0 0 1 0V9a.5.5 0 0 0-1 0v1a5 5 0 0 0 5 5h1a.5.5 0 0 0 0-1h-1a.5.5 0 0 0 0 1"/></svg> Order via WhatsApp
+                  <button type="submit" className="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-3.5 rounded-xl uppercase tracking-widest text-xs transition-colors shadow-lg shadow-emerald-600/20 mt-4 flex items-center justify-center gap-2">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 21l1.65-3.8a9 9 0 1 1 3.4 2.9L3 21"/><path d="M9 10a.5.5 0 0 0 1 0V9a.5.5 0 0 0-1 0v1a5 5 0 0 0 5 5h1a.5.5 0 0 0 0-1h-1a.5.5 0 0 0 0 1"/></svg> Order via WhatsApp
                   </button>
                 </form>
               </div>
@@ -378,3 +375,4 @@ export default function CartPage() {
     </div>
   );
 }
+
