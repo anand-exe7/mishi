@@ -2,161 +2,23 @@
 
 import {
   motion,
-  useScroll,
-  useTransform,
   AnimatePresence,
 } from "framer-motion";
 import {
   Phone,
-  Mail,
   ArrowRight,
-  Quote,
-  ShieldCheck,
-  Globe,
-  Clock,
   MapPin,
-  Sparkles,
   Leaf,
-  Droplets,
-  Wind,
-  Sun,
-  Heart,
-  Plus,
-  Minus,
-  Play,
-  User,
   ShoppingCart,
-  Menu,
-  X,
   Star,
 } from "lucide-react";
 import { Playfair_Display } from "next/font/google";
 const playfair = Playfair_Display({ subsets: ["latin"] });
-import { useEffect, useRef, useState } from "react";
-import toast from "react-hot-toast";
-import { useCartStore, useProductStore } from "@/store/store";
+import { useEffect, useState } from "react";
+import { useCartStore, useProductStore, useLangStore } from "@/store/store";
+import { getT } from "@/lib/translations";
 import Link from "next/link";
 
-const InstagramIcon = ({
-  size = 24,
-  className = "",
-}: {
-  size?: number;
-  className?: string;
-}) => (
-  <svg
-    xmlns="http://www.w3.org/2000/svg"
-    width={size}
-    height={size}
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke="currentColor"
-    strokeWidth="2"
-    strokeLinecap="round"
-    strokeLinejoin="round"
-    className={className}
-  >
-    <rect width="20" height="20" x="2" y="2" rx="5" ry="5" />
-    <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z" />
-    <line x1="17.5" x2="17.51" y1="6.5" y2="6.5" />
-  </svg>
-);
-
-const FacebookIcon = ({
-  size = 24,
-  className = "",
-}: {
-  size?: number;
-  className?: string;
-}) => (
-  <svg
-    xmlns="http://www.w3.org/2000/svg"
-    width={size}
-    height={size}
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke="currentColor"
-    strokeWidth="2"
-    strokeLinecap="round"
-    strokeLinejoin="round"
-    className={className}
-  >
-    <path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z" />
-  </svg>
-);
-
-const flags = [
-  { name: "Malaysia", gifName: "Malaysia" },
-  { name: "Singapore", gifName: "Singapore" },
-  { name: "Mauritius", gifName: "Mauritius" },
-  { name: "Dubai", gifName: "United-Arab-Emirates" },
-  { name: "Sri Lanka", gifName: "Sri-Lanka" },
-  { name: "USA", gifName: "USA" },
-  { name: "Nigeria", gifName: "Nigeria" },
-];
-
-const aromas = [
-  {
-    id: 1,
-    name: "Sacred Sandalwood",
-    description:
-      "Deep, woody, and grounding. Ideal for intense meditation and spiritual focus.",
-    img: "https://www.mishipoojaproducts.com/wp-content/uploads/2026/03/pr5.jpg",
-  },
-  {
-    id: 2,
-    name: "Divine Rose",
-    description:
-      "Soft, floral, and uplifting. Creates an aura of love, peace, and gentle positivity.",
-    img: "https://www.mishipoojaproducts.com/wp-content/uploads/2026/03/img1.jpg",
-  },
-  {
-    id: 3,
-    name: "Mystic Loban",
-    description:
-      "Rich, earthy, and cleansing. Traditionally used to purify spaces and ward off negativity.",
-    img: "https://www.mishipoojaproducts.com/wp-content/uploads/2026/03/img2.jpg",
-  },
-  {
-    id: 4,
-    name: "Pure Camphor",
-    description:
-      "Crisp, intense, and awakening. Instantly elevates the energy of any room.",
-    img: "https://www.mishipoojaproducts.com/wp-content/uploads/2026/03/Panchagavya-Vilaku.jpg",
-  },
-];
-
-const faqs = [
-  {
-    q: "How long does the fragrance last after burning?",
-    a: "Our pure natural ingredients ensure that the divine aroma lingers in your space for 4-6 hours after the sambrani has fully burned.",
-  },
-  {
-    q: "Are your products safe for indoor use?",
-    a: "Absolutely. We strictly use 100% natural herbs, resins, and essential oils with zero synthetic chemicals, making them safe for daily indoor use.",
-  },
-  {
-    q: "Do you offer bulk or wholesale pricing?",
-    a: "Yes, we specialize in bulk orders and third-party manufacturing. Please contact us directly for catalog and wholesale pricing details.",
-  },
-  {
-    q: "What makes Mishi Pooja Products unique?",
-    a: "Our commitment to ancestral formulas. We don't just create fragrances; we craft spiritual experiences using recipes passed down through generations.",
-  },
-];
-
-const galleryImages = [
-  "/gallery/gallery_setup_1783444417350.png",
-  "/gallery/gallery_camphor_1783444405030.png",
-  "/gallery/gallery_ingredients_1783444379768.png",
-  "/gallery/gallery_sambrani_1783444367509.png",
-  "/gallery/gallery_powders_1783444427961.png",
-  "/gallery/gallery_incense_1783444391666.png",
-];
-
-// Important: To play videos without Instagram's UI, you MUST download your reels as .mp4 files 
-// and place them in the 'public' folder (e.g., 'public/reel1.mp4').
-// Then, update the names here:
 const reelVideos = [
   "DX9JNchDWyW",
   "DYTZ_U1idZK",
@@ -164,1096 +26,365 @@ const reelVideos = [
   "Daxqbe-ihQE",
 ];
 
-// Add intersection observer lazy video component
-const LazyReelVideo = ({ src, onClick, index, variants }: { src: string, onClick: () => void, index: number, variants: any }) => {
-  const [isInView, setIsInView] = useState(false);
-  const ref = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    const observer = new IntersectionObserver(
-      ([entry]) => {
-        if (entry.isIntersecting) {
-          setIsInView(true);
-          observer.disconnect();
-        }
-      },
-      { rootMargin: '300px' } // Load slightly before it comes into view
-    );
-    if (ref.current) observer.observe(ref.current);
-    return () => observer.disconnect();
-  }, []);
-
-  return (
-    <motion.div
-      variants={variants}
-      initial="hidden"
-      whileInView="visible"
-      viewport={{ once: true, margin: "-50px" }}
-      custom={index}
-      ref={ref}
-      className="relative rounded-[2rem] overflow-hidden shadow-2xl group aspect-[9/16] bg-zinc-900 border border-white/10 mx-auto w-full max-w-[320px] cursor-pointer"
-      onClick={onClick}
-    >
-      {!isInView && (
-        <div className="absolute inset-0 bg-[#0a0a0a] flex flex-col items-center justify-center animate-pulse">
-          <div className="flex gap-2">
-            <div className="w-2 h-2 bg-zinc-700 rounded-full animate-bounce"></div>
-            <div className="w-2 h-2 bg-zinc-700 rounded-full animate-bounce" style={{ animationDelay: '0.1s' }}></div>
-            <div className="w-2 h-2 bg-zinc-700 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
-          </div>
-        </div>
-      )}
-      {isInView && (
-        <video 
-          src={`/${src}.mp4`}
-          className="absolute inset-0 w-full h-full object-cover opacity-70 group-hover:opacity-100 transition-opacity duration-500"
-          muted playsInline loop autoPlay
-        />
-      )}
-      {/* Custom Play Button Overlay */}
-      <div className="absolute inset-0 flex items-center justify-center z-10 pointer-events-none">
-        <div className="w-16 h-16 bg-black/40 backdrop-blur-md rounded-full flex items-center justify-center text-white border border-white/20 group-hover:scale-110 group-hover:bg-pink-600/80 transition-all duration-300">
-          <Play size={24} className="ml-1 fill-white" />
-        </div>
-      </div>
-      
-      {/* Small indicator label */}
-      <div className="absolute bottom-4 left-4 bg-black/60 backdrop-blur-sm px-3 py-1.5 rounded-full flex items-center gap-2 z-10 pointer-events-none">
-        <InstagramIcon size={14} className="text-white" />
-        <span className="text-[10px] font-bold text-white uppercase tracking-widest">Reel</span>
-      </div>
-    </motion.div>
-  );
-};
-
 export default function Home() {
-  const { scrollYProgress } = useScroll();
-  const heroY = useTransform(scrollYProgress, [0, 0.2], ["0%", "20%"]);
-  const heroBlur = useTransform(
-    scrollYProgress,
-    [0, 0.15],
-    ["blur(0px)", "blur(20px)"],
-  );
-  const heroOpacity = useTransform(scrollYProgress, [0, 0.2], [1, 0]);
-
-  const [isScrolled, setIsScrolled] = useState(false);
-  const [activeAroma, setActiveAroma] = useState(0);
-  const [openFAQ, setOpenFAQ] = useState<number | null>(0);
+  const { lang } = useLangStore();
+  const t = getT(lang);
   const { products: storeProducts, fetchProducts } = useProductStore();
-
+  const cartItems = useCartStore((state) => state.items);
   const [reviews, setReviews] = useState<any[]>([]);
-  const [newReview, setNewReview] = useState("");
-  const [newReviewName, setNewReviewName] = useState("");
-  const [newReviewRating, setNewReviewRating] = useState(5);
-  const [showReviewForm, setShowReviewForm] = useState(false);
-  const [selectedGalleryImage, setSelectedGalleryImage] = useState<string | null>(null);
-  const [selectedReel, setSelectedReel] = useState<string | null>(null);
-  const [isSiteLoaded, setIsSiteLoaded] = useState(false);
-
-  useEffect(() => {
-    // Artificial delay for premium splash screen feel
-    const timer = setTimeout(() => setIsSiteLoaded(true), 1200);
-    return () => clearTimeout(timer);
-  }, []);
 
   useEffect(() => {
     fetchProducts();
+    const defaultR = [
+      { id: 1, text: "Exceptional quality herbal products! Been using them for 6 months — truly authentic remedies that actually work. Packaging is perfect and delivery is fast.", author: "Priya Krishnamurthy", location: "Chennai", initial: "PK", rating: 5 },
+      { id: 2, text: "The herbal oils are absolutely pure and give real results. Ordered multiple times and every batch smells fresh and aromatic. Best shop online!", author: "Ramesh Murugan", location: "Coimbatore", initial: "RM", rating: 5 },
+      { id: 3, text: "Genuine products at very reasonable prices. Customer service via WhatsApp is very responsive. The herbal powders improved my family's immunity greatly.", author: "Kavitha Sundaram", location: "Madurai", initial: "KS", rating: 5 },
+      { id: 4, text: "Outstanding quality. The sambrani powders are the best I have ever tried. Have been recommending to all my friends and relatives. 100% authentic!", author: "Anand Thiagarajan", location: "Trichy", initial: "AT", rating: 5 }
+    ];
+    setReviews(defaultR);
   }, [fetchProducts]);
 
-  const addItem = useCartStore((state) => state.addItem);
-
-  useEffect(() => {
-    const handleScroll = () => {
-      setIsScrolled(window.scrollY > 50);
-    };
-    window.addEventListener("scroll", handleScroll);
-    
-    const defaultR = [
-      { id: 1, text: "The purity and fragrance of these products are unmatched. It instantly elevates the spiritual ambiance of my home during prayers. Highly recommended for daily use!", author: "Customer 1", initial: "C", rating: 5 },
-      { id: 2, text: "Amazing aroma, highly recommend for meditation and regular pooja. Gives a very calming vibe.", author: "Customer 2", initial: "C", rating: 5 },
-      { id: 3, text: "Truly natural and relaxing fragrance. The best sambrani I've used.", author: "Customer 3", initial: "C", rating: 4 },
-      { id: 4, text: "Excellent quality and packaging.", author: "Customer 4", initial: "C", rating: 5 },
-      { id: 5, text: "Very divine and peaceful experience.", author: "Customer 5", initial: "C", rating: 5 }
-    ];
-    const saved = localStorage.getItem("mishi_reviews");
-    if (saved) {
-      try {
-        setReviews(JSON.parse(saved));
-      } catch(e) {
-        setReviews(defaultR);
-      }
-    } else {
-      setReviews(defaultR);
-    }
-    
-    return () => window.removeEventListener("scroll", handleScroll);
-  }, []);
-
-  const handleAddReview = () => {
-    if (!newReview.trim() || !newReviewName.trim()) {
-      toast.error("Please provide both name and review.");
-      return;
-    }
-    const r = { id: Date.now(), text: newReview, author: newReviewName, initial: newReviewName.charAt(0).toUpperCase(), rating: newReviewRating };
-    const updated = [r, ...reviews];
-    setReviews(updated);
-    localStorage.setItem("mishi_reviews", JSON.stringify(updated));
-    setNewReview("");
-    setNewReviewName("");
-    setNewReviewRating(5);
-    setShowReviewForm(false);
-    toast.success("Review added successfully!");
-  };
-
-  const scrollTo = (id: string) => {
-    const el = document.querySelector(id);
-    if (el) {
-      window.scrollTo({
-        top: el.getBoundingClientRect().top + window.scrollY - 80,
-        behavior: "smooth"
-      });
-    }
-  };
-
-  const fadeBlurVariants = {
-    hidden: { opacity: 0, filter: "blur(10px)", y: 30 },
-    visible: {
-      opacity: 1,
-      filter: "blur(0px)",
-      y: 0,
-      transition: { duration: 0.8, ease: "easeOut" as const },
-    },
-  };
-
-  const popUpVariants = {
-    hidden: { opacity: 0, y: 30 },
-    visible: (i: number) => ({
-      opacity: 1,
-      y: 0,
-      transition: {
-        delay: i * 0.1,
-        duration: 0.6,
-        ease: "easeOut" as const,
-      },
-    }),
-  };
+  const cartTotal = cartItems.reduce((acc, item) => {
+    const option = item.product.predefinedOptions?.find((o:any) => o.unit === item.unit);
+    return acc + (option ? option.price : item.product.price) * item.quantity;
+  }, 0);
+  const cartCount = cartItems.reduce((acc, item) => acc + item.quantity, 0);
 
   return (
-    <div className={`bg-neutral-50 text-neutral-900 min-h-screen ${playfair.className} selection:bg-emerald-600/30 selection:text-emerald-900 overflow-x-hidden`}>
-        
-        {/* Premium Splash Screen Loader */}
-        <AnimatePresence>
-          {!isSiteLoaded && (
-            <motion.div
-              initial={{ opacity: 1 }}
-              exit={{ opacity: 0, transition: { duration: 0.8, ease: "easeInOut" } }}
-              className="fixed inset-0 z-[999] bg-[#faf9f6] flex flex-col items-center justify-center"
-            >
-              <motion.div
-                initial={{ scale: 0.8, opacity: 0 }}
-                animate={{ scale: 1, opacity: 1 }}
-                transition={{ duration: 0.5 }}
-                className="flex flex-col items-center"
-              >
-                <img src="/logo.webp" alt="Mishi Logo" className="h-16 mb-8 object-contain" />
-                <div className="flex gap-2">
-                  <motion.div animate={{ y: [0, -10, 0] }} transition={{ repeat: Infinity, duration: 1, delay: 0 }} className="w-3 h-3 bg-emerald-600 rounded-full" />
-                  <motion.div animate={{ y: [0, -10, 0] }} transition={{ repeat: Infinity, duration: 1, delay: 0.2 }} className="w-3 h-3 bg-emerald-600 rounded-full" />
-                  <motion.div animate={{ y: [0, -10, 0] }} transition={{ repeat: Infinity, duration: 1, delay: 0.4 }} className="w-3 h-3 bg-emerald-600 rounded-full" />
-                </div>
-              </motion.div>
-            </motion.div>
-          )}
-        </AnimatePresence>
-
-        <style
-          dangerouslySetInnerHTML={{
-            __html: `
-          @keyframes marquee {
-            0% { transform: translateX(0); }
-            100% { transform: translateX(-50%); }
-          }
-          .animate-marquee {
-            animation: marquee 25s linear infinite;
-            display: flex;
-            width: max-content;
-          }
-          @keyframes spin-slow {
-            100% { transform: rotate(360deg); }
-          }
-          .animate-spin-slow {
-            animation: spin-slow 12s linear infinite;
-          }
-          .clip-diagonal {
-            clip-path: polygon(0 0, 100% 10vw, 100% 100%, 0 calc(100% - 10vw));
-          }
-          .vertical-text {
-            writing-mode: vertical-rl;
-            text-orientation: mixed;
-            transform: rotate(180deg);
-          }
-          @keyframes float-word {
-            0%, 100% { transform: translateY(0); }
-            50% { transform: translateY(-8px); }
-          }
-          .animate-float-word {
-            animation: float-word 4s ease-in-out infinite;
-          }
-        `,
-          }}
-        />
-
-
-        {/* New Hero Section (Split Layout) */}
-        <section id="home" className="w-full min-h-screen flex flex-col lg:flex-row overflow-hidden bg-[#1f3625] selection:bg-[#d5b976]/30 selection:text-white pt-20 lg:pt-0">
-          {/* Left Side: Content */}
-          <div className="w-full lg:w-1/2 relative min-h-[50vh] lg:min-h-screen flex flex-col justify-center p-8 md:p-12 lg:p-16 z-10 overflow-hidden">
-            
-            {/* Background Image Leaf */}
-            <div className="absolute inset-0 pointer-events-none z-0">
-               <img src="/gold_leaf_bg.png" alt="Leaf Background" className="w-full h-full object-cover opacity-20 mix-blend-screen" />
-            </div>
-
-            {/* Main Content */}
-            <div className="relative z-20 pl-0 lg:pl-12 max-w-xl flex flex-col justify-center h-full">
-              <motion.div
-                initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.8 }}
-                className="flex items-center gap-4 mb-6"
-              >
-                <span className="px-3 py-1 bg-[#d5b976]/20 border border-[#d5b976]/30 text-[#d5b976] rounded-full text-[10px] font-bold uppercase tracking-widest">
-                  100% Natural
-                </span>
-                <span className="px-3 py-1 bg-[#d5b976]/20 border border-[#d5b976]/30 text-[#d5b976] rounded-full text-[10px] font-bold uppercase tracking-widest">
-                  Premium Quality
-                </span>
-              </motion.div>
-
-              <motion.h1 
-                className={`text-[3.5rem] sm:text-6xl md:text-5xl lg:text-6xl xl:text-[4.5rem] leading-[1.1] font-bold text-[#fde6a6] uppercase tracking-tight ${playfair.className}`}
-              >
-                <motion.span initial={{ opacity: 0, y: 40 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.8, delay: 0.1 }} className="inline-block">
-                  <span className="inline-block animate-float-word" style={{ animationDelay: '0s' }}>The</span>
-                </motion.span>{" "}
-                <motion.span initial={{ opacity: 0, y: 40 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.8, delay: 0.3 }} className="inline-block">
-                  <span className="inline-block animate-float-word" style={{ animationDelay: '-1s' }}>Essence</span>
-                </motion.span>
-                <br />
-                <motion.span initial={{ opacity: 0, y: 40 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.8, delay: 0.5 }} className="inline-block">
-                  <span className="inline-block animate-float-word" style={{ animationDelay: '-2s' }}>Of</span>
-                </motion.span>{" "}
-                <motion.span initial={{ opacity: 0, y: 40 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.8, delay: 0.7 }} className="inline-block text-[#d5b976]">
-                  <span className="inline-block animate-float-word" style={{ animationDelay: '-3s' }}>Serenity</span>
-                </motion.span>
-              </motion.h1>
-              <motion.p 
-                initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.8, delay: 0.9 }}
-                className={`text-xl sm:text-2xl md:text-xl text-[#fde6a6] italic mt-6 mb-10 ${playfair.className}`}
-              >
-                Curated Incense & Rare Resins for Mindful Living
-              </motion.p>
-              
-              <motion.div 
-                initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.8, delay: 1.1 }}
-                className="flex flex-col sm:flex-row gap-6 sm:items-center mt-2"
-              >
-                <button 
-                  onClick={() => scrollTo("#products")} 
-                  className="group relative px-8 py-5 md:px-10 md:py-4 border border-[#d5b976] bg-[#d5b976] text-[#1f3625] transition-colors hover:bg-transparent hover:text-[#d5b976] flex items-center justify-center gap-3 text-xs md:text-[10px] tracking-[0.2em] uppercase font-bold shadow-xl w-full sm:w-auto"
-                  style={{ borderRadius: "50px 0 50px 0" }}
-                >
-                  Discover The Collection
-                </button>
-
-                <div className="flex items-center gap-5 sm:ml-4">
-                  <div className="w-12 h-px bg-[#d5b976]/40 hidden sm:block"></div>
-                  <a href="https://www.instagram.com/mishi_sambrani/" target="_blank" rel="noopener noreferrer" className="text-[#d5b976]/70 hover:text-[#d5b976] transition-colors flex items-center gap-2">
-                    <InstagramIcon size={20} />
-                    <span className="text-[10px] uppercase font-bold tracking-widest sm:hidden">Instagram</span>
-                  </a>
-                  <a href="https://www.facebook.com/people/Mishi-Pooja-Products/100078864755122/" target="_blank" rel="noopener noreferrer" className="text-[#d5b976]/70 hover:text-[#d5b976] transition-colors flex items-center gap-2">
-                    <FacebookIcon size={20} />
-                    <span className="text-[10px] uppercase font-bold tracking-widest sm:hidden">Facebook</span>
-                  </a>
-                </div>
-              </motion.div>
-            </div>
-          </div>
-
-          {/* Right Side: Video */}
-          <div className="w-full lg:w-1/2 flex items-center justify-center p-6 lg:p-12 pt-28 lg:pt-32 relative z-10 bg-[#1f3625]">
-            {/* Video Container Box */}
-            <motion.div 
-              initial={{ opacity: 0, scale: 0.95 }}
-              animate={{ opacity: 1, scale: 1 }}
-              transition={{ duration: 1, delay: 0.3 }}
-              className="relative w-full max-w-md xl:max-w-lg aspect-[3/4] rounded-[2.5rem] overflow-hidden shadow-2xl border-4 border-[#16281a]"
-            >
-              <video autoPlay loop muted playsInline className="w-full h-full object-cover">
-                 <source src="/bg2.mp4" type="video/mp4" />
-              </video>
-            </motion.div>
-          </div>
-        </section>
-
-        {/* New Editorial Heritage Section */}
-        <section id="about" className="py-32 px-6 max-w-7xl mx-auto">
-           <div className="flex flex-col lg:flex-row items-center gap-16 lg:gap-24">
-              <motion.div variants={fadeBlurVariants} initial="hidden" whileInView="visible" viewport={{ once: true }} className="w-full lg:w-5/12 relative">
-                 <div className="aspect-[3/4] rounded-[2rem] overflow-hidden shadow-2xl relative z-10">
-                    <img src="https://www.mishipoojaproducts.com/wp-content/uploads/2026/03/img1.jpg" className="w-full h-full object-cover" alt="Heritage 1" />
-                 </div>
-                 <motion.div initial={{ opacity:0, y:40, x:-20 }} whileInView={{ opacity:1, y:0, x:0 }} viewport={{ once:true }} transition={{ delay: 0.3 }} className="absolute -bottom-8 -right-8 w-40 md:w-48 aspect-square rounded-full overflow-hidden shadow-xl border-8 border-[#faf9f6] z-20">
-                    <img src="https://www.mishipoojaproducts.com/wp-content/uploads/2026/03/img2.jpg" className="w-full h-full object-cover" alt="Heritage 2" />
-                 </motion.div>
-                 <motion.div initial={{ opacity:0, scale:0 }} whileInView={{ opacity:1, scale:1 }} viewport={{ once:true }} transition={{ delay: 0.6 }} className="absolute -top-6 -left-6 w-24 h-24 md:w-32 md:h-32 bg-emerald-100 rounded-full flex flex-col items-center justify-center text-emerald-800 z-20 shadow-lg">
-                    <span className="text-xl md:text-2xl font-bold">100%</span>
-                    <span className="text-[10px] md:text-xs uppercase tracking-widest font-semibold">Natural</span>
-                 </motion.div>
-              </motion.div>
-
-              <motion.div variants={fadeBlurVariants} initial="hidden" whileInView="visible" viewport={{ once: true }} className="w-full lg:w-7/12 pt-16 lg:pt-0 text-center md:text-left">
-                 <h4 className={`text-emerald-600 font-bold tracking-widest uppercase text-sm mb-4 ${playfair.className}`}>About Us</h4>
-                 <h2 className={`text-4xl md:text-6xl text-emerald-950 mb-8 leading-tight ${playfair.className}`}>A devotion to purity, <br/><span className="italic text-emerald-700">crafted by hand.</span></h2>
-                 
-                 <div className={`md:pl-6 md:border-l-2 md:border-emerald-200 ${playfair.className}`}>
-                    <p className="text-neutral-600 text-lg mb-6 leading-relaxed">
-                       We believe that true peace begins with the atmosphere you create. For generations, we have perfected the art of making pure Sambrani, avoiding harsh chemicals to bring you the authentic scent of nature.
-                    </p>
-                    <p className="text-neutral-600 text-lg leading-relaxed">
-                       Every product is a testament to our commitment to quality, tradition, and spiritual wellbeing. We don't just sell incense; we offer a gateway to a place of stillness.
-                    </p>
-                 </div>
-                 <div className="mt-10 flex flex-col md:flex-row items-center gap-4">
-                    <img src="https://ui-avatars.com/api/?name=Mishi&background=fda4af&color=881337" alt="Founder" className="w-12 h-12 rounded-full" />
-                    <div className="text-center md:text-left">
-                       <p className="font-bold text-emerald-950">Mishi Founders</p>
-                       <p className="text-xs uppercase tracking-widest text-neutral-500">Master Crafters</p>
-                    </div>
-                 </div>
-              </motion.div>
-           </div>
-        </section>
-
-        {/* New Spiritual Benefits Section */}
-        <section className="py-24 px-6 bg-emerald-900 text-emerald-50 rounded-[3rem] max-w-[95%] mx-auto my-12 overflow-hidden relative">
-           <div className="absolute top-0 right-0 w-96 h-96 bg-emerald-800 rounded-full blur-[100px] opacity-50"></div>
-           <div className="absolute bottom-0 left-0 w-96 h-96 bg-emerald-950 rounded-full blur-[100px] opacity-50"></div>
-           
-           <div className="max-w-7xl mx-auto relative z-10 text-center mb-16">
-              <h2 className={`text-4xl md:text-6xl text-white mb-4 ${playfair.className}`}>Elevate Your Wellbeing</h2>
-              <p className="text-emerald-200 max-w-2xl mx-auto">Discover the transformative power of natural incense on your mind, body, and space.</p>
-           </div>
-           
-           <div className="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-3 gap-6 relative z-10">
-              {[
-                 { icon: Sun, title: "Purify Energy", desc: "Clear stagnant energy and invite positivity into your living spaces with rich, earthy smoke." },
-                 { icon: Wind, title: "Deepen Breath", desc: "The natural essential oils help expand the lungs and encourage slow, mindful breathing." },
-                 { icon: Heart, title: "Soothe Mind", desc: "Aromatherapy elements calm the nervous system, preparing you for meditation or restful sleep." }
-              ].map((b, i) => (
-                 <motion.div key={i} custom={i} variants={popUpVariants} initial="hidden" whileInView="visible" viewport={{ once: true }} whileHover={{ y: -10, boxShadow: "0 25px 50px -12px rgba(6,78,59,0.3)" }} className="bg-emerald-800/40 backdrop-blur-md border border-emerald-700/50 p-10 rounded-[2rem] transition-all cursor-pointer group">
-                    <div className="w-14 h-14 bg-emerald-700 rounded-xl flex items-center justify-center mb-6 text-emerald-200 group-hover:scale-110 transition-transform">
-                       <b.icon size={28} />
-                    </div>
-                    <h3 className={`text-2xl font-semibold text-white mb-3 ${playfair.className}`}>{b.title}</h3>
-                    <p className="text-emerald-100/70 leading-relaxed font-light">{b.desc}</p>
-                 </motion.div>
-              ))}
-           </div>
-        </section>
-
-        {/* EXTRA COMPONENT: Expanding Aroma Gallery */}
-        <section className="py-24 max-w-[1400px] mx-auto px-6 md:px-16">
-          <motion.div
-            variants={fadeBlurVariants}
-            initial="hidden"
-            whileInView="visible"
-            viewport={{ once: true }}
-            className="mb-16"
+    <div className={`bg-[#F7F6F2] text-neutral-900 min-h-screen ${playfair.className} selection:bg-[#7DAA8F]/30 selection:text-[#2C392A] overflow-x-hidden font-sans`}>
+      {/* Floating Cart Bar on Mobile & Desktop */}
+      <AnimatePresence>
+        {cartCount > 0 && (
+          <motion.div 
+            initial={{ y: 100, opacity: 0 }} 
+            animate={{ y: 0, opacity: 1 }}
+            exit={{ y: 100, opacity: 0 }}
+            className="fixed bottom-4 left-3 right-3 sm:left-1/2 sm:right-auto sm:-translate-x-1/2 z-50 pointer-events-auto max-w-md w-full sm:w-auto"
           >
-            <h3 className="text-amber-600 text-sm tracking-[0.3em] uppercase mb-4 font-bold">
-              Discover Your Aura
-            </h3>
-            <h2
-              className={`text-4xl md:text-6xl text-zinc-900 ${playfair.className}`}
-            >
-              Aroma Profiles
-            </h2>
-          </motion.div>
-
-          <div className="flex flex-col lg:flex-row h-[700px] lg:h-[600px] gap-4 w-full">
-            {aromas.map((aroma, i) => (
-              <motion.div
-                key={aroma.id}
-                onMouseEnter={() => setActiveAroma(i)}
-                onClick={() => setActiveAroma(i)}
-                animate={{ flex: activeAroma === i ? 3 : 1 }}
-                transition={{ type: "spring", stiffness: 200, damping: 25 }}
-                className="relative rounded-3xl overflow-hidden cursor-pointer group"
-              >
-                <img
-                  src={aroma.img}
-                  className="absolute inset-0 w-full h-full object-cover"
-                  alt={aroma.name}
-                />
-                <div
-                  className={`absolute inset-0 transition-opacity duration-700 ${activeAroma === i ? "bg-black/40" : "bg-black/60 group-hover:bg-black/50"}`}
-                />
-
-                <div
-                  className={`absolute inset-0 p-6 md:p-8 flex flex-col justify-end transition-all duration-500 ${activeAroma === i ? "opacity-100" : "lg:opacity-0"}`}
-                >
-                  <h3
-                    className={`text-2xl md:text-3xl lg:text-4xl text-white font-bold mb-2 md:mb-3 ${playfair.className}`}
-                  >
-                    {aroma.name}
-                  </h3>
-                  <div
-                    className={`transition-all duration-500 hidden lg:block ${activeAroma === i ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4"}`}
-                  >
-                    <p className="text-zinc-200 text-xs md:text-sm max-w-sm leading-relaxed">
-                      {aroma.description}
-                    </p>
-                  </div>
-                </div>
-
-                <div
-                  className={`absolute inset-0 flex items-center justify-center p-8 transition-all duration-500 hidden lg:flex ${activeAroma === i ? "opacity-0" : "opacity-100"}`}
-                >
-                  <h3
-                    className={`text-2xl text-white font-bold whitespace-nowrap vertical-text ${playfair.className}`}
-                  >
-                    {aroma.name}
-                  </h3>
-                </div>
-              </motion.div>
-            ))}
-          </div>
-        </section>
-        {/* Global Reach / Flags Section */}
-        <section
-          id="exports"
-          className="py-32 px-6 md:px-16 bg-white overflow-hidden relative"
-        >
-          <div className="absolute -top-[20%] -left-[10%] w-[50%] h-[50%] rounded-full bg-amber-500/5 blur-[120px] pointer-events-none"></div>
-
-          <div className="max-w-[1400px] mx-auto text-center relative z-10">
-            <motion.div
-              variants={fadeBlurVariants}
-              initial="hidden"
-              whileInView="visible"
-              viewport={{ once: true }}
-            >
-              <h3 className="text-amber-600 text-sm tracking-[0.3em] uppercase mb-6 font-bold">
-                Global Reach
-              </h3>
-              <h2
-                className={`text-5xl md:text-7xl text-zinc-900 mb-6 ${playfair.className}`}
-              >
-                Our Exports & Imports
-              </h2>
-            </motion.div>
-
-            <div className="flex flex-wrap justify-center gap-12 md:gap-20">
-              {flags.map((flag, i) => (
-                <motion.div
-                  key={flag.name}
-                  custom={i}
-                  variants={popUpVariants}
-                  initial="hidden"
-                  whileInView="visible"
-                  viewport={{ once: true, margin: "-50px" }}
-                  className="flex flex-col items-center gap-6 group"
-                >
-                  <div className="w-32 h-24 md:w-44 md:h-32 relative flex items-center justify-center group-hover:scale-110 group-hover:-translate-y-2 transition-all duration-300">
-                    <div className="absolute left-[15%] md:left-[18%] top-[10%] bottom-[15%] w-1 md:w-1.5 bg-gradient-to-r from-zinc-400 via-zinc-200 to-zinc-500 rounded-b-sm z-20 shadow-sm">
-                      <div className="absolute -top-1.5 -left-[3px] md:-left-[2px] w-2.5 h-2.5 md:w-3 md:h-3 rounded-full bg-gradient-to-tr from-amber-500 to-amber-200 shadow-sm border border-amber-600/50"></div>
-                    </div>
-                    <img
-                      src={`/flags/${flag.gifName}_240-animated-flag-gifs.gif`}
-                      alt={flag.name}
-                      className="w-full h-[90%] object-contain mix-blend-multiply z-10 pl-2"
-                    />
-                  </div>
-                  <h4 className="text-sm font-bold uppercase tracking-widest text-zinc-700 group-hover:text-amber-600 transition-colors mt-4 bg-zinc-50 px-4 py-1 rounded-full shadow-sm border border-zinc-100">
-                    {flag.name}
-                  </h4>
-                </motion.div>
-              ))}
-            </div>
-          </div>
-        </section>
-
-        {/* New Ingredients Section */}
-        <section className="py-24 px-6 max-w-7xl mx-auto">
-           <div className="text-center mb-16">
-              <span className={`text-emerald-600 font-bold tracking-widest uppercase text-sm ${playfair.className}`}>Pure Elements</span>
-              <h2 className={`text-5xl md:text-7xl text-emerald-950 mt-4 ${playfair.className}`}>Gifts from the Earth</h2>
-           </div>
-           <div className="grid grid-cols-1 md:grid-cols-4 gap-4 auto-rows-[250px]">
-              <motion.div variants={popUpVariants} custom={0} initial="hidden" whileInView="visible" viewport={{ once:true }} className="md:col-span-2 md:row-span-2 relative rounded-[2rem] overflow-hidden group">
-                 <img src="https://www.mishipoojaproducts.com/wp-content/uploads/2026/03/Panchagavya-Vilaku.jpg" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" alt="Panchagavya" />
-                 <div className="absolute inset-0 bg-gradient-to-t from-emerald-950/80 to-transparent flex flex-col justify-end p-8 text-white">
-                    <h3 className={`text-3xl mb-2 ${playfair.className}`}>Sacred Panchagavya</h3>
-                    <p className="text-emerald-100/80 text-sm">The foundational element for deep spiritual cleansing.</p>
-                 </div>
-              </motion.div>
-              <motion.div variants={popUpVariants} custom={1} initial="hidden" whileInView="visible" viewport={{ once:true }} className="md:col-span-2 bg-emerald-50 rounded-[2rem] p-8 flex flex-col justify-center border border-emerald-100 hover:border-emerald-200 transition-colors">
-                 <Leaf className="text-emerald-600 mb-4" size={32} />
-                 <h3 className={`text-2xl text-emerald-950 mb-2 ${playfair.className}`}>Himalayan Herbs</h3>
-                 <p className="text-neutral-600 text-sm">Sourced from pristine altitudes for an unadulterated fragrance.</p>
-              </motion.div>
-              <motion.div variants={popUpVariants} custom={2} initial="hidden" whileInView="visible" viewport={{ once:true }} className="bg-neutral-900 rounded-[2rem] p-8 flex flex-col justify-center text-white relative overflow-hidden group">
-                 <div className="absolute inset-0 opacity-40 group-hover:opacity-60 transition-opacity"><img src="https://www.mishipoojaproducts.com/wp-content/uploads/2026/03/pr4.jpg" className="w-full h-full object-cover" alt="Camphor" /></div>
-                 <div className="relative z-10">
-                    <Sparkles className="text-amber-400 mb-4" size={32} />
-                    <h3 className={`text-2xl mb-2 ${playfair.className}`}>Pure Camphor</h3>
-                    <p className="text-neutral-300 text-sm">Ignites instantly, leaving no residue.</p>
-                 </div>
-              </motion.div>
-              <motion.div variants={popUpVariants} custom={3} initial="hidden" whileInView="visible" viewport={{ once:true }} className="bg-emerald-100 rounded-[2rem] p-8 flex flex-col justify-center border border-emerald-200">
-                 <Wind className="text-emerald-800 mb-4" size={32} />
-                 <h3 className={`text-2xl text-emerald-950 mb-2 ${playfair.className}`}>Natural Resins</h3>
-                 <p className="text-emerald-900/70 text-sm">Rich, sweet, and deeply grounding base notes.</p>
-              </motion.div>
-           </div>
-        </section>
-
-        {/* New Products Section */}
-        <section id="products" className="py-24 bg-neutral-100/50">
-           <div className="max-w-7xl mx-auto px-6">
-              <div className="flex flex-col md:flex-row justify-between items-center md:items-end text-center md:text-left mb-12 gap-6">
-                  <div className="w-full flex flex-col items-center md:items-start">
-                    <span className="text-emerald-600 font-bold tracking-widest uppercase text-sm">Our Selection</span>
-                    <h2 className={`text-4xl md:text-6xl text-zinc-900 mt-4 ${playfair.className}`}>Our Products</h2>
-                 </div>
-                 <Link href="/products" className="text-emerald-700 font-semibold border-b border-emerald-700 pb-1 hover:text-emerald-900 transition-colors whitespace-nowrap mx-auto md:mx-0">View All Products</Link>
-              </div>
-
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
-                 {storeProducts.filter(p => p.isActive !== false).slice(0, 6).map((product, i) => {
-                    const availableOptions = product.predefinedOptions ? product.predefinedOptions.filter((opt: any) => opt.isAvailable !== false) : [];
-                    const lowestPrice = availableOptions.length > 0 
-                       ? Math.min(...availableOptions.map((opt: any) => opt.price))
-                       : product.price;
-
-                    return (
-                       <Link href="/products" key={product.id || i}>
-                          <motion.div custom={i} variants={popUpVariants} initial="hidden" whileInView="visible" viewport={{ once: true }} className="group flex flex-col bg-white border border-zinc-100 rounded-3xl p-3 sm:p-4 shadow-sm hover:shadow-2xl transition-all duration-500 hover:-translate-y-2 cursor-pointer relative h-full">
-                             <div className="w-full aspect-[4/5] rounded-2xl overflow-hidden mb-4 relative bg-zinc-50">
-                                <img src={product.imageUrl || "/placeholder.jpg"} alt={product.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700 ease-out" />
-                                <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors"></div>
-                                <div className="absolute bottom-4 right-4 bg-white/90 backdrop-blur-md p-3 rounded-full text-zinc-900 opacity-0 group-hover:opacity-100 transition-opacity translate-y-4 group-hover:translate-y-0 shadow-lg">
-                                   <ArrowRight size={18} />
-                                </div>
-                             </div>
-                             <div className="px-2 pb-2 flex flex-col flex-1">
-                                 <span className="text-emerald-700 text-[10px] font-bold uppercase tracking-wider mb-1.5 block">
-                                   {product.category}
-                                 </span>
-                                 <h3 className={`text-2xl text-zinc-900 mb-2 group-hover:text-amber-600 transition-colors ${playfair.className}`}>{product.name}</h3>
-                                 {product.description && (
-                                   <p className="text-zinc-500 text-sm mb-4 line-clamp-2">{product.description}</p>
-                                 )}
-                                 <div className="flex items-center justify-between border-t border-zinc-100 pt-4 mt-auto">
-                                    <span className="text-zinc-900 font-bold text-base">From ₹{lowestPrice}</span>
-                                    <span className="text-[10px] uppercase tracking-widest font-bold text-amber-600 hover:text-amber-700">
-                                       View Details
-                                    </span>
-                                 </div>
-                             </div>
-                          </motion.div>
-                       </Link>
-                    )
-                 })}
-              </div>
-           </div>
-        </section>
-
-        {/* Gallery Section */}
-        <section
-          id="gallery"
-          className="py-24 px-6 md:px-16 max-w-[1400px] mx-auto bg-zinc-50 rounded-t-[3rem] mt-12"
-        >
-          <motion.div
-            variants={fadeBlurVariants}
-            initial="hidden"
-            whileInView="visible"
-            viewport={{ once: true }}
-            className="mb-16 text-center"
-          >
-            <h3 className="text-amber-600 text-sm tracking-[0.3em] uppercase mb-4 font-bold">
-              Visual Journey
-            </h3>
-            <h2
-              className={`text-4xl md:text-6xl text-zinc-900 ${playfair.className}`}
-            >
-              Our Gallery
-            </h2>
-            <p className="text-zinc-500 mt-4 max-w-xl mx-auto font-light">
-              Experience the divine essence of our pure formulations through
-              these snapshots.
-            </p>
-          </motion.div>
-
-          {/* Masonry-like Grid for Gallery */}
-          <div className="columns-1 sm:columns-2 lg:columns-3 gap-6 space-y-6">
-            {galleryImages.map((src, i) => (
-              <motion.div
-                key={i}
-                variants={popUpVariants}
-                initial="hidden"
-                whileInView="visible"
-                viewport={{ once: true, margin: "-50px" }}
-                custom={i}
-                className="relative rounded-2xl overflow-hidden shadow-sm group break-inside-avoid bg-white cursor-pointer"
-                onClick={() => setSelectedGalleryImage(src)}
-              >
-                <img
-                  src={src}
-                  alt={`Gallery item ${i}`}
-                  className="w-full h-auto object-cover transform group-hover:scale-105 transition-transform duration-700"
-                />
-                <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-end p-6 pointer-events-none">
-                  <span className="text-white text-xs font-bold uppercase tracking-widest">
-                    Product View
+            <Link href="/cart" className="flex items-center justify-between gap-3 bg-[#2C392A] hover:bg-[#1f281d] text-white px-4 sm:px-6 py-3 sm:py-3.5 rounded-full shadow-2xl transition-all border border-white/10">
+              <div className="flex items-center gap-3">
+                <div className="relative">
+                  <ShoppingCart size={18} />
+                  <span className="absolute -top-2 -right-2 bg-[#7DAA8F] text-white text-[9px] font-black w-4 h-4 rounded-full flex items-center justify-center">
+                    {cartCount}
                   </span>
                 </div>
-              </motion.div>
-            ))}
-          </div>
-        </section>
-
-        {/* Gallery Modal */}
-        <AnimatePresence>
-          {selectedGalleryImage && (
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              className="fixed inset-0 z-[200] flex items-center justify-center p-4 bg-black/90 backdrop-blur-sm"
-              onClick={() => setSelectedGalleryImage(null)}
-            >
-              <button
-                className="absolute top-6 right-6 text-white hover:text-amber-500 transition-colors bg-white/10 p-2 rounded-full z-[210]"
-                onClick={() => setSelectedGalleryImage(null)}
-              >
-                <X size={32} />
-              </button>
-              <motion.img
-                initial={{ scale: 0.9, opacity: 0 }}
-                animate={{ scale: 1, opacity: 1 }}
-                exit={{ scale: 0.9, opacity: 0 }}
-                src={selectedGalleryImage}
-                alt="Gallery Preview"
-                className="max-w-full max-h-[90vh] object-contain rounded-2xl shadow-2xl relative z-[205]"
-                onClick={(e) => e.stopPropagation()}
-              />
-            </motion.div>
-          )}
-        </AnimatePresence>
-
-        {/* Reels Section */}
-        <section className="py-24 px-6 md:px-16 w-full bg-zinc-900 mb-12 text-white overflow-hidden">
-          <motion.div
-            variants={fadeBlurVariants}
-            initial="hidden"
-            whileInView="visible"
-            viewport={{ once: true }}
-            className="mb-16 text-center max-w-[1400px] mx-auto"
-          >
-            <h3 className="text-amber-500 text-sm tracking-[0.3em] uppercase mb-4 font-bold">
-              Customer Stories
-            </h3>
-            <h2 className={`text-4xl md:text-6xl ${playfair.className}`}>
-              Video Testimonials
-            </h2>
-            <p className="text-zinc-400 mt-4 max-w-xl mx-auto font-light">
-              Watch how our sacred blends are traditionally crafted and used.
-            </p>
+                <div className="flex flex-col border-r border-white/20 pr-3">
+                  <span className="text-xs text-white/70 uppercase font-bold text-[9px]">Total</span>
+                  <span className="text-sm font-bold">₹{cartTotal}</span>
+                </div>
+              </div>
+              <span className="text-xs font-bold tracking-wider flex items-center gap-1 bg-[#7DAA8F] text-white px-3.5 py-1.5 rounded-full hover:bg-[#6c987c] transition-colors">
+                VIEW CART <ArrowRight size={13} />
+              </span>
+            </Link>
           </motion.div>
+        )}
+      </AnimatePresence>
 
-          {/* Reels Grid Layout */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 max-w-[1400px] mx-auto mb-16">
-            {reelVideos.map((src, i) => (
-              <LazyReelVideo 
-                key={src} 
-                src={src} 
-                index={i} 
-                variants={popUpVariants}
-                onClick={() => setSelectedReel(src)} 
-              />
-            ))}
-          </div>
+      {/* Hero Section */}
+      <section id="home" className="w-full pt-28 sm:pt-32 lg:pt-36 pb-12 lg:pb-24 overflow-hidden relative">
 
-          {/* Reel Video Modal */}
-          <AnimatePresence>
-            {selectedReel && (
-              <motion.div
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                exit={{ opacity: 0 }}
-                className="fixed inset-0 z-[200] flex items-center justify-center p-4 bg-black/95 backdrop-blur-md"
-                onClick={() => setSelectedReel(null)}
-              >
-                <motion.div
-                  initial={{ scale: 0.9, opacity: 0, y: 20 }}
-                  animate={{ scale: 1, opacity: 1, y: 0 }}
-                  exit={{ scale: 0.9, opacity: 0, y: 20 }}
-                  className="w-full max-w-sm bg-[#0a0a0a] rounded-[2rem] overflow-hidden shadow-2xl relative border border-white/10"
-                  onClick={(e) => e.stopPropagation()}
-                >
-                  {/* Close button matching screenshot */}
-                  <button
-                    className="absolute top-4 right-4 z-20 w-10 h-10 bg-black/60 backdrop-blur-md rounded-full flex items-center justify-center text-white/80 hover:text-white hover:bg-white/20 transition-colors"
-                    onClick={() => setSelectedReel(null)}
-                  >
-                    <X size={20} />
-                  </button>
-                  
-                  {/* Native Video Player */}
-                  <div className="relative w-full aspect-[9/16] max-h-[75vh] bg-black flex items-center justify-center">
-                    <video 
-                      src={`/${selectedReel}.mp4`}
-                      className="w-full h-full object-contain"
-                      controls
-                      autoPlay
-                      playsInline
-                    />
-                  </div>
-
-                  {/* Footer matched from screenshot */}
-                  <div className="p-4 md:p-5 flex items-center justify-between bg-[#111] border-t border-white/10 relative z-10">
-                    <span className="text-zinc-500 text-[11px] md:text-xs font-semibold tracking-wide">
-                      Mishi Video Testimonial
-                    </span>
-                    <a 
-                      href={`https://www.instagram.com/reel/${selectedReel}/`}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="text-pink-500 hover:text-pink-400 text-[11px] md:text-xs font-bold transition-colors flex items-center gap-1"
-                    >
-                      View on Instagram <ArrowRight size={14} />
-                    </a>
-                  </div>
-                </motion.div>
-              </motion.div>
-            )}
-          </AnimatePresence>
-
-          <div className="flex justify-center max-w-[1400px] mx-auto">
-            <a
-              href="https://www.instagram.com/mishi_sambrani/"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="flex items-center gap-3 px-8 py-4 rounded-full bg-gradient-to-r from-pink-600 via-purple-600 to-amber-500 text-white font-bold uppercase tracking-widest text-xs shadow-lg hover:shadow-2xl hover:scale-105 transition-all"
-            >
-              <InstagramIcon size={18} /> Follow on Instagram
-            </a>
-          </div>
-        </section>
-        {/* EXTRA COMPONENT: Wisdom & Queries (Animated FAQ) */}
-        <section className="relative py-24 bg-zinc-50 border-y border-zinc-200 z-20">
-          <div className="max-w-[800px] mx-auto px-6 md:px-16">
-            <motion.div
-              variants={fadeBlurVariants}
-              initial="hidden"
-              whileInView="visible"
-              viewport={{ once: true }}
-              className="text-center mb-16"
-            >
-              <h3 className="text-amber-600 text-sm tracking-[0.3em] uppercase mb-4 font-bold">
-                Curiosity
-              </h3>
-              <h2
-                className={`text-4xl md:text-5xl text-zinc-900 ${playfair.className}`}
-              >
-                Wisdom & Queries
-              </h2>
-            </motion.div>
-
-            <div className="space-y-4">
-              {faqs.map((faq, i) => (
-                <motion.div
-                  key={i}
-                  variants={fadeBlurVariants}
-                  initial="hidden"
-                  whileInView="visible"
-                  viewport={{ once: true }}
-                  className="bg-white border border-zinc-200 rounded-2xl overflow-hidden"
-                >
-                  <button
-                    onClick={() => setOpenFAQ(openFAQ === i ? null : i)}
-                    className="w-full px-8 py-6 flex items-center justify-between text-left hover:bg-zinc-50 transition-colors"
-                  >
-                    <span className="font-bold text-zinc-800 pr-8">
-                      {faq.q}
-                    </span>
-                    <div
-                      className={`shrink-0 w-8 h-8 rounded-full flex items-center justify-center transition-colors duration-300 ${openFAQ === i ? "bg-amber-600 text-white" : "bg-zinc-100 text-zinc-500"}`}
-                    >
-                      {openFAQ === i ? <Minus size={16} /> : <Plus size={16} />}
-                    </div>
-                  </button>
-                  <AnimatePresence>
-                    {openFAQ === i && (
-                      <motion.div
-                        initial={{ height: 0, opacity: 0 }}
-                        animate={{ height: "auto", opacity: 1 }}
-                        exit={{ height: 0, opacity: 0 }}
-                        transition={{ duration: 0.3 }}
-                      >
-                        <div className="px-8 pb-6 text-zinc-600 font-light leading-relaxed border-t border-zinc-100 pt-4">
-                          {faq.a}
-                        </div>
-                      </motion.div>
-                    )}
-                  </AnimatePresence>
-                </motion.div>
-              ))}
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12 items-center">
+          <div className="text-left">
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full mb-4 sm:mb-6 bg-[#7DAA8F]/15">
+              <Leaf size={12} className="text-[#5F6D59]" />
+              <span className="text-[10px] font-black uppercase tracking-[0.2em] text-[#5F6D59]">{t("hero.badge")}</span>
+            </div>
+            <h1 className={`font-black mb-4 sm:mb-6 ${lang === 'ta' ? 'text-3xl sm:text-4xl md:text-5xl' : 'text-3.5xl xs:text-4xl sm:text-5xl md:text-6xl lg:text-[68px]'} leading-[1.15] md:leading-[1.1] tracking-tight text-[#2C392A]`}>
+              <span className="block">{t("hero.title1")}</span>
+              <span className="block text-[#7DAA8F]">{t("hero.title2")}</span>
+            </h1>
+            <p className="text-[#5F6D59] text-sm sm:text-base md:text-lg mb-6 sm:mb-8 max-w-md leading-relaxed">
+              {t("hero.subtitle")}
+            </p>
+            <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 w-full sm:w-auto">
+              <Link href="/products" className="bg-[#2C392A] text-white px-7 py-3.5 rounded-full font-bold text-sm hover:bg-[#1e271d] transition-colors flex items-center justify-center gap-2 shadow-lg shadow-[#2C392A]/10">
+                <ShoppingCart size={16} /> {t("hero.cta_shop")}
+              </Link>
+              <a href="#about" className="bg-white text-[#2C392A] px-7 py-3.5 rounded-full font-bold text-sm border border-[#2C392A]/15 hover:bg-[#F7F6F2] transition-colors flex items-center justify-center gap-2 shadow-sm">
+                <Leaf size={16} className="text-[#7DAA8F]" /> {t("hero.cta_browse")}
+              </a>
             </div>
           </div>
-        </section>
-        {/* Customer Reviews Scrolling Marquee */}
-        <section className="py-24 bg-amber-50 overflow-hidden border-y border-amber-100">
-          <div className="max-w-[1400px] mx-auto px-6 md:px-16 mb-12 flex flex-col md:flex-row justify-between items-center md:items-end gap-6 text-center md:text-left">
-            <motion.div
-              variants={fadeBlurVariants}
-              initial="hidden"
-              whileInView="visible"
-              viewport={{ once: true }}
-              className="w-full"
-            >
-              <h2
-                className={`text-4xl md:text-5xl text-zinc-900 ${playfair.className}`}
-              >
-                Reviews
-              </h2>
-            </motion.div>
-            <button 
-              onClick={() => setShowReviewForm(!showReviewForm)}
-              className="bg-amber-600 text-white px-6 py-3 rounded-full text-sm font-bold uppercase tracking-widest shadow-md hover:bg-amber-700 transition-colors whitespace-nowrap mx-auto md:mx-0"
-            >
-              {showReviewForm ? "Cancel" : "Add a Review"}
-            </button>
+          <div className="relative mt-2 lg:mt-0">
+            <div className="relative aspect-[16/10] sm:aspect-[4/3] rounded-2xl sm:rounded-[2rem] overflow-hidden shadow-xl sm:shadow-2xl border border-white/60">
+              <video src="/bg2.mp4" autoPlay muted loop playsInline className="w-full h-full object-cover" />
+            </div>
+            {/* Overlay badge 1 */}
+            <div className="absolute top-3 right-3 sm:top-4 sm:right-4 bg-white/95 backdrop-blur shadow-md border border-neutral-100 rounded-xl px-2.5 py-1.5 sm:px-3 sm:py-2 flex items-center gap-2">
+              <div className="w-5 h-5 sm:w-6 sm:h-6 bg-[#7DAA8F] rounded-full flex items-center justify-center text-white shrink-0"><Leaf size={10}/></div>
+              <div className="flex flex-col">
+                <span className="text-[8px] sm:text-[9px] font-black text-[#2C392A]">100% Natural</span>
+                <span className="text-[7px] text-[#5F6D59]">Siddha Certified</span>
+              </div>
+            </div>
+            {/* Overlay badge 2 */}
+            <div className="absolute bottom-3 left-3 sm:bottom-4 sm:left-4 bg-white/95 backdrop-blur shadow-md border border-neutral-100 rounded-xl px-2.5 py-1.5 sm:px-3 sm:py-2 flex flex-col items-center">
+              <div className="flex gap-0.5 mb-0.5 text-amber-400">
+                {[1,2,3,4,5].map(i => <Star key={i} size={8} className="fill-current"/>)}
+              </div>
+              <span className="text-[9px] sm:text-[10px] font-black text-[#2C392A]">4.9 / 5.0</span>
+              <span className="text-[7px] text-[#5F6D59]">Happy Customers</span>
+            </div>
           </div>
+        </div>
 
-          <AnimatePresence>
-            {showReviewForm && (
-              <motion.div 
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                exit={{ opacity: 0 }}
-                className="fixed inset-0 z-[200] flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm"
-                onClick={() => setShowReviewForm(false)}
-              >
-                <motion.div 
-                   initial={{ scale: 0.9, y: 20 }}
-                   animate={{ scale: 1, y: 0 }}
-                   exit={{ scale: 0.9, y: 20 }}
-                   onClick={(e) => e.stopPropagation()}
-                   className="bg-white p-8 rounded-3xl shadow-2xl w-full max-w-md relative"
-                >
-                   <button onClick={() => setShowReviewForm(false)} className="absolute top-4 right-4 text-zinc-400 hover:text-zinc-600">
-                     <X size={24} />
-                   </button>
-                   <h3 className="text-2xl font-bold text-zinc-900 mb-6">Write a Review</h3>
-                   <div className="space-y-4">
-                     <div>
-                       <label className="text-xs font-bold uppercase tracking-wider text-zinc-500 mb-2 block">Your Name</label>
-                       <input 
-                         type="text" 
-                         placeholder="John Doe"
-                         value={newReviewName}
-                         onChange={(e) => setNewReviewName(e.target.value)}
-                         className="w-full bg-zinc-50 border border-zinc-200 rounded-xl px-4 py-3 outline-none focus:border-amber-400 transition-colors text-zinc-700"
-                       />
-                     </div>
-                     <div>
-                       <label className="text-xs font-bold uppercase tracking-wider text-zinc-500 mb-2 block">Rating</label>
-                       <div className="flex gap-2">
-                         {[1, 2, 3, 4, 5].map((star) => (
-                           <button key={star} onClick={() => setNewReviewRating(star)} className="focus:outline-none">
-                             <Star size={24} className={star <= newReviewRating ? "fill-amber-400 text-amber-400" : "text-zinc-300"} />
-                           </button>
-                         ))}
-                       </div>
-                     </div>
-                     <div>
-                       <label className="text-xs font-bold uppercase tracking-wider text-zinc-500 mb-2 block">Review</label>
-                       <textarea 
-                         placeholder="Share your experience..."
-                         value={newReview}
-                         onChange={(e) => setNewReview(e.target.value)}
-                         rows={4}
-                         className="w-full bg-zinc-50 border border-zinc-200 rounded-xl px-4 py-3 outline-none focus:border-amber-400 transition-colors text-zinc-700 resize-none"
-                       />
-                     </div>
-                     <button 
-                       onClick={handleAddReview}
-                       className="w-full bg-amber-600 text-white px-6 py-3 rounded-xl text-sm font-bold shadow-md hover:bg-amber-700 transition-colors"
-                     >
-                       Submit Review
-                     </button>
-                   </div>
-                </motion.div>
-              </motion.div>
-            )}
-          </AnimatePresence>
+        {/* 4 Trust Badges */}
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 mt-10 sm:mt-16 grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4">
+          <div className="bg-white rounded-xl sm:rounded-2xl p-3.5 sm:p-4 flex items-center gap-3 sm:gap-4 border border-neutral-100 shadow-sm hover:shadow-md transition-shadow">
+             <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-full bg-[#7DAA8F]/15 flex items-center justify-center text-[#7DAA8F] shrink-0"><Leaf size={18}/></div>
+             <div>
+               <h4 className="text-[#2C392A] font-black text-xs sm:text-sm">{t("trust.organic")}</h4>
+               <p className="text-[9px] sm:text-[10px] text-[#5F6D59] leading-tight mt-0.5">{t("trust.organic_sub")}</p>
+             </div>
+          </div>
+          <div className="bg-white rounded-xl sm:rounded-2xl p-3.5 sm:p-4 flex items-center gap-3 sm:gap-4 border border-neutral-100 shadow-sm hover:shadow-md transition-shadow">
+             <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-full bg-[#7DAA8F]/15 flex items-center justify-center text-[#7DAA8F] shrink-0"><ShoppingCart size={18}/></div>
+             <div>
+               <h4 className="text-[#2C392A] font-black text-xs sm:text-sm">{t("trust.shipping")}</h4>
+               <p className="text-[9px] sm:text-[10px] text-[#5F6D59] leading-tight mt-0.5">{t("trust.shipping_sub")}</p>
+             </div>
+          </div>
+          <div className="bg-white rounded-xl sm:rounded-2xl p-3.5 sm:p-4 flex items-center gap-3 sm:gap-4 border border-neutral-100 shadow-sm hover:shadow-md transition-shadow">
+             <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-full bg-[#7DAA8F]/15 flex items-center justify-center text-[#7DAA8F] shrink-0"><Leaf size={18}/></div>
+             <div>
+               <h4 className="text-[#2C392A] font-black text-xs sm:text-sm">{t("trust.pure")}</h4>
+               <p className="text-[9px] sm:text-[10px] text-[#5F6D59] leading-tight mt-0.5">{t("trust.pure_sub")}</p>
+             </div>
+          </div>
+          <div className="bg-white rounded-xl sm:rounded-2xl p-3.5 sm:p-4 flex items-center gap-3 sm:gap-4 border border-neutral-100 shadow-sm hover:shadow-md transition-shadow">
+             <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-full bg-[#7DAA8F]/15 flex items-center justify-center text-[#7DAA8F] shrink-0"><Star size={18}/></div>
+             <div>
+               <h4 className="text-[#2C392A] font-black text-xs sm:text-sm">{t("trust.gmp")}</h4>
+               <p className="text-[9px] sm:text-[10px] text-[#5F6D59] leading-tight mt-0.5">{t("trust.gmp_sub")}</p>
+             </div>
+          </div>
+        </div>
+      </section>
 
-          <div className="relative w-full flex overflow-hidden">
-            {/* Fade edges */}
-            <div className="absolute left-0 top-0 bottom-0 w-32 bg-gradient-to-r from-amber-50 to-transparent z-10 pointer-events-none"></div>
-            <div className="absolute right-0 top-0 bottom-0 w-32 bg-gradient-to-l from-amber-50 to-transparent z-10 pointer-events-none"></div>
+      {/* Shop by Category */}
+      <section className="py-12 sm:py-16 px-4 sm:px-6 max-w-7xl mx-auto">
+        <div className="flex flex-col sm:flex-row sm:justify-between sm:items-end gap-2 mb-6 sm:mb-8">
+          <div>
+            <h3 className="text-[10px] font-bold uppercase tracking-[0.2em] text-[#7DAA8F] mb-1">Browse Collection</h3>
+            <h2 className="text-2xl sm:text-4xl font-black text-[#2C392A] tracking-tight">{t("cat.title")}</h2>
+          </div>
+          <Link href="/products" className="text-[#7DAA8F] text-xs sm:text-sm font-bold flex items-center gap-1 hover:text-[#5F6D59] self-start sm:self-auto">
+            View All <ArrowRight size={14}/>
+          </Link>
+        </div>
+        
+        {/* Responsive horizontal touch scroll for categories */}
+        <div className="flex overflow-x-auto gap-3 sm:gap-4 pb-4 snap-x snap-mandatory hide-scrollbar">
+          {[
+            { id: 'pooja', img: 1, key: 'cat.pooja' as const }, 
+            { id: 'powder', img: 2, key: 'cat.powder' as const }, 
+            { id: 'oil', img: 3, key: 'cat.oil' as const }, 
+            { id: 'incense', img: 4, key: 'cat.incense' as const }, 
+            { id: 'spices', img: 5, key: 'cat.spices' as const }, 
+            { id: 'bundles', img: 1, key: 'cat.bundles' as const }
+          ].map((cat) => (
+            <Link href="/products" key={cat.id} className="min-w-[110px] sm:min-w-[140px] flex flex-col items-center gap-2.5 snap-start group">
+              <div className="w-full aspect-square rounded-2xl bg-white p-2.5 sm:p-3 shadow-sm border border-neutral-100 group-hover:shadow-md transition-shadow relative overflow-hidden">
+                <img src={`https://www.mishipoojaproducts.com/wp-content/uploads/2026/03/Product-${cat.img}.jpg`} className="w-full h-full object-cover rounded-xl" alt={t(cat.key)}/>
+              </div>
+              <span className="text-[10px] sm:text-[11px] font-bold text-[#2C392A] text-center group-hover:text-[#7DAA8F]">{t(cat.key)}</span>
+            </Link>
+          ))}
+          <Link href="/products" className="min-w-[110px] sm:min-w-[140px] flex flex-col items-center gap-2.5 snap-start group">
+            <div className="w-full aspect-square rounded-2xl bg-[#2C392A] text-white flex flex-col items-center justify-center p-3 shadow-sm group-hover:bg-[#1f281d] transition-colors">
+              <ArrowRight size={20} className="mb-1 sm:mb-2" />
+              <span className="text-[9px] sm:text-[10px] font-bold uppercase tracking-widest">All</span>
+            </div>
+          </Link>
+        </div>
+      </section>
 
-            <div className="animate-marquee hover:[animation-play-state:paused]">
-              {[...Array(2)].map((_, arrayIndex) => (
-                <div
-                  key={arrayIndex}
-                  className="flex gap-4 md:gap-8 px-2 md:px-4"
-                >
-                  {reviews.map((r, i) => (
-                    <div
-                      key={`${arrayIndex}-${r.id}-${i}`}
-                      className="w-[300px] md:w-[400px] bg-white p-6 md:p-10 rounded-3xl shadow-sm border border-amber-100/50 flex-shrink-0"
-                    >
-                      <div className="flex gap-1 mb-4">
-                        {[...Array(5)].map((_, idx) => (
-                          <Star key={idx} size={16} className={idx < (r.rating || 5) ? "fill-amber-400 text-amber-400" : "text-amber-100"} />
-                        ))}
-                      </div>
-                      <Quote className="text-amber-300 mb-6" size={40} />
-                      <p className="text-zinc-600 italic mb-8 font-light leading-relaxed text-sm md:text-base">
-                        &quot;{r.text}&quot;
-                      </p>
-                      <div className="flex items-center gap-4 border-t border-zinc-100 pt-6">
-                        <div className="w-12 h-12 bg-amber-100 rounded-full flex items-center justify-center text-amber-700 font-bold text-lg">
-                          {r.initial}
-                        </div>
-                        <div>
-                          <h4 className="font-bold text-zinc-900 text-xs md:text-sm uppercase tracking-wider">
-                            {r.author}
-                          </h4>
-                          <p className="text-[10px] md:text-xs text-zinc-500 mt-1">
-                            Verified Buyer
-                          </p>
-                        </div>
-                      </div>
-                    </div>
-                  ))}
+      {/* Inside Our Store */}
+      <section id="about" className="py-12 sm:py-20 px-4 sm:px-6 max-w-7xl mx-auto">
+        <div className="flex flex-col lg:flex-row gap-8 sm:gap-12 lg:gap-16 items-center">
+          <div className="w-full lg:w-1/3 text-left">
+            <h3 className="text-[10px] font-bold uppercase tracking-[0.2em] text-[#7DAA8F] mb-2">A Glimpse of our Tradition</h3>
+            <h2 className="text-3xl sm:text-4xl md:text-5xl font-black text-[#2C392A] mb-4 sm:mb-6 tracking-tight">Inside Our Store</h2>
+            <p className="text-[#5F6D59] text-sm sm:text-base mb-6 sm:mb-8 leading-relaxed">
+              Explore our traditional herbal and pooja store, where quality and authenticity have been our promise since the beginning.
+            </p>
+            <ul className="space-y-3 sm:space-y-4">
+              <li className="flex items-center gap-3 text-[#2C392A] font-bold text-xs sm:text-sm">
+                <div className="bg-[#7DAA8F]/20 p-1.5 rounded-full shrink-0"><Star size={12} className="text-[#7DAA8F]" /></div> Trusted Brand
+              </li>
+              <li className="flex items-center gap-3 text-[#2C392A] font-bold text-xs sm:text-sm">
+                <div className="bg-[#7DAA8F]/20 p-1.5 rounded-full shrink-0"><Leaf size={12} className="text-[#7DAA8F]" /></div> Authentic Herbal Products
+              </li>
+              <li className="flex items-center gap-3 text-[#2C392A] font-bold text-xs sm:text-sm">
+                <div className="bg-[#7DAA8F]/20 p-1.5 rounded-full shrink-0"><Star size={12} className="text-[#7DAA8F]" /></div> Traditional Pooja Materials
+              </li>
+            </ul>
+          </div>
+          <div className="w-full lg:w-2/3">
+             <div className="grid grid-cols-2 gap-3 sm:gap-4">
+               <div className="col-span-2 sm:col-span-1 sm:row-span-2 rounded-2xl sm:rounded-[2rem] overflow-hidden relative shadow-lg aspect-[16/10] sm:aspect-[3/4]">
+                 <video src={`/${reelVideos[0]}.mp4`} className="w-full h-full object-cover" autoPlay muted loop playsInline />
+               </div>
+               <div className="col-span-1 rounded-2xl sm:rounded-[2rem] overflow-hidden relative shadow-lg aspect-square">
+                 <video src={`/${reelVideos[1]}.mp4`} className="w-full h-full object-cover" autoPlay muted loop playsInline />
+               </div>
+               <div className="col-span-1 rounded-2xl sm:rounded-[2rem] overflow-hidden relative shadow-lg aspect-square">
+                 <video src={`/${reelVideos[2]}.mp4`} className="w-full h-full object-cover" autoPlay muted loop playsInline />
+               </div>
+             </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Top Selling Herbs & Products */}
+      <section className="py-12 sm:py-16 px-4 sm:px-6 max-w-7xl mx-auto">
+        <div className="flex flex-col sm:flex-row sm:justify-between sm:items-end gap-2 mb-6 sm:mb-8">
+          <div>
+            <h3 className="text-[10px] font-bold uppercase tracking-[0.2em] text-[#7DAA8F] mb-1 flex items-center gap-1.5">
+              <span className="w-5 h-5 rounded-full bg-[#fde6a6] flex items-center justify-center text-amber-600 shrink-0"><Star size={10}/></span> Customer Favourites
+            </h3>
+            <h2 className="text-2xl sm:text-3xl md:text-4xl font-black text-[#2C392A] tracking-tight">Top Selling Products</h2>
+          </div>
+          <Link href="/products" className="text-[#7DAA8F] text-xs sm:text-sm font-bold flex items-center gap-1 hover:text-[#5F6D59]">
+            View All <ArrowRight size={14}/>
+          </Link>
+        </div>
+        
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4 lg:gap-6">
+          {storeProducts.filter(p => p.isActive).slice(0, 4).map((p) => (
+            <Link href="/products" key={p.id} className="bg-white rounded-2xl sm:rounded-[24px] overflow-hidden border border-neutral-100 shadow-sm hover:shadow-xl transition-all group p-3 sm:p-4 flex flex-col">
+              <div className="w-full aspect-square rounded-xl sm:rounded-2xl bg-[#F7F6F2] mb-3 overflow-hidden relative">
+                <img src={p.imageUrl} alt={p.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
+              </div>
+              <h3 className="text-xs sm:text-[13px] font-bold text-[#2C392A] mb-1 truncate">{lang === 'ta' && p.nameTa ? p.nameTa : p.name}</h3>
+              <p className="text-[9px] sm:text-[10px] text-[#5F6D59] uppercase tracking-wider mb-2">{lang === 'ta' ? 'அலகு' : 'piece'}</p>
+              <div className="mt-auto font-black text-[#2C392A] text-sm sm:text-base">₹{p.price}</div>
+            </Link>
+          ))}
+        </div>
+      </section>
+
+      {/* Customer Reviews */}
+      <section className="py-12 sm:py-20 px-4 sm:px-6 max-w-7xl mx-auto">
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-end gap-4 mb-8 sm:mb-12">
+          <div>
+            <h3 className="text-[10px] font-bold uppercase tracking-[0.2em] text-[#7DAA8F] mb-1.5">Customer Reviews</h3>
+            <h2 className="text-2xl sm:text-4xl font-black text-[#2C392A] tracking-tight mb-1">Trusted by Thousands</h2>
+            <p className="text-[#5F6D59] text-xs sm:text-sm">Real results from real customers across Tamil Nadu</p>
+          </div>
+          <button className="bg-[#2C392A] text-white px-4 py-2.5 sm:px-5 sm:py-2.5 rounded-full font-bold text-xs flex items-center gap-2 hover:bg-[#1e271d] shadow-sm">
+            <Star size={14} className="fill-amber-400 text-amber-400"/> Write a Review
+          </button>
+        </div>
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
+          {reviews.map(r => (
+            <div key={r.id} className="bg-[#f9f8f4] border border-[#e8e5d9] p-5 sm:p-6 rounded-2xl sm:rounded-3xl flex flex-col justify-between">
+              <div>
+                <div className="flex gap-1 mb-3">
+                  {[1,2,3,4,5].map(i => <Star key={i} size={11} className="fill-amber-400 text-amber-400"/>)}
                 </div>
-              ))}
+                <p className="text-xs sm:text-[13px] text-[#5F6D59] font-medium leading-relaxed mb-6 italic">"{r.text}"</p>
+              </div>
+              <div className="flex items-center gap-3">
+                <div className="w-8 h-8 rounded-full bg-[#7DAA8F] flex items-center justify-center text-white font-bold text-xs shrink-0">{r.initial}</div>
+                <div>
+                  <h4 className="text-[11px] font-bold text-[#2C392A] leading-tight">{r.author}</h4>
+                  <p className="text-[10px] text-[#7DAA8F] mt-0.5">{r.location}</p>
+                </div>
+              </div>
             </div>
-          </div>
-        </section>
+          ))}
+        </div>
+      </section>
 
-        {/* New Contact Section */}
-        <section id="contact" className="py-24 px-6 max-w-7xl mx-auto">
-           <div className="bg-emerald-950 rounded-[3rem] overflow-hidden flex flex-col lg:flex-row shadow-2xl relative">
-              <div className="w-full lg:w-1/2 p-12 md:p-20 relative z-10 flex flex-col justify-center">
-                 <span className="text-emerald-400 font-bold tracking-widest uppercase text-sm mb-4">Get in Touch</span>
-                 <h2 className={`text-4xl md:text-5xl text-white mb-8 ${playfair.className}`}>Visit Our Shop</h2>
-                 <p className="text-emerald-100/70 mb-12 text-lg">We welcome bulk inquiries and wholesale partnerships. Connect with us to share the gift of purity.</p>
-                 
-                 <div className="space-y-8">
-                    <div className="flex items-center gap-6">
-                       <div className="w-12 h-12 shrink-0 rounded-full bg-emerald-800/50 flex items-center justify-center text-emerald-300"><MapPin size={20}/></div>
-                       <p className="text-white text-sm">213/6A, Eripattai, Chembarambakkam, Chennai – 600123</p>
-                    </div>
-                    <div className="flex items-center gap-6">
-                       <div className="w-12 h-12 shrink-0 rounded-full bg-emerald-800/50 flex items-center justify-center text-emerald-300"><Phone size={20}/></div>
-                       <p className="text-white text-sm">+91 80561 01114</p>
-                    </div>
-                    <div className="flex items-center gap-6">
-                       <div className="w-12 h-12 shrink-0 rounded-full bg-emerald-800/50 flex items-center justify-center text-emerald-300"><Mail size={20}/></div>
-                       <p className="text-white text-sm">mishipoojaproducts@gmail.com</p>
-                    </div>
-                 </div>
-              </div>
-              
-              <div className="w-full lg:w-1/2 h-[400px] lg:h-auto p-4">
-                 <div className="w-full h-full rounded-[2rem] overflow-hidden relative group bg-neutral-100">
-                    <iframe
-                      src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3887.054593925763!2d80.0381669!3d13.032223!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x3a528acaf3c9f2b3%3A0xc6ed7fb0c92bb214!2sChembarambakkam%2C%20Tamil%20Nadu!5e0!3m2!1sen!2sin!4v1700000000000!5m2!1sen!2sin"
-                      width="100%" height="100%" style={{ border: 0 }} allowFullScreen={false} loading="lazy"
-                      className="pointer-events-none"
-                    ></iframe>
-                    <div className="absolute inset-0 bg-black/0 group-hover:bg-black/30 transition-colors flex items-center justify-center pointer-events-auto">
-                       <a href="https://maps.google.com/?q=13.032223,80.0381669" target="_blank" rel="noreferrer" className="opacity-0 group-hover:opacity-100 bg-white text-emerald-900 px-6 py-3 rounded-full font-bold text-sm translate-y-4 group-hover:translate-y-0 transition-all duration-300 shadow-xl flex items-center gap-2">
-                         <MapPin size={18}/> Open in Google Maps
-                       </a>
-                    </div>
-                 </div>
-              </div>
+      {/* Complete Wellness Kit */}
+      <section className="py-8 sm:py-12 px-4 sm:px-6 max-w-7xl mx-auto">
+        <div className="bg-[#2C392A] rounded-2xl sm:rounded-[2rem] p-6 sm:p-10 md:p-12 relative overflow-hidden flex flex-col justify-center items-start min-h-[250px] sm:min-h-[300px]">
+          <div className="absolute right-0 top-0 bottom-0 w-full sm:w-1/2 opacity-15 sm:opacity-20 pointer-events-none">
+            <img src="/gallery/gallery_ingredients_1783444379768.png" className="w-full h-full object-cover" alt="bg"/>
+          </div>
+          <div className="relative z-10 max-w-lg">
+            <span className="inline-block px-3 py-1 bg-white/10 text-white text-[9px] sm:text-[10px] font-bold uppercase tracking-widest rounded-full mb-3 border border-white/20">
+              # Limited Time Offer
+            </span>
+            <h2 className="text-2xl sm:text-4xl md:text-5xl font-black text-white mb-3 sm:mb-4">Complete Wellness Kit</h2>
+            <p className="text-[#a0b09d] text-xs sm:text-base mb-6 sm:mb-8">Ashwagandha + Triphala + Amla Powder — our most popular immunity trio.</p>
+            <Link href="/products" className="bg-white text-[#2C392A] px-6 py-3 rounded-full font-bold text-xs sm:text-sm inline-flex items-center gap-2 hover:bg-[#F7F6F2] shadow-md">
+              Shop Now <ArrowRight size={15}/>
+            </Link>
+          </div>
+        </div>
+      </section>
+
+      {/* Map & Location */}
+      <section className="py-8 sm:py-12 px-4 sm:px-6 max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
+        <div className="bg-[#eaf2eb] rounded-2xl sm:rounded-[2rem] p-6 sm:p-8 flex flex-col items-center justify-center text-center relative overflow-hidden min-h-[240px] sm:min-h-[300px]">
+           <div className="absolute inset-0 opacity-[0.15]" style={{ backgroundImage: 'linear-gradient(#2C392A 1px, transparent 1px), linear-gradient(90deg, #2C392A 1px, transparent 1px)', backgroundSize: '30px 30px' }}></div>
+           <div className="relative z-10 flex flex-col items-center justify-center">
+             <div className="w-10 h-10 sm:w-12 sm:h-12 bg-[#2C392A] rounded-full flex items-center justify-center text-white mb-3"><MapPin size={18}/></div>
+             <h3 className="text-base sm:text-lg font-bold text-[#2C392A] mb-1">Mishi Pooja Products</h3>
+             <p className="text-xs text-[#5F6D59] mb-4">Tamil Nadu, India</p>
+             <a href="https://maps.google.com/?q=13.032223,80.0381669" target="_blank" rel="noreferrer" className="bg-[#2C392A] text-white px-5 py-2.5 rounded-full text-[11px] font-bold flex items-center gap-2 hover:bg-[#1e271d] transition-colors shadow-sm">
+               <MapPin size={12}/> Open in Google Maps
+             </a>
            </div>
-        </section>
+        </div>
+        <div className="bg-white border border-neutral-200 rounded-2xl sm:rounded-[2rem] p-6 sm:p-8 md:p-10 flex flex-col justify-center">
+           <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-[#7DAA8F] mb-2">Find Us</span>
+           <h2 className="text-2xl sm:text-3xl font-black text-[#2C392A] mb-3 sm:mb-4">Visit Our Store</h2>
+           <p className="text-[#5F6D59] text-xs sm:text-sm leading-relaxed mb-6">Come experience our authentic herbal products in person. Our knowledgeable staff will help you find the right remedies for your needs.</p>
+           <div className="space-y-3 sm:space-y-4">
+             <div className="flex gap-3 sm:gap-4">
+               <MapPin size={18} className="text-[#7DAA8F] shrink-0 mt-0.5"/>
+               <div><p className="text-[11px] font-bold text-[#2C392A]">Store Location</p><p className="text-[11px] text-[#5F6D59]">213/6A, Eripattai, Chembarambakkam, Chennai – 600123</p></div>
+             </div>
+             <div className="flex gap-3 sm:gap-4">
+               <Phone size={18} className="text-[#7DAA8F] shrink-0 mt-0.5"/>
+               <div><p className="text-[11px] font-bold text-[#2C392A]">Phone Number</p><p className="text-[11px] text-[#5F6D59]">+91 80561 01114</p></div>
+             </div>
+           </div>
+        </div>
+      </section>
 
-        {/* New Footer */}
-        <footer className="bg-[#05140b] pt-16 pb-8 px-6 lg:px-20 text-neutral-300 font-sans">
-          <div className="max-w-7xl mx-auto flex flex-col md:flex-row justify-between gap-12 mb-16">
-            
-            {/* Left Column */}
-            <div className="w-full md:w-1/3 flex flex-col items-center md:items-start text-center md:text-left">
-              <img src="/logo.webp" alt="Mishi Pooja Products" className="h-16 w-auto object-contain mb-6" />
-              <p className="text-sm text-neutral-300 leading-relaxed max-w-sm">
-                Bringing you the divine essence of pure, hand-crafted Himalayan herbs and natural resins. Create a peaceful sanctuary in your everyday life.
-              </p>
-            </div>
-
-            {/* Middle Column */}
-            <div className="w-full md:w-1/3 flex flex-col items-center md:items-center">
-              <div className="flex flex-col items-center md:items-start text-center md:text-left">
-                <h4 className="text-emerald-100/60 font-bold tracking-[0.1em] uppercase text-[10px] mb-6">Explore</h4>
-                <div className="flex flex-col gap-4 text-xs font-semibold text-neutral-200">
-                  <Link href="/" className="hover:text-emerald-400 transition-colors">Home</Link>
-                  <Link href="/#about" className="hover:text-emerald-400 transition-colors">About</Link>
-                  <Link href="/#products" className="hover:text-emerald-400 transition-colors">Categories</Link>
-                  <Link href="/products" className="hover:text-emerald-400 transition-colors">Shop</Link>
-                </div>
-              </div>
-            </div>
-
-            {/* Right Column */}
-            <div className="w-full md:w-1/3 flex flex-col items-center md:items-end">
-              <div className="flex flex-col items-center md:items-start text-center md:text-left">
-                <h4 className="text-emerald-100/60 font-bold tracking-[0.1em] uppercase text-[10px] mb-6">Contact Us</h4>
-                <div className="flex flex-col gap-4 text-xs text-neutral-300 font-medium">
-                  <div>
-                    <p className="font-bold text-white mb-1">Address:</p>
-                    <p>213/6A, Eripattai, Chembarambakkam,</p>
-                    <p>Chennai – 600123</p>
-                  </div>
-                  <div>
-                    <p className="font-bold text-white mb-1">Email:</p>
-                    <p>mishipoojaproducts@gmail.com</p>
-                  </div>
-                  <div>
-                    <p className="font-bold text-white mb-1">Phone:</p>
-                    <p>+91 80561 01114</p>
-                  </div>
-                </div>
-              </div>
-            </div>
-
+      {/* Footer */}
+      <footer className="bg-[#2C392A] pt-12 sm:pt-16 pb-8 px-4 sm:px-6 text-white/80 mt-8 sm:mt-12">
+        <div className="max-w-7xl mx-auto grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-8 sm:gap-12 mb-8 sm:mb-12 border-b border-white/10 pb-8 sm:pb-12">
+          <div className="sm:col-span-2">
+            <img src="/logo.webp" alt="Mishi" className="h-10 sm:h-12 w-auto brightness-0 invert mb-4 sm:mb-6" />
+            <p className="text-xs sm:text-sm text-white/60 leading-relaxed max-w-sm">Bringing you the divine essence of pure, hand-crafted Himalayan herbs and natural resins. Create a peaceful sanctuary in your everyday life.</p>
           </div>
-          
-          <div className="max-w-7xl mx-auto pt-8 border-t border-white/5 flex flex-col md:flex-row items-center justify-between gap-6 text-[10px] md:text-xs text-neutral-400 font-medium">
-            <div className="w-full md:w-1/3 text-center md:text-left">
-              <p>© 2026 Mishi Pooja Products. All Rights Reserved</p>
-            </div>
-            <div className="w-full md:w-1/3 text-center">
-              <p>Powered by <span className="text-white font-semibold">Cenexa Systems</span> © 2026</p>
-            </div>
-            <div className="w-full md:w-1/3 text-center md:text-right flex justify-center md:justify-end">
-              <div className="flex gap-4 text-[10px] uppercase tracking-[0.2em] font-bold text-neutral-300">
-                <span>Purity</span>
-                <span>•</span>
-                <span>Devotion</span>
-                <span>•</span>
-                <span>Tradition</span>
-              </div>
-            </div>
+          <div>
+            <h4 className="text-white font-bold mb-4 sm:mb-6 text-xs sm:text-sm">Quick Links</h4>
+            <ul className="space-y-2.5 sm:space-y-3 text-xs sm:text-sm">
+              <li><Link href="/" className="hover:text-white transition-colors">Home</Link></li>
+              <li><Link href="/products" className="hover:text-white transition-colors">Shop</Link></li>
+              <li><Link href="/cart" className="hover:text-white transition-colors">Cart</Link></li>
+              <li><Link href="/profile" className="hover:text-white transition-colors">Profile</Link></li>
+            </ul>
           </div>
-        </footer>
-      </div>
+          <div>
+            <h4 className="text-white font-bold mb-4 sm:mb-6 text-xs sm:text-sm">Contact</h4>
+            <ul className="space-y-2.5 sm:space-y-3 text-xs sm:text-sm text-white/70">
+              <li>+91 80561 01114</li>
+              <li>mishipoojaproducts@gmail.com</li>
+              <li>Chembarambakkam, Chennai</li>
+            </ul>
+          </div>
+        </div>
+        <div className="max-w-7xl mx-auto flex flex-col items-center gap-3 text-center text-xs text-white/40">
+          <p>© 2026 Mishi Pooja Products. Powered by Cenexa Systems</p>
+          <div className="flex gap-3 sm:gap-4 font-bold uppercase tracking-widest text-[9px] sm:text-[10px]">
+            <span>Purity</span>
+            <span>•</span>
+            <span>Devotion</span>
+            <span>•</span>
+            <span>Tradition</span>
+          </div>
+        </div>
+      </footer>
+    </div>
   );
 }
+
