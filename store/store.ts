@@ -222,3 +222,22 @@ export const useFavStore = create<FavStore>((set, get) => ({
   },
   isFav: (productId) => get().favorites.includes(productId),
 }));
+
+export type Language = 'en' | 'ta';
+
+interface LangStore {
+  lang: Language;
+  setLang: (lang: Language) => void;
+}
+
+export const useLangStore = create<LangStore>()(
+  persist(
+    (set) => ({
+      lang: 'en',
+      setLang: (lang) => set({ lang }),
+    }),
+    {
+      name: 'lang-storage',
+    }
+  )
+);
