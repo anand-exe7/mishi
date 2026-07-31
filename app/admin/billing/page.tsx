@@ -144,30 +144,11 @@ export default function POSBillingPanel() {
       await addOrder(newOrder);
 
       // 2. Format WhatsApp Message
-      const wave = String.fromCodePoint(0x1F44B);
-      const bag = String.fromCodePoint(0x1F6CD);
-      const star = String.fromCodePoint(0x2B50);
-      const doc = String.fromCodePoint(0x1F4C4);
-      const check = String.fromCodePoint(0x2705);
-      
-      const itemsText = items.map(i => `• ${i.name} (${i.size}) - ${i.qty} x ₹${i.price} = ₹${i.qty * i.price}`).join('%0A');
-      
-      let message = `Hello ${customerName} ${wave}%0A%0A`;
-      message += `Thank you for shopping with Mishi! ${bag}%0A%0A`;
-      message += `*Your Order Details:*%0A${itemsText}%0A%0A`;
-      
-      if (couponDiscount > 0 || calculatedManualDiscount > 0 || delivery > 0) {
-        message += `Subtotal: ₹${subtotal}%0A`;
-        if (couponDiscount > 0) message += `Coupon Discount (${selectedCouponCode}): -₹${couponDiscount}%0A`;
-        if (calculatedManualDiscount > 0) message += `Manual Discount: -₹${calculatedManualDiscount}%0A`;
-        if (delivery > 0) message += `Delivery: ₹${delivery}%0A`;
-        message += `%0A`;
-      }
-      
-      message += `*Grand Total: ₹${grandTotal}* ${check}%0A%0A`;
-      message += `*Please look at this for your invoice:* ${doc}%0A`;
-      message += `Invoice ID: ${orderId}%0A%0A`;
-      message += `Have a great day! ${star}`;
+      let message = `Mishi Pooja Products- Purchase Successful!%0A%0A`;
+      message += `Hi ${customerName},%0A`;
+      message += `Thank you for shopping with us! You can view, download, or print your official digital invoice here:%0A%0A`;
+      message += `${window.location.origin}/invoice/${orderId}%0A%0A`;
+      message += `Have a great day!`;
 
       // 3. Open WhatsApp Web
       window.open(`https://api.whatsapp.com/send/?phone=91${cleanPhone}&text=${message}`, '_blank');
