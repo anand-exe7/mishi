@@ -203,7 +203,7 @@ export default function ProductsPage() {
                   className="group flex flex-col bg-white border border-emerald-100 rounded-2xl sm:rounded-3xl p-2.5 sm:p-4 shadow-sm hover:shadow-xl transition-all duration-300 hover:-translate-y-1 cursor-pointer relative h-full justify-between"
                 >
                   <div>
-                    <div className="w-full aspect-square sm:aspect-[4/5] rounded-xl sm:rounded-2xl overflow-hidden mb-2.5 sm:mb-4 relative bg-[#F9F8F5]">
+                    <div className="w-full aspect-[4/5] rounded-xl sm:rounded-2xl overflow-hidden mb-2.5 sm:mb-4 relative bg-[#F9F8F5]">
                       <img
                         src={product.imageUrl || "/placeholder.jpg"}
                         alt={product.name}
@@ -264,7 +264,7 @@ export default function ProductsPage() {
               initial={{ scale: 0.95, y: 20, opacity: 0 }}
               animate={{ scale: 1, y: 0, opacity: 1 }}
               exit={{ scale: 0.95, y: 20, opacity: 0 }}
-              className="bg-white w-[94vw] max-w-3xl max-h-[88vh] overflow-y-auto rounded-3xl md:rounded-[2rem] flex flex-col md:flex-row shadow-2xl relative my-auto border border-emerald-100 items-stretch"
+              className="bg-white w-[94vw] max-w-2xl max-h-[85vh] sm:max-h-[88vh] rounded-3xl md:rounded-[2rem] flex flex-col md:flex-row shadow-2xl relative my-auto border border-emerald-100 overflow-hidden"
               onClick={(e) => e.stopPropagation()}
             >
               {/* Close Button */}
@@ -274,59 +274,44 @@ export default function ProductsPage() {
                   setQty(1);
                   setSelectedSize("");
                 }}
-                className="absolute top-3 right-3 z-20 w-8 h-8 sm:w-9 sm:h-9 bg-white/90 backdrop-blur-md rounded-full flex items-center justify-center text-emerald-900 hover:bg-emerald-50 transition-colors shadow-md border border-emerald-200"
+                className="absolute top-3 right-3 z-30 w-8 h-8 sm:w-9 sm:h-9 bg-white/90 backdrop-blur-md rounded-full flex items-center justify-center text-emerald-900 hover:bg-emerald-50 transition-colors shadow-md border border-emerald-200"
               >
                 <X size={18} />
               </button>
 
-              {/* Product Image Container - Single Seamless Edge-to-Edge Panel */}
-              <div className="w-full md:w-1/2 relative bg-[#F9F8F5] shrink-0 overflow-hidden min-h-[250px] sm:min-h-[300px] md:min-h-[420px]">
+              {/* Product Image Container - Perfect Full-View Display */}
+              <div className="w-full md:w-5/12 bg-[#F7F6F0] relative shrink-0 h-52 sm:h-64 md:h-auto flex items-center justify-center p-3 sm:p-4 overflow-hidden border-b md:border-b-0 md:border-r border-emerald-100/60">
                 <img
                   src={selectedProduct.imageUrl || "/placeholder.jpg"}
                   alt={selectedProduct.name}
-                  className="w-full h-full object-cover rounded-t-3xl md:rounded-tr-none md:rounded-l-3xl"
+                  className="w-full h-full object-contain rounded-xl drop-shadow-sm"
                 />
               </div>
 
-              {/* Product Details - Mobile & Desktop Responsive Flow */}
-              <div className="w-full md:w-1/2 p-4 xs:p-5 sm:p-7 flex flex-col justify-start gap-3.5 sm:gap-4">
-                <div className="space-y-1.5 sm:space-y-2">
-                  <span className="text-emerald-700 text-[10px] sm:text-xs font-extrabold tracking-[0.2em] uppercase block">
-                    {selectedProduct.category || "Herbal Product"}
-                  </span>
-                  <h2
-                    className={`text-xl xs:text-2xl sm:text-3xl text-emerald-950 font-black leading-tight ${playfair.className}`}
-                  >
-                    {selectedProduct.name}
-                  </h2>
-                  <p className="text-[#5F6D59] font-normal text-xs sm:text-sm leading-relaxed">
-                    {selectedProduct.description ||
-                      "Traditional authentic Siddha product crafted for purity, peace, and spiritual harmony."}
-                  </p>
-                </div>
+              {/* Product Details - Scrollable Body + Fixed Sticky Footer */}
+              <div className="w-full md:w-7/12 flex flex-col justify-between overflow-hidden bg-white">
+                {/* Scrollable Content Body */}
+                <div className="p-4 xs:p-5 sm:p-6 overflow-y-auto space-y-4 flex-1">
+                  {/* Category, Title, Price */}
+                  <div>
+                    <span className="text-emerald-700 text-[10px] sm:text-xs font-extrabold tracking-[0.2em] uppercase block mb-1">
+                      {selectedProduct.category || "Herbal Product"}
+                    </span>
+                    <h2
+                      className={`text-xl xs:text-2xl sm:text-3xl text-emerald-950 font-black leading-tight mb-2 ${playfair.className}`}
+                    >
+                      {selectedProduct.name}
+                    </h2>
+                    <div className="text-2xl sm:text-3xl font-black text-emerald-950">
+                      ₹{getSelectedPrice() / qty} <span className="text-xs text-neutral-400 font-normal">/ unit</span>
+                    </div>
+                  </div>
 
-                {/* Key Herbal Highlights Section */}
-                <div className="bg-emerald-50/70 border border-emerald-900/10 rounded-2xl p-2.5 sm:p-3 space-y-1.5">
-                  <div className="flex items-center gap-2 text-xs font-bold text-emerald-950">
-                    <span className="w-4 h-4 rounded-full bg-emerald-600 text-white flex items-center justify-center text-[10px] font-black shrink-0">✓</span>
-                    100% Sun-Dried Organic Ingredients
-                  </div>
-                  <div className="flex items-center gap-2 text-xs font-bold text-emerald-950">
-                    <span className="w-4 h-4 rounded-full bg-emerald-600 text-white flex items-center justify-center text-[10px] font-black shrink-0">✓</span>
-                    Authentic Siddha Formulation
-                  </div>
-                  <div className="flex items-center gap-2 text-xs font-bold text-emerald-950">
-                    <span className="w-4 h-4 rounded-full bg-emerald-600 text-white flex items-center justify-center text-[10px] font-black shrink-0">✓</span>
-                    Fast Dispatch & Secure Packaging
-                  </div>
-                </div>
-
-                <div className="space-y-3">
-                  {/* Size Selection */}
+                  {/* Select Package Size Chips */}
                   {selectedProduct.predefinedOptions &&
                     selectedProduct.predefinedOptions.length > 0 && (
-                      <div>
-                        <span className="text-[10px] uppercase tracking-widest font-extrabold text-emerald-800 block mb-1">
+                      <div className="pt-3 border-t border-neutral-100">
+                        <span className="text-[10px] uppercase tracking-widest font-extrabold text-emerald-800 block mb-2">
                           Select Package Size
                         </span>
                         <div className="flex gap-2 flex-wrap">
@@ -336,10 +321,10 @@ export default function ProductsPage() {
                               <button
                                 key={opt.label}
                                 onClick={() => setSelectedSize(opt.label)}
-                                className={`px-3.5 py-1 rounded-full border text-xs font-bold transition-all ${
+                                className={`px-4 py-1.5 rounded-full border text-xs font-bold transition-all ${
                                   selectedSize === opt.label
-                                    ? "border-emerald-600 bg-emerald-600 text-white shadow-sm"
-                                    : "border-emerald-200 text-emerald-800 hover:border-emerald-400"
+                                    ? "border-[#2C392A] bg-[#2C392A] text-white shadow-sm"
+                                    : "border-neutral-200 text-zinc-700 hover:border-emerald-400 bg-white"
                                 }`}
                               >
                                 {opt.label}
@@ -349,95 +334,128 @@ export default function ProductsPage() {
                       </div>
                     )}
 
-                  {/* Quantity & Price */}
-                  <div>
+                  {/* Product Description */}
+                  <div className="pt-3 border-t border-neutral-100">
                     <span className="text-[10px] uppercase tracking-widest font-extrabold text-emerald-800 block mb-1">
-                      Quantity
+                      Description
                     </span>
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center border border-emerald-200 rounded-full bg-emerald-50/40 overflow-hidden">
-                        <button
-                          onClick={() => setQty(Math.max(1, qty - 1))}
-                          className="px-3 py-1.5 text-emerald-700 hover:text-emerald-950 hover:bg-emerald-100 transition-colors"
-                        >
-                          <Minus size={14} />
-                        </button>
-                        <span className="w-7 text-center font-black text-xs sm:text-sm text-emerald-950">
-                          {qty}
-                        </span>
-                        <button
-                          onClick={() => setQty(qty + 1)}
-                          className="px-3 py-1.5 text-emerald-700 hover:text-emerald-950 hover:bg-emerald-100 transition-colors"
-                        >
-                          <Plus size={14} />
-                        </button>
-                      </div>
-                      <div className="flex flex-col items-end">
-                        <div className="text-xl sm:text-2xl font-black text-emerald-950">
-                          ₹{getSelectedPrice()}
-                        </div>
-                      </div>
+                    <p className="text-[#5F6D59] font-normal text-xs sm:text-sm leading-relaxed">
+                      {selectedProduct.description ||
+                        "Traditional authentic Siddha product crafted for purity, peace, and spiritual harmony."}
+                    </p>
+                  </div>
+
+                  {/* Key Herbal Highlights Section */}
+                  <div className="bg-[#F9F8F5] border border-emerald-900/10 rounded-2xl p-3 space-y-1.5">
+                    <div className="flex items-center gap-2 text-xs font-bold text-emerald-950">
+                      <span className="w-4 h-4 rounded-full bg-emerald-600 text-white flex items-center justify-center text-[10px] font-black shrink-0">✓</span>
+                      100% Sun-Dried Organic Ingredients
+                    </div>
+                    <div className="flex items-center gap-2 text-xs font-bold text-emerald-950">
+                      <span className="w-4 h-4 rounded-full bg-emerald-600 text-white flex items-center justify-center text-[10px] font-black shrink-0">✓</span>
+                      Authentic Siddha Formulation
+                    </div>
+                    <div className="flex items-center gap-2 text-xs font-bold text-emerald-950">
+                      <span className="w-4 h-4 rounded-full bg-emerald-600 text-white flex items-center justify-center text-[10px] font-black shrink-0">✓</span>
+                      Fast Dispatch & Secure Packaging
+                    </div>
+                  </div>
+
+                  {/* Delivery Notice & Guarantees */}
+                  <div className="pt-2 border-t border-neutral-100 space-y-1">
+                    <p className="text-[10px] sm:text-[11px] text-emerald-900 font-bold flex items-center gap-1">
+                      <span>🚚</span> Delivery charges may vary based on location
+                    </p>
+                    <div className="flex items-center justify-between text-[9px] sm:text-[10px] font-semibold text-[#5F6D59]">
+                      <span>• Express Store Dispatch</span>
+                      <span>• WhatsApp Support</span>
                     </div>
                   </div>
                 </div>
 
-                {/* Add To Cart Button */}
-                <button
-                  onClick={() => {
-                    addItem(selectedProduct, qty, selectedSize);
+                {/* STICKY BOTTOM FOOTER BAR (Fixed to bottom like reference image) */}
+                <div className="p-3.5 sm:p-4 bg-white border-t border-neutral-200/80 shadow-[0_-4px_12px_rgba(0,0,0,0.05)] shrink-0 space-y-2.5">
+                  {/* Footer Top Row: Size Info & Calculated Total Price */}
+                  <div className="flex items-center justify-between text-xs font-bold">
+                    <span className="text-zinc-600">
+                      {selectedSize || "Standard"} <span className="text-zinc-400 font-normal">(₹{getSelectedPrice() / qty} each)</span>
+                    </span>
+                    <span className="text-xl sm:text-2xl font-black text-emerald-950">
+                      ₹{getSelectedPrice()}
+                    </span>
+                  </div>
 
-                    toast.custom(
-                      (t) => (
-                        <div
-                          className={`${
-                            t.visible ? "animate-enter" : "animate-leave"
-                          } max-w-sm w-full bg-[#2C392A] shadow-2xl rounded-2xl pointer-events-auto flex items-center p-3.5 gap-3 border border-emerald-500/30`}
-                        >
-                          <div className="w-9 h-9 bg-emerald-600 rounded-full flex items-center justify-center shrink-0 shadow-inner">
-                            <ShoppingCart size={16} className="text-white" />
-                          </div>
-                          <div className="flex-1">
-                            <p className="text-xs font-bold text-white">
-                              Added to cart
-                            </p>
-                            <p className="text-[10px] text-emerald-200 line-clamp-1">
-                              {qty}x {selectedProduct.name}
-                            </p>
-                          </div>
-                          <Link
-                            href="/cart"
-                            className="bg-white text-emerald-950 px-3.5 py-1.5 rounded-full text-[9px] font-black tracking-widest uppercase hover:bg-emerald-50 transition-colors shrink-0"
-                            onClick={() => toast.dismiss(t.id)}
-                          >
-                            View Cart
-                          </Link>
-                        </div>
-                      ),
-                      { position: "bottom-center", duration: 4000 },
-                    );
+                  {/* Footer Bottom Row: Quantity Stepper + Add To Cart Button */}
+                  <div className="flex items-center gap-3">
+                    {/* Quantity Stepper */}
+                    <div className="flex items-center border border-neutral-300 rounded-full bg-neutral-50 px-1 py-1 shrink-0">
+                      <button
+                        onClick={() => setQty(Math.max(1, qty - 1))}
+                        className="w-7 h-7 rounded-full bg-white text-zinc-700 hover:bg-emerald-100 hover:text-emerald-950 flex items-center justify-center font-bold text-sm shadow-sm transition-colors"
+                        aria-label="Decrease quantity"
+                      >
+                        <Minus size={14} />
+                      </button>
+                      <span className="w-8 text-center font-black text-sm text-emerald-950">
+                        {qty}
+                      </span>
+                      <button
+                        onClick={() => setQty(qty + 1)}
+                        className="w-7 h-7 rounded-full bg-white text-zinc-700 hover:bg-emerald-100 hover:text-emerald-950 flex items-center justify-center font-bold text-sm shadow-sm transition-colors"
+                        aria-label="Increase quantity"
+                      >
+                        <Plus size={14} />
+                      </button>
+                    </div>
 
-                    setCartSuccessDetails({
-                      product: selectedProduct,
-                      qty,
-                      selectedSize,
-                    });
-                    setSelectedProduct(null);
-                    setQty(1);
-                    setSelectedSize("");
-                  }}
-                  className="w-full bg-[#2C392A] hover:bg-[#1e271d] text-white font-extrabold py-3.5 rounded-full uppercase tracking-widest text-xs transition-all shadow-lg shadow-[#2C392A]/20 active:scale-[0.98] mt-1"
-                >
-                  Add to Cart
-                </button>
+                    {/* Add to Cart Button */}
+                    <button
+                      onClick={() => {
+                        addItem(selectedProduct, qty, selectedSize);
 
-                {/* Delivery Notice & Guarantees */}
-                <div className="pt-2 border-t border-neutral-100 space-y-1">
-                  <p className="text-[10px] sm:text-[11px] text-emerald-900 font-bold flex items-center gap-1">
-                    <span>🚚</span> Delivery charges may vary based on location
-                  </p>
-                  <div className="flex items-center justify-between text-[9px] sm:text-[10px] font-semibold text-[#5F6D59]">
-                    <span>• Express Store Dispatch</span>
-                    <span>• WhatsApp Support</span>
+                        toast.custom(
+                          (t) => (
+                            <div
+                              className={`${
+                                t.visible ? "animate-enter" : "animate-leave"
+                              } max-w-sm w-full bg-[#2C392A] shadow-2xl rounded-2xl pointer-events-auto flex items-center p-3.5 gap-3 border border-emerald-500/30`}
+                            >
+                              <div className="w-9 h-9 bg-emerald-600 rounded-full flex items-center justify-center shrink-0 shadow-inner">
+                                <ShoppingCart size={16} className="text-white" />
+                              </div>
+                              <div className="flex-1">
+                                <p className="text-xs font-bold text-white">
+                                  Added to cart
+                                </p>
+                                <p className="text-[10px] text-emerald-200 line-clamp-1">
+                                  {qty}x {selectedProduct.name}
+                                </p>
+                              </div>
+                              <Link
+                                href="/cart"
+                                className="bg-white text-emerald-950 px-3.5 py-1.5 rounded-full text-[9px] font-black tracking-widest uppercase hover:bg-emerald-50 transition-colors shrink-0"
+                                onClick={() => toast.dismiss(t.id)}
+                              >
+                                View Cart
+                              </Link>
+                            </div>
+                          ),
+                          { position: "bottom-center", duration: 4000 },
+                        );
+
+                        setCartSuccessDetails({
+                          product: selectedProduct,
+                          qty,
+                          selectedSize,
+                        });
+                        setSelectedProduct(null);
+                        setQty(1);
+                        setSelectedSize("");
+                      }}
+                      className="flex-1 bg-[#2C392A] hover:bg-[#1e271d] text-white font-extrabold py-3 px-4 rounded-full uppercase tracking-wider text-xs transition-all shadow-lg shadow-[#2C392A]/20 active:scale-[0.98] flex items-center justify-center gap-2"
+                    >
+                      <ShoppingCart size={15} /> Add to Cart
+                    </button>
                   </div>
                 </div>
               </div>

@@ -20,7 +20,7 @@ import {
 import { Playfair_Display } from "next/font/google";
 const playfair = Playfair_Display({ subsets: ["latin"] });
 import { useEffect, useState, useRef } from "react";
-import { useCartStore, useProductStore, useLangStore } from "@/store/store";
+import { useProductStore, useLangStore } from "@/store/store";
 import { getT } from "@/lib/translations";
 import Link from "next/link";
 import SacredRitualFinder from "@/components/SacredRitualFinder";
@@ -31,7 +31,6 @@ export default function Home() {
   const { lang } = useLangStore();
   const t = getT(lang);
   const { products: storeProducts, fetchProducts } = useProductStore();
-  const cartItems = useCartStore((state) => state.items);
   const [reviews, setReviews] = useState<any[]>([]);
 
   // Review Modal State
@@ -99,14 +98,6 @@ export default function Home() {
     setReviews(defaultR);
   }, [fetchProducts]);
 
-  const cartTotal = cartItems.reduce((acc, item) => {
-    const option = item.product.predefinedOptions?.find(
-      (o: any) => o.unit === item.unit,
-    );
-    return acc + (option ? option.price : item.product.price) * item.quantity;
-  }, 0);
-  const cartCount = cartItems.reduce((acc, item) => acc + item.quantity, 0);
-
   const scrollToRitualFinder = () => {
     const el = document.getElementById("ritual-finder");
     if (el) {
@@ -158,41 +149,6 @@ export default function Home() {
     <div
       className={`bg-[#F9F8F5] text-neutral-900 min-h-screen ${playfair.className} selection:bg-[#7DAA8F]/30 selection:text-[#2C392A] overflow-x-hidden font-sans`}
     >
-      {/* Floating Cart Bar */}
-      <AnimatePresence>
-        {cartCount > 0 && (
-          <motion.div
-            initial={{ y: 100, opacity: 0 }}
-            animate={{ y: 0, opacity: 1 }}
-            exit={{ y: 100, opacity: 0 }}
-            className="fixed bottom-4 left-3 right-3 sm:left-1/2 sm:right-auto sm:-translate-x-1/2 z-50 pointer-events-auto max-w-md w-full sm:w-auto"
-          >
-            <Link
-              href="/cart"
-              className="flex items-center justify-between gap-3 bg-[#2C392A] hover:bg-[#1f281d] text-white px-4 sm:px-6 py-3.5 rounded-full shadow-2xl transition-all border border-emerald-400/20"
-            >
-              <div className="flex items-center gap-3">
-                <div className="relative">
-                  <ShoppingCart size={18} />
-                  <span className="absolute -top-2 -right-2 bg-emerald-500 text-white text-[9px] font-black w-4.5 h-4.5 rounded-full flex items-center justify-center border border-white">
-                    {cartCount}
-                  </span>
-                </div>
-                <div className="flex flex-col border-r border-white/20 pr-3">
-                  <span className="text-[9px] text-white/70 uppercase font-bold tracking-wider">
-                    Total
-                  </span>
-                  <span className="text-xs sm:text-sm font-black text-emerald-300">₹{cartTotal}</span>
-                </div>
-              </div>
-              <span className="text-xs font-bold tracking-wider flex items-center gap-1.5 bg-[#7DAA8F] hover:bg-[#6c987c] text-white px-3.5 py-1.5 rounded-full transition-colors">
-                VIEW CART <ArrowRight size={13} />
-              </span>
-            </Link>
-          </motion.div>
-        )}
-      </AnimatePresence>
-
       {/* HERO SECTION */}
       <section
         id="home"

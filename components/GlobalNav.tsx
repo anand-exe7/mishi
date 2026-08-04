@@ -49,10 +49,21 @@ export default function GlobalNav() {
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
-  // Close drawer on page change
+  // Close drawer on page change & manage body scroll
   useEffect(() => {
     setIsMenuOpen(false);
   }, [pathname]);
+
+  useEffect(() => {
+    if (isMenuOpen) {
+      document.body.style.overflow = "hidden";
+    } else {
+      document.body.style.overflow = "";
+    }
+    return () => {
+      document.body.style.overflow = "";
+    };
+  }, [isMenuOpen]);
 
   const handleSearchSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -82,10 +93,10 @@ export default function GlobalNav() {
   return (
     <>
       <header
-        className={`fixed top-0 left-0 right-0 z-50 w-full transition-all duration-300 ${
+        className={`fixed top-0 left-0 right-0 z-50 w-full transition-shadow duration-300 py-3 ${
           isScrolled
-            ? "bg-white/95 backdrop-blur-xl shadow-md border-b border-emerald-900/10 py-2.5 sm:py-3.5"
-            : "bg-white/90 backdrop-blur-md border-b border-emerald-950/5 py-3 sm:py-4"
+            ? "bg-white/95 backdrop-blur-md shadow-md border-b border-emerald-900/10"
+            : "bg-white/95 backdrop-blur-md border-b border-emerald-950/5"
         }`}
       >
         <div className="max-w-7xl mx-auto px-2.5 sm:px-6 lg:px-8 flex items-center justify-between gap-1.5 sm:gap-4">
@@ -203,8 +214,9 @@ export default function GlobalNav() {
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
+              transition={{ duration: 0.2 }}
               onClick={() => setIsMenuOpen(false)}
-              className="fixed inset-0 z-40 bg-black/60 backdrop-blur-sm"
+              className="fixed inset-0 z-40 bg-black/60"
             />
 
             {/* Burger Nav Drawer */}
@@ -212,8 +224,8 @@ export default function GlobalNav() {
               initial={{ x: "100%" }}
               animate={{ x: 0 }}
               exit={{ x: "100%" }}
-              transition={{ type: "spring", damping: 25, stiffness: 220 }}
-              className="fixed top-0 right-0 bottom-0 w-full sm:w-[85%] max-w-md z-50 bg-white shadow-2xl flex flex-col justify-between overflow-y-auto"
+              transition={{ duration: 0.25, ease: [0.16, 1, 0.3, 1] }}
+              className="fixed top-0 right-0 bottom-0 w-full sm:w-[85%] max-w-md z-50 bg-white shadow-2xl flex flex-col justify-between overflow-y-auto will-change-transform"
             >
               <div className="p-4 sm:p-6">
                 {/* Drawer Header */}
