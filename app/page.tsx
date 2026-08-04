@@ -1,9 +1,6 @@
 "use client";
 
-import {
-  motion,
-  AnimatePresence,
-} from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import {
   Phone,
   ArrowRight,
@@ -11,20 +8,24 @@ import {
   Leaf,
   ShoppingCart,
   Star,
+  Sparkles,
+  Award,
+  ShieldCheck,
+  ChevronRight,
+  ChevronLeft,
+  Quote,
+  X,
+  CheckCircle2
 } from "lucide-react";
 import { Playfair_Display } from "next/font/google";
 const playfair = Playfair_Display({ subsets: ["latin"] });
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { useCartStore, useProductStore, useLangStore } from "@/store/store";
 import { getT } from "@/lib/translations";
 import Link from "next/link";
+import SacredRitualFinder from "@/components/SacredRitualFinder";
 
-const reelVideos = [
-  "DX9JNchDWyW",
-  "DYTZ_U1idZK",
-  "DYCWOObD0x3",
-  "Daxqbe-ihQE",
-];
+const reelVideos = ["DX9JNchDWyW", "DYTZ_U1idZK", "DYCWOObD0x3", "Daxqbe-ihQE"];
 
 export default function Home() {
   const { lang } = useLangStore();
@@ -33,48 +34,158 @@ export default function Home() {
   const cartItems = useCartStore((state) => state.items);
   const [reviews, setReviews] = useState<any[]>([]);
 
+  // Review Modal State
+  const [isReviewModalOpen, setIsReviewModalOpen] = useState(false);
+  const [newRating, setNewRating] = useState(5);
+  const [newAuthor, setNewAuthor] = useState("");
+  const [newLocation, setNewLocation] = useState("");
+  const [newText, setNewText] = useState("");
+  const [reviewSuccess, setReviewSuccess] = useState(false);
+
+  const categoryScrollRef = useRef<HTMLDivElement>(null);
+
   useEffect(() => {
     fetchProducts();
     const defaultR = [
-      { id: 1, text: "Exceptional quality herbal products! Been using them for 6 months — truly authentic remedies that actually work. Packaging is perfect and delivery is fast.", author: "Priya Krishnamurthy", location: "Chennai", initial: "PK", rating: 5 },
-      { id: 2, text: "The herbal oils are absolutely pure and give real results. Ordered multiple times and every batch smells fresh and aromatic. Best shop online!", author: "Ramesh Murugan", location: "Coimbatore", initial: "RM", rating: 5 },
-      { id: 3, text: "Genuine products at very reasonable prices. Customer service via WhatsApp is very responsive. The herbal powders improved my family's immunity greatly.", author: "Kavitha Sundaram", location: "Madurai", initial: "KS", rating: 5 },
-      { id: 4, text: "Outstanding quality. The sambrani powders are the best I have ever tried. Have been recommending to all my friends and relatives. 100% authentic!", author: "Anand Thiagarajan", location: "Trichy", initial: "AT", rating: 5 }
+      {
+        id: 1,
+        text: "Exceptional quality herbal products! Been using them for 6 months — truly authentic remedies that actually work. Packaging is perfect and delivery is fast.",
+        author: "Priya Krishnamurthy",
+        location: "Chennai",
+        initial: "PK",
+        rating: 5,
+      },
+      {
+        id: 2,
+        text: "The herbal oils are absolutely pure and give real results. Ordered multiple times and every batch smells fresh and aromatic. Best shop online!",
+        author: "Ramesh Murugan",
+        location: "Coimbatore",
+        initial: "RM",
+        rating: 5,
+      },
+      {
+        id: 3,
+        text: "Genuine products at very reasonable prices. Customer service via WhatsApp is very responsive. The herbal powders improved my family's immunity greatly.",
+        author: "Kavitha Sundaram",
+        location: "Madurai",
+        initial: "KS",
+        rating: 5,
+      },
+      {
+        id: 4,
+        text: "Outstanding quality. The sambrani powders are the best I have ever tried. Have been recommending to all my friends and relatives. 100% authentic!",
+        author: "Anand Thiagarajan",
+        location: "Trichy",
+        initial: "AT",
+        rating: 5,
+      },
+      {
+        id: 5,
+        text: "Direct Siddha formulations with natural sun-dried aroma. Very satisfying experience ordering through WhatsApp!",
+        author: "Meenakshi Sundaram",
+        location: "Salem",
+        initial: "MS",
+        rating: 5,
+      },
+      {
+        id: 6,
+        text: "Pure ingredients and divine fragrance that fills the entire home with peace. Highly recommended!",
+        author: "Siddharth V.",
+        location: "Tirunelveli",
+        initial: "SV",
+        rating: 5,
+      }
     ];
     setReviews(defaultR);
   }, [fetchProducts]);
 
   const cartTotal = cartItems.reduce((acc, item) => {
-    const option = item.product.predefinedOptions?.find((o:any) => o.unit === item.unit);
+    const option = item.product.predefinedOptions?.find(
+      (o: any) => o.unit === item.unit,
+    );
     return acc + (option ? option.price : item.product.price) * item.quantity;
   }, 0);
   const cartCount = cartItems.reduce((acc, item) => acc + item.quantity, 0);
 
+  const scrollToRitualFinder = () => {
+    const el = document.getElementById("ritual-finder");
+    if (el) {
+      el.scrollIntoView({ behavior: "smooth" });
+    }
+  };
+
+  const scrollContainer = (ref: React.RefObject<HTMLDivElement | null>, direction: "left" | "right") => {
+    if (ref.current) {
+      const scrollAmount = direction === "left" ? -280 : 280;
+      ref.current.scrollBy({ left: scrollAmount, behavior: "smooth" });
+    }
+  };
+
+  const handleReviewSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!newAuthor.trim() || !newText.trim()) return;
+
+    const initials = newAuthor
+      .trim()
+      .split(" ")
+      .map((n) => n[0])
+      .join("")
+      .toUpperCase()
+      .slice(0, 2) || "U";
+
+    const createdReview = {
+      id: Date.now(),
+      text: newText.trim(),
+      author: newAuthor.trim(),
+      location: newLocation.trim() || "Tamil Nadu",
+      initial: initials,
+      rating: newRating,
+    };
+
+    setReviews([createdReview, ...reviews]);
+    setReviewSuccess(true);
+    setTimeout(() => {
+      setReviewSuccess(false);
+      setIsReviewModalOpen(false);
+      setNewAuthor("");
+      setNewLocation("");
+      setNewText("");
+      setNewRating(5);
+    }, 1200);
+  };
+
   return (
-    <div className={`bg-[#F7F6F2] text-neutral-900 min-h-screen ${playfair.className} selection:bg-[#7DAA8F]/30 selection:text-[#2C392A] overflow-x-hidden font-sans`}>
-      {/* Floating Cart Bar on Mobile & Desktop */}
+    <div
+      className={`bg-[#F9F8F5] text-neutral-900 min-h-screen ${playfair.className} selection:bg-[#7DAA8F]/30 selection:text-[#2C392A] overflow-x-hidden font-sans`}
+    >
+      {/* Floating Cart Bar */}
       <AnimatePresence>
         {cartCount > 0 && (
-          <motion.div 
-            initial={{ y: 100, opacity: 0 }} 
+          <motion.div
+            initial={{ y: 100, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
             exit={{ y: 100, opacity: 0 }}
             className="fixed bottom-4 left-3 right-3 sm:left-1/2 sm:right-auto sm:-translate-x-1/2 z-50 pointer-events-auto max-w-md w-full sm:w-auto"
           >
-            <Link href="/cart" className="flex items-center justify-between gap-3 bg-[#2C392A] hover:bg-[#1f281d] text-white px-4 sm:px-6 py-3 sm:py-3.5 rounded-full shadow-2xl transition-all border border-white/10">
+            <Link
+              href="/cart"
+              className="flex items-center justify-between gap-3 bg-[#2C392A] hover:bg-[#1f281d] text-white px-4 sm:px-6 py-3.5 rounded-full shadow-2xl transition-all border border-emerald-400/20"
+            >
               <div className="flex items-center gap-3">
                 <div className="relative">
                   <ShoppingCart size={18} />
-                  <span className="absolute -top-2 -right-2 bg-[#7DAA8F] text-white text-[9px] font-black w-4 h-4 rounded-full flex items-center justify-center">
+                  <span className="absolute -top-2 -right-2 bg-emerald-500 text-white text-[9px] font-black w-4.5 h-4.5 rounded-full flex items-center justify-center border border-white">
                     {cartCount}
                   </span>
                 </div>
                 <div className="flex flex-col border-r border-white/20 pr-3">
-                  <span className="text-xs text-white/70 uppercase font-bold text-[9px]">Total</span>
-                  <span className="text-sm font-bold">₹{cartTotal}</span>
+                  <span className="text-[9px] text-white/70 uppercase font-bold tracking-wider">
+                    Total
+                  </span>
+                  <span className="text-xs sm:text-sm font-black text-emerald-300">₹{cartTotal}</span>
                 </div>
               </div>
-              <span className="text-xs font-bold tracking-wider flex items-center gap-1 bg-[#7DAA8F] text-white px-3.5 py-1.5 rounded-full hover:bg-[#6c987c] transition-colors">
+              <span className="text-xs font-bold tracking-wider flex items-center gap-1.5 bg-[#7DAA8F] hover:bg-[#6c987c] text-white px-3.5 py-1.5 rounded-full transition-colors">
                 VIEW CART <ArrowRight size={13} />
               </span>
             </Link>
@@ -82,309 +193,826 @@ export default function Home() {
         )}
       </AnimatePresence>
 
-      {/* Hero Section */}
-      <section id="home" className="w-full pt-28 sm:pt-32 lg:pt-36 pb-12 lg:pb-24 overflow-hidden relative">
+      {/* HERO SECTION */}
+      <section
+        id="home"
+        className="w-full pt-24 xs:pt-28 sm:pt-32 lg:pt-36 pb-10 sm:pb-16 lg:pb-24 relative overflow-hidden bg-gradient-to-b from-[#F2F0E8] via-[#F9F8F5] to-[#F9F8F5]"
+      >
+        <motion.div
+          animate={{ scale: [1, 1.2, 1], opacity: [0.3, 0.6, 0.3] }}
+          transition={{ duration: 6, repeat: Infinity, ease: "easeInOut" }}
+          className="absolute top-12 left-1/2 -translate-x-1/2 sm:left-10 w-72 h-72 sm:w-96 sm:h-96 bg-[#7DAA8F]/20 rounded-full blur-3xl pointer-events-none"
+        />
+        <motion.div
+          animate={{ scale: [1.2, 1, 1.2], opacity: [0.3, 0.6, 0.3] }}
+          transition={{ duration: 7, repeat: Infinity, ease: "easeInOut" }}
+          className="absolute top-1/3 right-0 w-64 h-64 bg-emerald-500/20 rounded-full blur-3xl pointer-events-none"
+        />
 
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12 items-center">
-          <div className="text-left">
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full mb-4 sm:mb-6 bg-[#7DAA8F]/15">
-              <Leaf size={12} className="text-[#5F6D59]" />
-              <span className="text-[10px] font-black uppercase tracking-[0.2em] text-[#5F6D59]">{t("hero.badge")}</span>
-            </div>
-            <h1 className={`font-black mb-4 sm:mb-6 ${lang === 'ta' ? 'text-3xl sm:text-4xl md:text-5xl' : 'text-3.5xl xs:text-4xl sm:text-5xl md:text-6xl lg:text-[68px]'} leading-[1.15] md:leading-[1.1] tracking-tight text-[#2C392A]`}>
-              <span className="block">{t("hero.title1")}</span>
-              <span className="block text-[#7DAA8F]">{t("hero.title2")}</span>
-            </h1>
-            <p className="text-[#5F6D59] text-sm sm:text-base md:text-lg mb-6 sm:mb-8 max-w-md leading-relaxed">
-              {t("hero.subtitle")}
-            </p>
-            <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 w-full sm:w-auto">
-              <Link href="/products" className="bg-[#2C392A] text-white px-7 py-3.5 rounded-full font-bold text-sm hover:bg-[#1e271d] transition-colors flex items-center justify-center gap-2 shadow-lg shadow-[#2C392A]/10">
-                <ShoppingCart size={16} /> {t("hero.cta_shop")}
-              </Link>
-              <a href="#about" className="bg-white text-[#2C392A] px-7 py-3.5 rounded-full font-bold text-sm border border-[#2C392A]/15 hover:bg-[#F7F6F2] transition-colors flex items-center justify-center gap-2 shadow-sm">
-                <Leaf size={16} className="text-[#7DAA8F]" /> {t("hero.cta_browse")}
-              </a>
-            </div>
-          </div>
-          <div className="relative mt-2 lg:mt-0">
-            <div className="relative aspect-[16/10] sm:aspect-[4/3] rounded-2xl sm:rounded-[2rem] overflow-hidden shadow-xl sm:shadow-2xl border border-white/60">
-              <video src="/bg2.mp4" autoPlay muted loop playsInline className="w-full h-full object-cover" />
-            </div>
-            {/* Overlay badge 1 */}
-            <div className="absolute top-3 right-3 sm:top-4 sm:right-4 bg-white/95 backdrop-blur shadow-md border border-neutral-100 rounded-xl px-2.5 py-1.5 sm:px-3 sm:py-2 flex items-center gap-2">
-              <div className="w-5 h-5 sm:w-6 sm:h-6 bg-[#7DAA8F] rounded-full flex items-center justify-center text-white shrink-0"><Leaf size={10}/></div>
-              <div className="flex flex-col">
-                <span className="text-[8px] sm:text-[9px] font-black text-[#2C392A]">100% Natural</span>
-                <span className="text-[7px] text-[#5F6D59]">Siddha Certified</span>
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-center">
+            
+            {/* Left Content Column */}
+            <div className="lg:col-span-6 text-left flex flex-col items-start">
+              
+              <motion.div
+                initial={{ opacity: 0, y: -15 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.6 }}
+                className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full mb-4 sm:mb-6 bg-[#7DAA8F]/15 border border-[#7DAA8F]/30 backdrop-blur-sm shadow-sm"
+              >
+                <Leaf size={13} className="text-[#5F6D59] shrink-0 animate-spin" />
+                <span className="text-[10px] xs:text-[11px] font-black uppercase tracking-widest text-[#2C392A]">
+                  {t("hero.badge")}
+                </span>
+              </motion.div>
+
+              <motion.h1
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.8, delay: 0.2 }}
+                className={`font-black mb-5 sm:mb-7 ${
+                  lang === "ta" 
+                    ? "text-3xl xs:text-4xl sm:text-5xl md:text-6xl lg:text-7xl" 
+                    : "text-3xl xs:text-4xl sm:text-5xl md:text-6xl lg:text-[72px] xl:text-[80px]"
+                } leading-[1.06] tracking-tight text-emerald-900 drop-shadow-sm`}
+              >
+                <motion.span
+                  animate={{ backgroundPosition: ["0% 50%", "100% 50%", "0% 50%"] }}
+                  transition={{ duration: 8, repeat: Infinity, ease: "linear" }}
+                  className="block bg-gradient-to-r from-emerald-950 via-emerald-800 to-teal-900 bg-clip-text text-transparent"
+                >
+                  {t("hero.title1")}
+                </motion.span>
+                <span className="block animate-shimmer mt-1 sm:mt-2">
+                  {t("hero.title2")}
+                </span>
+              </motion.h1>
+
+              <motion.div
+                initial={{ width: 0 }}
+                animate={{ width: "8rem" }}
+                transition={{ duration: 0.8, delay: 0.4 }}
+                className="h-1.5 bg-gradient-to-r from-emerald-600 to-teal-400 rounded-full mb-6 sm:mb-8 shadow-sm"
+              />
+
+              <motion.p
+                initial={{ opacity: 0, y: 15 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.8, delay: 0.4 }}
+                className="text-[#5F6D59] text-xs xs:text-sm sm:text-base md:text-lg mb-6 sm:mb-8 max-w-lg leading-relaxed font-normal"
+              >
+                {t("hero.subtitle")}
+              </motion.p>
+
+              {/* HORIZONTAL Side-by-Side Hero Buttons */}
+              <motion.div
+                initial={{ opacity: 0, y: 15 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.8, delay: 0.5 }}
+                className="flex flex-row items-center gap-2.5 sm:gap-4 w-full sm:w-auto"
+              >
+                <Link
+                  href="/products"
+                  className="flex-1 sm:flex-initial bg-[#2C392A] text-white px-4 sm:px-8 py-3.5 sm:py-4 rounded-full font-extrabold text-[11px] sm:text-sm hover:bg-[#1e271d] transition-all flex items-center justify-center gap-1.5 sm:gap-2.5 shadow-xl shadow-[#2C392A]/15 active:scale-[0.98]"
+                >
+                  <ShoppingCart size={16} /> {t("hero.cta_shop")}
+                </Link>
+
+                <button
+                  onClick={scrollToRitualFinder}
+                  className="flex-1 sm:flex-initial bg-emerald-600 text-white px-4 sm:px-7 py-3.5 sm:py-4 rounded-full font-extrabold text-[11px] sm:text-sm hover:bg-emerald-700 transition-all flex items-center justify-center gap-1.5 sm:gap-2 shadow-lg shadow-emerald-600/20 active:scale-[0.98] border border-emerald-500/30 whitespace-nowrap"
+                >
+                  <Sparkles size={16} /> Find Ritual Match
+                </button>
+              </motion.div>
+
+              <div className="mt-6 sm:mt-8 pt-6 border-t border-neutral-200/70 w-full flex items-center justify-between xs:justify-start gap-4 text-[11px] font-bold text-[#5F6D59]">
+                <div className="flex items-center gap-1.5">
+                  <ShieldCheck size={16} className="text-[#7DAA8F]" />
+                  <span>100% Siddha Pure</span>
+                </div>
+                <div className="flex items-center gap-1.5">
+                  <Award size={16} className="text-emerald-700" />
+                  <span>5,000+ Happy Orders</span>
+                </div>
               </div>
+
             </div>
-            {/* Overlay badge 2 */}
-            <div className="absolute bottom-3 left-3 sm:bottom-4 sm:left-4 bg-white/95 backdrop-blur shadow-md border border-neutral-100 rounded-xl px-2.5 py-1.5 sm:px-3 sm:py-2 flex flex-col items-center">
-              <div className="flex gap-0.5 mb-0.5 text-amber-400">
-                {[1,2,3,4,5].map(i => <Star key={i} size={8} className="fill-current"/>)}
-              </div>
-              <span className="text-[9px] sm:text-[10px] font-black text-[#2C392A]">4.9 / 5.0</span>
-              <span className="text-[7px] text-[#5F6D59]">Happy Customers</span>
+
+            {/* Right Media Column */}
+            <div className="lg:col-span-6 relative mt-2 lg:mt-0">
+              <motion.div
+                animate={{ y: [0, -6, 0] }}
+                transition={{ duration: 5, repeat: Infinity, ease: "easeInOut" }}
+                className="relative aspect-[4/3] xs:aspect-[16/11] sm:aspect-[4/3] rounded-3xl sm:rounded-[2.5rem] overflow-hidden shadow-2xl border-4 border-white"
+              >
+                <video
+                  src="/bg2.mp4"
+                  autoPlay
+                  muted
+                  loop
+                  playsInline
+                  className="w-full h-full object-cover"
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/30 via-transparent to-transparent pointer-events-none" />
+              </motion.div>
+
+              <motion.div
+                animate={{ y: [0, -4, 0] }}
+                transition={{ duration: 4, repeat: Infinity, ease: "easeInOut", delay: 0.5 }}
+                className="absolute top-3 right-3 sm:top-5 sm:right-5 bg-white/95 backdrop-blur-md shadow-xl border border-neutral-100 rounded-2xl px-3 py-2 flex items-center gap-2.5 transform scale-95 sm:scale-100"
+              >
+                <div className="w-7 h-7 bg-[#7DAA8F] rounded-full flex items-center justify-center text-white shrink-0 shadow-sm">
+                  <Leaf size={13} />
+                </div>
+                <div className="flex flex-col">
+                  <span className="text-[10px] font-black text-[#2C392A]">
+                    100% Natural
+                  </span>
+                  <span className="text-[8px] text-[#5F6D59] font-medium">
+                    Siddha Certified
+                  </span>
+                </div>
+              </motion.div>
+
+              <motion.div
+                animate={{ y: [0, 4, 0] }}
+                transition={{ duration: 4, repeat: Infinity, ease: "easeInOut", delay: 1 }}
+                className="absolute bottom-3 left-3 sm:bottom-5 sm:left-5 bg-white/95 backdrop-blur-md shadow-xl border border-neutral-100 rounded-2xl px-3 py-2 flex flex-col items-start transform scale-95 sm:scale-100"
+              >
+                <div className="flex gap-0.5 mb-0.5 text-amber-400">
+                  {[1, 2, 3, 4, 5].map((i) => (
+                    <Star key={i} size={10} className="fill-current" />
+                  ))}
+                </div>
+                <div className="flex items-center gap-1">
+                  <span className="text-[10px] font-black text-[#2C392A]">
+                    4.9 / 5.0 Rating
+                  </span>
+                  <span className="text-[8px] text-[#5F6D59] font-medium">(2.4k+ Reviews)</span>
+                </div>
+              </motion.div>
             </div>
+
           </div>
         </div>
 
-        {/* 4 Trust Badges */}
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 mt-10 sm:mt-16 grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4">
-          <div className="bg-white rounded-xl sm:rounded-2xl p-3.5 sm:p-4 flex items-center gap-3 sm:gap-4 border border-neutral-100 shadow-sm hover:shadow-md transition-shadow">
-             <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-full bg-[#7DAA8F]/15 flex items-center justify-center text-[#7DAA8F] shrink-0"><Leaf size={18}/></div>
-             <div>
-               <h4 className="text-[#2C392A] font-black text-xs sm:text-sm">{t("trust.organic")}</h4>
-               <p className="text-[9px] sm:text-[10px] text-[#5F6D59] leading-tight mt-0.5">{t("trust.organic_sub")}</p>
-             </div>
-          </div>
-          <div className="bg-white rounded-xl sm:rounded-2xl p-3.5 sm:p-4 flex items-center gap-3 sm:gap-4 border border-neutral-100 shadow-sm hover:shadow-md transition-shadow">
-             <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-full bg-[#7DAA8F]/15 flex items-center justify-center text-[#7DAA8F] shrink-0"><ShoppingCart size={18}/></div>
-             <div>
-               <h4 className="text-[#2C392A] font-black text-xs sm:text-sm">{t("trust.shipping")}</h4>
-               <p className="text-[9px] sm:text-[10px] text-[#5F6D59] leading-tight mt-0.5">{t("trust.shipping_sub")}</p>
-             </div>
-          </div>
-          <div className="bg-white rounded-xl sm:rounded-2xl p-3.5 sm:p-4 flex items-center gap-3 sm:gap-4 border border-neutral-100 shadow-sm hover:shadow-md transition-shadow">
-             <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-full bg-[#7DAA8F]/15 flex items-center justify-center text-[#7DAA8F] shrink-0"><Leaf size={18}/></div>
-             <div>
-               <h4 className="text-[#2C392A] font-black text-xs sm:text-sm">{t("trust.pure")}</h4>
-               <p className="text-[9px] sm:text-[10px] text-[#5F6D59] leading-tight mt-0.5">{t("trust.pure_sub")}</p>
-             </div>
-          </div>
-          <div className="bg-white rounded-xl sm:rounded-2xl p-3.5 sm:p-4 flex items-center gap-3 sm:gap-4 border border-neutral-100 shadow-sm hover:shadow-md transition-shadow">
-             <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-full bg-[#7DAA8F]/15 flex items-center justify-center text-[#7DAA8F] shrink-0"><Star size={18}/></div>
-             <div>
-               <h4 className="text-[#2C392A] font-black text-xs sm:text-sm">{t("trust.gmp")}</h4>
-               <p className="text-[9px] sm:text-[10px] text-[#5F6D59] leading-tight mt-0.5">{t("trust.gmp_sub")}</p>
-             </div>
+        {/* 4 Trust Badges Grid */}
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-10 sm:mt-16">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4">
+            
+            <div className="bg-white rounded-2xl p-3.5 sm:p-4 flex items-center gap-3 border border-neutral-200/80 shadow-sm hover:shadow-md transition-all">
+              <div className="w-10 h-10 rounded-xl bg-[#7DAA8F]/15 flex items-center justify-center text-[#7DAA8F] shrink-0">
+                <Leaf size={20} />
+              </div>
+              <div className="min-w-0">
+                <h4 className="text-[#2C392A] font-black text-xs sm:text-sm truncate">
+                  {t("trust.organic")}
+                </h4>
+                <p className="text-[9px] sm:text-[10px] text-[#5F6D59] leading-tight mt-0.5 truncate">
+                  {t("trust.organic_sub")}
+                </p>
+              </div>
+            </div>
+
+            <div className="bg-white rounded-2xl p-3.5 sm:p-4 flex items-center gap-3 border border-neutral-200/80 shadow-sm hover:shadow-md transition-all">
+              <div className="w-10 h-10 rounded-xl bg-[#7DAA8F]/15 flex items-center justify-center text-[#7DAA8F] shrink-0">
+                <ShoppingCart size={20} />
+              </div>
+              <div className="min-w-0">
+                <h4 className="text-[#2C392A] font-black text-xs sm:text-sm truncate">
+                  {t("trust.shipping")}
+                </h4>
+                <p className="text-[9px] sm:text-[10px] text-[#5F6D59] leading-tight mt-0.5 truncate">
+                  {t("trust.shipping_sub")}
+                </p>
+              </div>
+            </div>
+
+            <div className="bg-white rounded-2xl p-3.5 sm:p-4 flex items-center gap-3 border border-neutral-200/80 shadow-sm hover:shadow-md transition-all">
+              <div className="w-10 h-10 rounded-xl bg-[#7DAA8F]/15 flex items-center justify-center text-[#7DAA8F] shrink-0">
+                <ShieldCheck size={20} />
+              </div>
+              <div className="min-w-0">
+                <h4 className="text-[#2C392A] font-black text-xs sm:text-sm truncate">
+                  {t("trust.pure")}
+                </h4>
+                <p className="text-[9px] sm:text-[10px] text-[#5F6D59] leading-tight mt-0.5 truncate">
+                  {t("trust.pure_sub")}
+                </p>
+              </div>
+            </div>
+
+            <div className="bg-white rounded-2xl p-3.5 sm:p-4 flex items-center gap-3 border border-neutral-200/80 shadow-sm hover:shadow-md transition-all">
+              <div className="w-10 h-10 rounded-xl bg-[#7DAA8F]/15 flex items-center justify-center text-[#7DAA8F] shrink-0">
+                <Star size={20} />
+              </div>
+              <div className="min-w-0">
+                <h4 className="text-[#2C392A] font-black text-xs sm:text-sm truncate">
+                  {t("trust.gmp")}
+                </h4>
+                <p className="text-[9px] sm:text-[10px] text-[#5F6D59] leading-tight mt-0.5 truncate">
+                  {t("trust.gmp_sub")}
+                </p>
+              </div>
+            </div>
+
           </div>
         </div>
       </section>
 
-      {/* Shop by Category */}
-      <section className="py-12 sm:py-16 px-4 sm:px-6 max-w-7xl mx-auto">
+      {/* INTERACTIVE FEATURE: Sacred Ritual Finder */}
+      <section id="ritual-finder" className="py-6 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto">
+        <SacredRitualFinder />
+      </section>
+
+      {/* SHOP BY CATEGORY */}
+      <section className="py-10 sm:py-16 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto">
         <div className="flex flex-col sm:flex-row sm:justify-between sm:items-end gap-2 mb-6 sm:mb-8">
           <div>
-            <h3 className="text-[10px] font-bold uppercase tracking-[0.2em] text-[#7DAA8F] mb-1">Browse Collection</h3>
-            <h2 className="text-2xl sm:text-4xl font-black text-[#2C392A] tracking-tight">{t("cat.title")}</h2>
-          </div>
-          <Link href="/products" className="text-[#7DAA8F] text-xs sm:text-sm font-bold flex items-center gap-1 hover:text-[#5F6D59] self-start sm:self-auto">
-            View All <ArrowRight size={14}/>
-          </Link>
-        </div>
-        
-        {/* Responsive horizontal touch scroll for categories */}
-        <div className="flex overflow-x-auto gap-3 sm:gap-4 pb-4 snap-x snap-mandatory hide-scrollbar">
-          {[
-            { id: 'pooja', img: 1, key: 'cat.pooja' as const }, 
-            { id: 'powder', img: 2, key: 'cat.powder' as const }, 
-            { id: 'oil', img: 3, key: 'cat.oil' as const }, 
-            { id: 'incense', img: 4, key: 'cat.incense' as const }, 
-            { id: 'spices', img: 5, key: 'cat.spices' as const }, 
-            { id: 'bundles', img: 1, key: 'cat.bundles' as const }
-          ].map((cat) => (
-            <Link href="/products" key={cat.id} className="min-w-[110px] sm:min-w-[140px] flex flex-col items-center gap-2.5 snap-start group">
-              <div className="w-full aspect-square rounded-2xl bg-white p-2.5 sm:p-3 shadow-sm border border-neutral-100 group-hover:shadow-md transition-shadow relative overflow-hidden">
-                <img src={`https://www.mishipoojaproducts.com/wp-content/uploads/2026/03/Product-${cat.img}.jpg`} className="w-full h-full object-cover rounded-xl" alt={t(cat.key)}/>
-              </div>
-              <span className="text-[10px] sm:text-[11px] font-bold text-[#2C392A] text-center group-hover:text-[#7DAA8F]">{t(cat.key)}</span>
-            </Link>
-          ))}
-          <Link href="/products" className="min-w-[110px] sm:min-w-[140px] flex flex-col items-center gap-2.5 snap-start group">
-            <div className="w-full aspect-square rounded-2xl bg-[#2C392A] text-white flex flex-col items-center justify-center p-3 shadow-sm group-hover:bg-[#1f281d] transition-colors">
-              <ArrowRight size={20} className="mb-1 sm:mb-2" />
-              <span className="text-[9px] sm:text-[10px] font-bold uppercase tracking-widest">All</span>
-            </div>
-          </Link>
-        </div>
-      </section>
-
-      {/* Inside Our Store */}
-      <section id="about" className="py-12 sm:py-20 px-4 sm:px-6 max-w-7xl mx-auto">
-        <div className="flex flex-col lg:flex-row gap-8 sm:gap-12 lg:gap-16 items-center">
-          <div className="w-full lg:w-1/3 text-left">
-            <h3 className="text-[10px] font-bold uppercase tracking-[0.2em] text-[#7DAA8F] mb-2">A Glimpse of our Tradition</h3>
-            <h2 className="text-3xl sm:text-4xl md:text-5xl font-black text-[#2C392A] mb-4 sm:mb-6 tracking-tight">Inside Our Store</h2>
-            <p className="text-[#5F6D59] text-sm sm:text-base mb-6 sm:mb-8 leading-relaxed">
-              Explore our traditional herbal and pooja store, where quality and authenticity have been our promise since the beginning.
-            </p>
-            <ul className="space-y-3 sm:space-y-4">
-              <li className="flex items-center gap-3 text-[#2C392A] font-bold text-xs sm:text-sm">
-                <div className="bg-[#7DAA8F]/20 p-1.5 rounded-full shrink-0"><Star size={12} className="text-[#7DAA8F]" /></div> Trusted Brand
-              </li>
-              <li className="flex items-center gap-3 text-[#2C392A] font-bold text-xs sm:text-sm">
-                <div className="bg-[#7DAA8F]/20 p-1.5 rounded-full shrink-0"><Leaf size={12} className="text-[#7DAA8F]" /></div> Authentic Herbal Products
-              </li>
-              <li className="flex items-center gap-3 text-[#2C392A] font-bold text-xs sm:text-sm">
-                <div className="bg-[#7DAA8F]/20 p-1.5 rounded-full shrink-0"><Star size={12} className="text-[#7DAA8F]" /></div> Traditional Pooja Materials
-              </li>
-            </ul>
-          </div>
-          <div className="w-full lg:w-2/3">
-             <div className="grid grid-cols-2 gap-3 sm:gap-4">
-               <div className="col-span-2 sm:col-span-1 sm:row-span-2 rounded-2xl sm:rounded-[2rem] overflow-hidden relative shadow-lg aspect-[16/10] sm:aspect-[3/4]">
-                 <video src={`/${reelVideos[0]}.mp4`} className="w-full h-full object-cover" autoPlay muted loop playsInline />
-               </div>
-               <div className="col-span-1 rounded-2xl sm:rounded-[2rem] overflow-hidden relative shadow-lg aspect-square">
-                 <video src={`/${reelVideos[1]}.mp4`} className="w-full h-full object-cover" autoPlay muted loop playsInline />
-               </div>
-               <div className="col-span-1 rounded-2xl sm:rounded-[2rem] overflow-hidden relative shadow-lg aspect-square">
-                 <video src={`/${reelVideos[2]}.mp4`} className="w-full h-full object-cover" autoPlay muted loop playsInline />
-               </div>
-             </div>
-          </div>
-        </div>
-      </section>
-
-      {/* Top Selling Herbs & Products */}
-      <section className="py-12 sm:py-16 px-4 sm:px-6 max-w-7xl mx-auto">
-        <div className="flex flex-col sm:flex-row sm:justify-between sm:items-end gap-2 mb-6 sm:mb-8">
-          <div>
-            <h3 className="text-[10px] font-bold uppercase tracking-[0.2em] text-[#7DAA8F] mb-1 flex items-center gap-1.5">
-              <span className="w-5 h-5 rounded-full bg-[#fde6a6] flex items-center justify-center text-amber-600 shrink-0"><Star size={10}/></span> Customer Favourites
+            <h3 className="text-[10px] font-extrabold uppercase tracking-[0.2em] text-[#7DAA8F] mb-1">
+              Browse Collection
             </h3>
-            <h2 className="text-2xl sm:text-3xl md:text-4xl font-black text-[#2C392A] tracking-tight">Top Selling Products</h2>
+            <h2 className="text-2xl sm:text-4xl font-black text-[#2C392A] tracking-tight">
+              {t("cat.title")}
+            </h2>
           </div>
-          <Link href="/products" className="text-[#7DAA8F] text-xs sm:text-sm font-bold flex items-center gap-1 hover:text-[#5F6D59]">
-            View All <ArrowRight size={14}/>
-          </Link>
+
+          <div className="flex items-center gap-3 self-end sm:self-auto">
+            <div className="flex items-center gap-1.5">
+              <button
+                onClick={() => scrollContainer(categoryScrollRef, "left")}
+                className="w-8 h-8 rounded-full bg-white border border-neutral-200 flex items-center justify-center text-[#2C392A] hover:bg-emerald-50 transition-colors shadow-sm"
+                aria-label="Scroll left"
+              >
+                <ChevronLeft size={18} />
+              </button>
+              <button
+                onClick={() => scrollContainer(categoryScrollRef, "right")}
+                className="w-8 h-8 rounded-full bg-white border border-neutral-200 flex items-center justify-center text-[#2C392A] hover:bg-emerald-50 transition-colors shadow-sm"
+                aria-label="Scroll right"
+              >
+                <ChevronRight size={18} />
+              </button>
+            </div>
+
+            <Link
+              href="/products"
+              className="text-[#7DAA8F] text-xs sm:text-sm font-bold flex items-center gap-1 hover:text-[#5F6D59]"
+            >
+              View All <ArrowRight size={14} />
+            </Link>
+          </div>
         </div>
-        
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4 lg:gap-6">
-          {storeProducts.filter(p => p.isActive).slice(0, 4).map((p) => (
-            <Link href="/products" key={p.id} className="bg-white rounded-2xl sm:rounded-[24px] overflow-hidden border border-neutral-100 shadow-sm hover:shadow-xl transition-all group p-3 sm:p-4 flex flex-col">
-              <div className="w-full aspect-square rounded-xl sm:rounded-2xl bg-[#F7F6F2] mb-3 overflow-hidden relative">
-                <img src={p.imageUrl} alt={p.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
+
+        <div
+          ref={categoryScrollRef}
+          className="flex overflow-x-auto gap-3 sm:gap-5 pb-4 snap-x snap-mandatory hide-scrollbar scroll-smooth"
+        >
+          {[
+            { id: "pooja", img: 1, key: "cat.pooja" as const },
+            { id: "powder", img: 2, key: "cat.powder" as const },
+            { id: "oil", img: 3, key: "cat.oil" as const },
+            { id: "incense", img: 4, key: "cat.incense" as const },
+            { id: "spices", img: 5, key: "cat.spices" as const },
+            { id: "bundles", img: 1, key: "cat.bundles" as const },
+          ].map((cat) => (
+            <Link
+              href="/products"
+              key={cat.id}
+              className="min-w-[125px] xs:min-w-[145px] sm:min-w-[160px] flex flex-col items-center gap-2.5 snap-start group"
+            >
+              <div className="w-full aspect-square rounded-2xl bg-white p-2.5 sm:p-3 shadow-sm border border-neutral-200/80 group-hover:shadow-md group-hover:border-[#7DAA8F]/50 transition-all relative overflow-hidden">
+                <img
+                  src={`https://www.mishipoojaproducts.com/wp-content/uploads/2026/03/Product-${cat.img}.jpg`}
+                  className="w-full h-full object-cover rounded-xl group-hover:scale-105 transition-transform duration-300"
+                  alt={t(cat.key)}
+                />
               </div>
-              <h3 className="text-xs sm:text-[13px] font-bold text-[#2C392A] mb-1 truncate">{lang === 'ta' && p.nameTa ? p.nameTa : p.name}</h3>
-              <p className="text-[9px] sm:text-[10px] text-[#5F6D59] uppercase tracking-wider mb-2">{lang === 'ta' ? 'அலகு' : 'piece'}</p>
-              <div className="mt-auto font-black text-[#2C392A] text-sm sm:text-base">₹{p.price}</div>
+              <span className="text-xs font-extrabold text-[#2C392A] text-center group-hover:text-[#7DAA8F] transition-colors">
+                {t(cat.key)}
+              </span>
             </Link>
           ))}
+          
+          <Link
+            href="/products"
+            className="min-w-[125px] xs:min-w-[145px] sm:min-w-[160px] flex flex-col items-center gap-2.5 snap-start group"
+          >
+            <div className="w-full aspect-square rounded-2xl bg-[#2C392A] text-white flex flex-col items-center justify-center p-3 shadow-md group-hover:bg-[#1f281d] transition-colors">
+              <ArrowRight size={24} className="mb-2 text-emerald-400 group-hover:translate-x-1 transition-transform" />
+              <span className="text-[10px] font-black uppercase tracking-widest text-center">
+                Explore All
+              </span>
+            </div>
+          </Link>
         </div>
       </section>
 
-      {/* Customer Reviews */}
-      <section className="py-12 sm:py-20 px-4 sm:px-6 max-w-7xl mx-auto">
-        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-end gap-4 mb-8 sm:mb-12">
-          <div>
-            <h3 className="text-[10px] font-bold uppercase tracking-[0.2em] text-[#7DAA8F] mb-1.5">Customer Reviews</h3>
-            <h2 className="text-2xl sm:text-4xl font-black text-[#2C392A] tracking-tight mb-1">Trusted by Thousands</h2>
-            <p className="text-[#5F6D59] text-xs sm:text-sm">Real results from real customers across Tamil Nadu</p>
+      {/* INSIDE OUR STORE */}
+      <section
+        id="about"
+        className="py-12 sm:py-20 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto bg-white rounded-3xl my-6 border border-neutral-200/60 shadow-sm"
+      >
+        <div className="flex flex-col lg:flex-row gap-8 sm:gap-12 lg:gap-16 items-center">
+          
+          <div className="w-full lg:w-5/12 text-left">
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#7DAA8F]/15 text-[#5F6D59] text-[10px] font-black uppercase tracking-widest mb-3">
+              <Sparkles size={12} /> A Glimpse of Tradition
+            </div>
+            <h2 className="text-2xl xs:text-3xl sm:text-4xl lg:text-5xl font-black text-[#2C392A] mb-4 tracking-tight leading-tight">
+              Inside Our Store & Workshop
+            </h2>
+            <p className="text-[#5F6D59] text-xs sm:text-base mb-6 leading-relaxed font-normal">
+              Explore our traditional herbal and pooja store in Chennai, where genuine organic quality and sacred authenticity have been our commitment.
+            </p>
+
+            <div className="space-y-3.5">
+              <div className="flex items-center gap-3 text-[#2C392A] font-bold text-xs sm:text-sm bg-[#F9F8F5] p-3 rounded-2xl border border-neutral-200/80">
+                <div className="bg-[#7DAA8F] text-white p-1.5 rounded-xl shrink-0 shadow-sm">
+                  <Award size={14} />
+                </div>
+                <span>100% Authentic Siddha Formulations</span>
+              </div>
+              <div className="flex items-center gap-3 text-[#2C392A] font-bold text-xs sm:text-sm bg-[#F9F8F5] p-3 rounded-2xl border border-neutral-200/80">
+                <div className="bg-[#7DAA8F] text-white p-1.5 rounded-xl shrink-0 shadow-sm">
+                  <Leaf size={14} />
+                </div>
+                <span>Hand-harvested & Sun-Dried Herbs</span>
+              </div>
+              <div className="flex items-center gap-3 text-[#2C392A] font-bold text-xs sm:text-sm bg-[#F9F8F5] p-3 rounded-2xl border border-neutral-200/80">
+                <div className="bg-[#7DAA8F] text-white p-1.5 rounded-xl shrink-0 shadow-sm">
+                  <Star size={14} />
+                </div>
+                <span>Traditional Pooja & Sambrani Resins</span>
+              </div>
+            </div>
           </div>
-          <button className="bg-[#2C392A] text-white px-4 py-2.5 sm:px-5 sm:py-2.5 rounded-full font-bold text-xs flex items-center gap-2 hover:bg-[#1e271d] shadow-sm">
-            <Star size={14} className="fill-amber-400 text-amber-400"/> Write a Review
+
+          <div className="w-full lg:w-7/12">
+            <div className="grid grid-cols-2 gap-3 sm:gap-4">
+              <div className="col-span-2 sm:col-span-1 sm:row-span-2 rounded-2xl sm:rounded-3xl overflow-hidden relative shadow-md aspect-[16/10] sm:aspect-[3/4] border-2 border-white">
+                <video
+                  src={`/${reelVideos[0]}.mp4`}
+                  className="w-full h-full object-cover"
+                  autoPlay
+                  muted
+                  loop
+                  playsInline
+                />
+              </div>
+              <div className="col-span-1 rounded-2xl sm:rounded-3xl overflow-hidden relative shadow-md aspect-square border-2 border-white">
+                <video
+                  src={`/${reelVideos[1]}.mp4`}
+                  className="w-full h-full object-cover"
+                  autoPlay
+                  muted
+                  loop
+                  playsInline
+                />
+              </div>
+              <div className="col-span-1 rounded-2xl sm:rounded-3xl overflow-hidden relative shadow-md aspect-square border-2 border-white">
+                <video
+                  src={`/${reelVideos[2]}.mp4`}
+                  className="w-full h-full object-cover"
+                  autoPlay
+                  muted
+                  loop
+                  playsInline
+                />
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </section>
+
+      {/* TOP SELLING PRODUCTS */}
+      <section className="py-10 sm:py-16 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto">
+        <div className="flex flex-col sm:flex-row sm:justify-between sm:items-end gap-2 mb-6 sm:mb-8">
+          <div>
+            <h3 className="text-[10px] font-extrabold uppercase tracking-[0.2em] text-[#7DAA8F] mb-1 flex items-center gap-1.5">
+              <span className="w-4.5 h-4.5 rounded-full bg-emerald-100 flex items-center justify-center text-emerald-700 shrink-0">
+                <Star size={10} />
+              </span>
+              Customer Favorites
+            </h3>
+            <h2 className="text-2xl sm:text-3xl md:text-4xl font-black text-[#2C392A] tracking-tight">
+              Top Selling Products
+            </h2>
+          </div>
+          <Link
+            href="/products"
+            className="text-[#7DAA8F] text-xs sm:text-sm font-bold flex items-center gap-1 hover:text-[#5F6D59]"
+          >
+            View Full Store <ArrowRight size={14} />
+          </Link>
+        </div>
+
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4 lg:gap-6">
+          {storeProducts
+            .filter((p) => p.isActive)
+            .slice(0, 4)
+            .map((p) => (
+              <Link
+                href="/products"
+                key={p.id}
+                className="bg-white rounded-2xl sm:rounded-3xl overflow-hidden border border-neutral-200/80 shadow-sm hover:shadow-xl transition-all group p-3 sm:p-4 flex flex-col justify-between"
+              >
+                <div>
+                  <div className="w-full aspect-square rounded-xl sm:rounded-2xl bg-[#F9F8F5] mb-3 overflow-hidden relative border border-neutral-100">
+                    <img
+                      src={p.imageUrl}
+                      alt={p.name}
+                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                    />
+                    <span className="absolute top-2 left-2 bg-[#7DAA8F] text-white text-[9px] font-extrabold px-2 py-0.5 rounded-full uppercase">
+                      Pure
+                    </span>
+                  </div>
+                  <h3 className="text-xs sm:text-sm font-bold text-[#2C392A] mb-1 line-clamp-1">
+                    {lang === "ta" && p.nameTa ? p.nameTa : p.name}
+                  </h3>
+                  <p className="text-[10px] text-[#5F6D59] uppercase tracking-wider mb-2">
+                    {p.category}
+                  </p>
+                </div>
+
+                <div className="pt-2 border-t border-neutral-100 flex items-center justify-between mt-2">
+                  <span className="font-black text-[#2C392A] text-sm sm:text-base">
+                    ₹{p.price}
+                  </span>
+                  <span className="w-7 h-7 rounded-full bg-[#2C392A] text-white flex items-center justify-center group-hover:bg-[#7DAA8F] transition-colors">
+                    <ShoppingCart size={13} />
+                  </span>
+                </div>
+              </Link>
+            ))}
+        </div>
+      </section>
+
+      {/* CUSTOMER REVIEWS SHOWCASE */}
+      <section className="py-12 sm:py-20 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto overflow-hidden relative">
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-end gap-4 mb-8">
+          <div>
+            <h3 className="text-[10px] font-extrabold uppercase tracking-[0.2em] text-[#7DAA8F] mb-1.5">
+              Verified Customer Reviews
+            </h3>
+            <h2 className="text-2xl sm:text-4xl font-black text-[#2C392A] tracking-tight mb-1">
+              Trusted by Thousands
+            </h2>
+            <p className="text-[#5F6D59] text-xs sm:text-sm">
+              Real testimonials from customers across Tamil Nadu
+            </p>
+          </div>
+
+          {/* Interactive Write a Review Button */}
+          <button
+            onClick={() => setIsReviewModalOpen(true)}
+            className="bg-[#2C392A] text-white px-5 py-3 rounded-full font-extrabold text-xs flex items-center gap-2 hover:bg-[#1e271d] transition-all shadow-md active:scale-95 shrink-0"
+          >
+            <Star size={15} className="fill-amber-400 text-amber-400" /> Write a Review
           </button>
         </div>
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
-          {reviews.map(r => (
-            <div key={r.id} className="bg-[#f9f8f4] border border-[#e8e5d9] p-5 sm:p-6 rounded-2xl sm:rounded-3xl flex flex-col justify-between">
-              <div>
-                <div className="flex gap-1 mb-3">
-                  {[1,2,3,4,5].map(i => <Star key={i} size={11} className="fill-amber-400 text-amber-400"/>)}
-                </div>
-                <p className="text-xs sm:text-[13px] text-[#5F6D59] font-medium leading-relaxed mb-6 italic">"{r.text}"</p>
-              </div>
-              <div className="flex items-center gap-3">
-                <div className="w-8 h-8 rounded-full bg-[#7DAA8F] flex items-center justify-center text-white font-bold text-xs shrink-0">{r.initial}</div>
+
+        {/* Masked Edge Overlay for Soft Fade */}
+        <div className="relative w-full overflow-hidden">
+          <div className="pointer-events-none absolute left-0 top-0 bottom-0 w-12 sm:w-20 bg-gradient-to-r from-[#F9F8F5] to-transparent z-10" />
+          <div className="pointer-events-none absolute right-0 top-0 bottom-0 w-12 sm:w-20 bg-gradient-to-l from-[#F9F8F5] to-transparent z-10" />
+
+          {/* Smooth Continuous Gliding Track */}
+          <motion.div
+            className="flex gap-4 sm:gap-6 w-max py-3 cursor-grab active:cursor-grabbing"
+            animate={{ x: ["0%", "-50%"] }}
+            transition={{
+              x: {
+                repeat: Infinity,
+                repeatType: "loop",
+                duration: 35,
+                ease: "linear",
+              },
+            }}
+          >
+            {[...reviews, ...reviews, ...reviews, ...reviews].map((r, idx) => (
+              <div
+                key={`${r.id}-${idx}`}
+                className="w-[280px] xs:w-[320px] sm:w-[360px] bg-white border border-emerald-900/10 p-5 sm:p-6 rounded-2xl sm:rounded-3xl flex flex-col justify-between shadow-sm hover:shadow-xl transition-all duration-300 shrink-0"
+              >
                 <div>
-                  <h4 className="text-[11px] font-bold text-[#2C392A] leading-tight">{r.author}</h4>
-                  <p className="text-[10px] text-[#7DAA8F] mt-0.5">{r.location}</p>
+                  <div className="flex items-center justify-between mb-3">
+                    <div className="flex gap-1 text-amber-400">
+                      {[1, 2, 3, 4, 5].map((i) => (
+                        <Star key={i} size={13} className="fill-current" />
+                      ))}
+                    </div>
+                    <Quote size={18} className="text-emerald-800/20" />
+                  </div>
+                  <p className="text-xs sm:text-sm text-[#5F6D59] font-medium leading-relaxed mb-6 italic">
+                    "{r.text}"
+                  </p>
+                </div>
+
+                <div className="flex items-center gap-3 pt-3 border-t border-neutral-100">
+                  <div className="w-9 h-9 rounded-full bg-[#2C392A] flex items-center justify-center text-white font-black text-xs shrink-0 shadow-md">
+                    {r.initial}
+                  </div>
+                  <div>
+                    <h4 className="text-xs font-extrabold text-[#2C392A] leading-tight">
+                      {r.author}
+                    </h4>
+                    <p className="text-[10px] text-[#7DAA8F] font-bold">
+                      {r.location}
+                    </p>
+                  </div>
                 </div>
               </div>
-            </div>
-          ))}
+            ))}
+          </motion.div>
         </div>
       </section>
 
-      {/* Complete Wellness Kit */}
-      <section className="py-8 sm:py-12 px-4 sm:px-6 max-w-7xl mx-auto">
-        <div className="bg-[#2C392A] rounded-2xl sm:rounded-[2rem] p-6 sm:p-10 md:p-12 relative overflow-hidden flex flex-col justify-center items-start min-h-[250px] sm:min-h-[300px]">
-          <div className="absolute right-0 top-0 bottom-0 w-full sm:w-1/2 opacity-15 sm:opacity-20 pointer-events-none">
-            <img src="/gallery/gallery_ingredients_1783444379768.png" className="w-full h-full object-cover" alt="bg"/>
-          </div>
+      {/* WRITE A REVIEW INTERACTIVE MODAL */}
+      <AnimatePresence>
+        {isReviewModalOpen && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm"
+            onClick={() => setIsReviewModalOpen(false)}
+          >
+            <motion.div
+              initial={{ scale: 0.9, y: 20, opacity: 0 }}
+              animate={{ scale: 1, y: 0, opacity: 1 }}
+              exit={{ scale: 0.9, y: 20, opacity: 0 }}
+              onClick={(e) => e.stopPropagation()}
+              className="bg-white max-w-lg w-full rounded-3xl p-6 sm:p-8 shadow-2xl border border-emerald-100 relative overflow-hidden"
+            >
+              <button
+                onClick={() => setIsReviewModalOpen(false)}
+                className="absolute top-4 right-4 w-9 h-9 bg-emerald-50 text-emerald-900 rounded-full flex items-center justify-center hover:bg-emerald-100 transition-colors"
+              >
+                <X size={18} />
+              </button>
+
+              {reviewSuccess ? (
+                <div className="py-8 flex flex-col items-center text-center">
+                  <div className="w-16 h-16 bg-emerald-100 text-emerald-700 rounded-full flex items-center justify-center mb-4">
+                    <CheckCircle2 size={36} />
+                  </div>
+                  <h3 className="text-2xl font-black text-[#2C392A] mb-2">
+                    Review Submitted!
+                  </h3>
+                  <p className="text-xs text-[#5F6D59]">
+                    Thank you for sharing your feedback with Mishi Pooja Products!
+                  </p>
+                </div>
+              ) : (
+                <form onSubmit={handleReviewSubmit} className="space-y-4">
+                  <div>
+                    <span className="text-[10px] uppercase font-extrabold tracking-widest text-[#7DAA8F] block mb-1">
+                      Share Your Experience
+                    </span>
+                    <h3 className="text-2xl font-black text-[#2C392A]">
+                      Write a Customer Review
+                    </h3>
+                  </div>
+
+                  {/* Rating Selector */}
+                  <div>
+                    <label className="text-xs font-bold text-[#2C392A] block mb-1.5">
+                      Your Overall Rating
+                    </label>
+                    <div className="flex gap-1.5">
+                      {[1, 2, 3, 4, 5].map((star) => (
+                        <button
+                          key={star}
+                          type="button"
+                          onClick={() => setNewRating(star)}
+                          className="p-1 text-amber-400 hover:scale-110 transition-transform"
+                        >
+                          <Star
+                            size={24}
+                            className={star <= newRating ? "fill-amber-400" : "text-neutral-300"}
+                          />
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Name & Location Inputs */}
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <div>
+                      <label className="text-xs font-bold text-[#2C392A] block mb-1">
+                        Your Name *
+                      </label>
+                      <input
+                        type="text"
+                        required
+                        placeholder="e.g. Anand Kumar"
+                        value={newAuthor}
+                        onChange={(e) => setNewAuthor(e.target.value)}
+                        className="w-full bg-emerald-50/50 border border-emerald-200 rounded-xl px-3.5 py-2 text-xs outline-none focus:border-emerald-600 focus:bg-white transition-all text-emerald-950 font-medium"
+                      />
+                    </div>
+                    <div>
+                      <label className="text-xs font-bold text-[#2C392A] block mb-1">
+                        City / Location
+                      </label>
+                      <input
+                        type="text"
+                        placeholder="e.g. Chennai"
+                        value={newLocation}
+                        onChange={(e) => setNewLocation(e.target.value)}
+                        className="w-full bg-emerald-50/50 border border-emerald-200 rounded-xl px-3.5 py-2 text-xs outline-none focus:border-emerald-600 focus:bg-white transition-all text-emerald-950 font-medium"
+                      />
+                    </div>
+                  </div>
+
+                  {/* Review Text */}
+                  <div>
+                    <label className="text-xs font-bold text-[#2C392A] block mb-1">
+                      Your Review *
+                    </label>
+                    <textarea
+                      required
+                      rows={3}
+                      placeholder="Write your honest thoughts about our herbal products..."
+                      value={newText}
+                      onChange={(e) => setNewText(e.target.value)}
+                      className="w-full bg-emerald-50/50 border border-emerald-200 rounded-xl p-3.5 text-xs outline-none focus:border-emerald-600 focus:bg-white transition-all text-emerald-950 font-medium resize-none"
+                    />
+                  </div>
+
+                  <button
+                    type="submit"
+                    className="w-full bg-[#2C392A] hover:bg-[#1e271d] text-white font-extrabold py-3.5 rounded-full text-xs uppercase tracking-widest transition-all shadow-lg shadow-[#2C392A]/20"
+                  >
+                    Submit Review
+                  </button>
+                </form>
+              )}
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* LIMITED TIME WELLNESS KIT BANNER */}
+      <section className="py-8 sm:py-12 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto">
+        <div className="bg-gradient-to-r from-[#1e271d] via-[#2C392A] to-[#1e271d] rounded-3xl p-6 sm:p-10 md:p-12 relative overflow-hidden flex flex-col justify-center items-start border border-emerald-500/20 shadow-2xl">
           <div className="relative z-10 max-w-lg">
-            <span className="inline-block px-3 py-1 bg-white/10 text-white text-[9px] sm:text-[10px] font-bold uppercase tracking-widest rounded-full mb-3 border border-white/20">
-              # Limited Time Offer
+            <span className="inline-block px-3 py-1 bg-emerald-500/20 text-emerald-300 text-[10px] font-black uppercase tracking-widest rounded-full mb-3 border border-emerald-500/30">
+              # Limited Time Sacred Bundle
             </span>
-            <h2 className="text-2xl sm:text-4xl md:text-5xl font-black text-white mb-3 sm:mb-4">Complete Wellness Kit</h2>
-            <p className="text-[#a0b09d] text-xs sm:text-base mb-6 sm:mb-8">Ashwagandha + Triphala + Amla Powder — our most popular immunity trio.</p>
-            <Link href="/products" className="bg-white text-[#2C392A] px-6 py-3 rounded-full font-bold text-xs sm:text-sm inline-flex items-center gap-2 hover:bg-[#F7F6F2] shadow-md">
-              Shop Now <ArrowRight size={15}/>
+            <h2 className="text-2xl xs:text-3xl sm:text-4xl md:text-5xl font-black text-white mb-3">
+              Complete Wellness Kit
+            </h2>
+            <p className="text-zinc-300 text-xs sm:text-base mb-6 leading-relaxed font-light">
+              Ashwagandha + Triphala + Pure Amla Powder — our most popular organic immunity trio for sacred living.
+            </p>
+            <Link
+              href="/products"
+              className="bg-emerald-600 hover:bg-emerald-500 text-white px-7 py-3.5 rounded-full font-extrabold text-xs sm:text-sm inline-flex items-center gap-2 transition-all shadow-xl shadow-emerald-600/30"
+            >
+              Shop Wellness Kit <ArrowRight size={16} />
             </Link>
           </div>
         </div>
       </section>
 
-      {/* Map & Location */}
-      <section className="py-8 sm:py-12 px-4 sm:px-6 max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
-        <div className="bg-[#eaf2eb] rounded-2xl sm:rounded-[2rem] p-6 sm:p-8 flex flex-col items-center justify-center text-center relative overflow-hidden min-h-[240px] sm:min-h-[300px]">
-           <div className="absolute inset-0 opacity-[0.15]" style={{ backgroundImage: 'linear-gradient(#2C392A 1px, transparent 1px), linear-gradient(90deg, #2C392A 1px, transparent 1px)', backgroundSize: '30px 30px' }}></div>
-           <div className="relative z-10 flex flex-col items-center justify-center">
-             <div className="w-10 h-10 sm:w-12 sm:h-12 bg-[#2C392A] rounded-full flex items-center justify-center text-white mb-3"><MapPin size={18}/></div>
-             <h3 className="text-base sm:text-lg font-bold text-[#2C392A] mb-1">Mishi Pooja Products</h3>
-             <p className="text-xs text-[#5F6D59] mb-4">Tamil Nadu, India</p>
-             <a href="https://maps.google.com/?q=13.032223,80.0381669" target="_blank" rel="noreferrer" className="bg-[#2C392A] text-white px-5 py-2.5 rounded-full text-[11px] font-bold flex items-center gap-2 hover:bg-[#1e271d] transition-colors shadow-sm">
-               <MapPin size={12}/> Open in Google Maps
-             </a>
-           </div>
+      {/* MAP & STORE LOCATION */}
+      <section className="py-8 sm:py-12 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
+        
+        <div className="bg-[#eaf2eb] rounded-3xl p-6 sm:p-8 flex flex-col items-center justify-center text-center relative overflow-hidden min-h-[240px] sm:min-h-[300px] border border-[#7DAA8F]/30">
+          <div className="relative z-10 flex flex-col items-center justify-center">
+            <div className="w-12 h-12 bg-[#2C392A] rounded-2xl flex items-center justify-center text-white mb-3 shadow-md">
+              <MapPin size={22} />
+            </div>
+            <h3 className="text-lg font-black text-[#2C392A] mb-1">
+              Mishi Pooja Products
+            </h3>
+            <p className="text-xs text-[#5F6D59] font-semibold">Tamil Nadu, India</p>
+            <a
+              href="https://maps.google.com/?q=13.032223,80.0381669"
+              target="_blank"
+              rel="noreferrer"
+              className="bg-[#2C392A] text-white px-6 py-3 rounded-full text-xs font-extrabold flex items-center gap-2 hover:bg-[#1e271d] transition-colors shadow-md"
+            >
+              <MapPin size={14} /> Open in Google Maps
+            </a>
+          </div>
         </div>
-        <div className="bg-white border border-neutral-200 rounded-2xl sm:rounded-[2rem] p-6 sm:p-8 md:p-10 flex flex-col justify-center">
-           <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-[#7DAA8F] mb-2">Find Us</span>
-           <h2 className="text-2xl sm:text-3xl font-black text-[#2C392A] mb-3 sm:mb-4">Visit Our Store</h2>
-           <p className="text-[#5F6D59] text-xs sm:text-sm leading-relaxed mb-6">Come experience our authentic herbal products in person. Our knowledgeable staff will help you find the right remedies for your needs.</p>
-           <div className="space-y-3 sm:space-y-4">
-             <div className="flex gap-3 sm:gap-4">
-               <MapPin size={18} className="text-[#7DAA8F] shrink-0 mt-0.5"/>
-               <div><p className="text-[11px] font-bold text-[#2C392A]">Store Location</p><p className="text-[11px] text-[#5F6D59]">213/6A, Eripattai, Chembarambakkam, Chennai – 600123</p></div>
-             </div>
-             <div className="flex gap-3 sm:gap-4">
-               <Phone size={18} className="text-[#7DAA8F] shrink-0 mt-0.5"/>
-               <div><p className="text-[11px] font-bold text-[#2C392A]">Phone Number</p><p className="text-[11px] text-[#5F6D59]">+91 80561 01114</p></div>
-             </div>
-           </div>
+
+        <div className="bg-white border border-neutral-200/80 rounded-3xl p-6 sm:p-8 md:p-10 flex flex-col justify-center shadow-sm">
+          <span className="text-[10px] font-extrabold uppercase tracking-[0.2em] text-[#7DAA8F] mb-2">
+            Visit Us
+          </span>
+          <h2 className="text-2xl sm:text-3xl font-black text-[#2C392A] mb-3">
+            Visit Our Store
+          </h2>
+          <p className="text-[#5F6D59] text-xs sm:text-sm leading-relaxed mb-6 font-normal">
+            Come experience our authentic herbal products in person. Our herbal artisans will assist you in selecting remedies.
+          </p>
+
+          <div className="space-y-4">
+            <div className="flex gap-3.5 items-start">
+              <div className="w-8 h-8 rounded-xl bg-[#7DAA8F]/15 flex items-center justify-center text-[#7DAA8F] shrink-0">
+                <MapPin size={16} />
+              </div>
+              <div>
+                <p className="text-xs font-extrabold text-[#2C392A]">Store Address</p>
+                <p className="text-xs text-[#5F6D59]">213/6A, Eripattai, Chembarambakkam, Chennai – 600123</p>
+              </div>
+            </div>
+
+            <div className="flex gap-3.5 items-start">
+              <div className="w-8 h-8 rounded-xl bg-[#7DAA8F]/15 flex items-center justify-center text-[#7DAA8F] shrink-0">
+                <Phone size={16} />
+              </div>
+              <div>
+                <p className="text-xs font-extrabold text-[#2C392A]">Contact Phone</p>
+                <p className="text-xs text-[#5F6D59] font-bold">+91 80561 01114</p>
+              </div>
+            </div>
+          </div>
         </div>
+
       </section>
 
-      {/* Footer */}
-      <footer className="bg-[#2C392A] pt-12 sm:pt-16 pb-8 px-4 sm:px-6 text-white/80 mt-8 sm:mt-12">
+      {/* FOOTER */}
+      <footer className="bg-[#121611] pt-12 sm:pt-16 pb-6 px-4 sm:px-6 lg:px-8 text-white/80 mt-8 sm:mt-12 border-t border-white/10">
         <div className="max-w-7xl mx-auto grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-8 sm:gap-12 mb-8 sm:mb-12 border-b border-white/10 pb-8 sm:pb-12">
+          
           <div className="sm:col-span-2">
-            <img src="/logo.webp" alt="Mishi" className="h-10 sm:h-12 w-auto brightness-0 invert mb-4 sm:mb-6" />
-            <p className="text-xs sm:text-sm text-white/60 leading-relaxed max-w-sm">Bringing you the divine essence of pure, hand-crafted Himalayan herbs and natural resins. Create a peaceful sanctuary in your everyday life.</p>
+            <div className="bg-white/95 p-3 rounded-2xl inline-block border border-white/20 shadow-md mb-4 sm:mb-6">
+              <img
+                src="/logo.webp"
+                alt="Mishi Pooja Products"
+                className="h-10 sm:h-12 w-auto object-contain"
+              />
+            </div>
+            <p className="text-xs sm:text-sm text-white/70 leading-relaxed max-w-sm font-light">
+              Bringing you the divine essence of pure, hand-crafted Siddha herbs and natural resins. Create a peaceful sanctuary in your everyday life.
+            </p>
           </div>
+
           <div>
-            <h4 className="text-white font-bold mb-4 sm:mb-6 text-xs sm:text-sm">Quick Links</h4>
-            <ul className="space-y-2.5 sm:space-y-3 text-xs sm:text-sm">
-              <li><Link href="/" className="hover:text-white transition-colors">Home</Link></li>
-              <li><Link href="/products" className="hover:text-white transition-colors">Shop</Link></li>
-              <li><Link href="/cart" className="hover:text-white transition-colors">Cart</Link></li>
-              <li><Link href="/profile" className="hover:text-white transition-colors">Profile</Link></li>
+            <h4 className="text-white font-extrabold mb-4 text-xs sm:text-sm uppercase tracking-wider">
+              Quick Links
+            </h4>
+            <ul className="space-y-2.5 text-xs sm:text-sm">
+              <li>
+                <Link href="/" className="hover:text-emerald-400 transition-colors">Home</Link>
+              </li>
+              <li>
+                <Link href="/products" className="hover:text-emerald-400 transition-colors">Shop Products</Link>
+              </li>
+              <li>
+                <Link href="/cart" className="hover:text-emerald-400 transition-colors">Cart</Link>
+              </li>
             </ul>
           </div>
+
           <div>
-            <h4 className="text-white font-bold mb-4 sm:mb-6 text-xs sm:text-sm">Contact</h4>
-            <ul className="space-y-2.5 sm:space-y-3 text-xs sm:text-sm text-white/70">
-              <li>+91 80561 01114</li>
+            <h4 className="text-white font-extrabold mb-4 text-xs sm:text-sm uppercase tracking-wider">
+              Contact Us
+            </h4>
+            <ul className="space-y-2.5 text-xs sm:text-sm text-white/70 font-light">
+              <li className="font-bold text-white">+91 80561 01114</li>
               <li>mishipoojaproducts@gmail.com</li>
               <li>Chembarambakkam, Chennai</li>
             </ul>
           </div>
+
         </div>
-        <div className="max-w-7xl mx-auto flex flex-col items-center gap-3 text-center text-xs text-white/40">
-          <p>© 2026 Mishi Pooja Products. Powered by Cenexa Systems</p>
-          <div className="flex gap-3 sm:gap-4 font-bold uppercase tracking-widest text-[9px] sm:text-[10px]">
-            <span>Purity</span>
-            <span>•</span>
-            <span>Devotion</span>
-            <span>•</span>
-            <span>Tradition</span>
+
+        {/* FOOTER BOTTOM BAR */}
+        <div className="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-4 text-[10px] sm:text-[11px] font-bold text-zinc-400 uppercase tracking-widest pt-2">
+          
+          <div className="text-center md:text-left">
+            © 2026 MISHI POOJA PRODUCTS. ALL RIGHTS RESERVED.
           </div>
+
+          <div className="text-center">
+            POWERED BY{" "}
+            <a
+              href="https://www.cenexasystems.com"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-white font-black hover:text-emerald-400 transition-colors underline underline-offset-4"
+            >
+              CENEXA SYSTEMS
+            </a>{" "}
+            © 2026
+          </div>
+
+          <div className="text-center md:text-right text-emerald-400 font-extrabold">
+            ORGANIC • PURE • NATURAL
+          </div>
+
         </div>
       </footer>
     </div>
   );
 }
-
