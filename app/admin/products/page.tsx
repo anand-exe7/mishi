@@ -248,7 +248,7 @@ export default function ProductsManagement() {
   };
 
   return (
-    <div className="max-w-[1400px] mx-auto text-slate-900 font-sans p-2">
+    <div className="w-full max-w-[1600px] mx-auto text-slate-900 font-sans p-2">
       
       {/* Toast Notification */}
       {toast && (
@@ -393,22 +393,22 @@ export default function ProductsManagement() {
         </div>
       )}      {/* Add / Edit Product Modal */}
       {isModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm animate-in fade-in duration-200">
-          <div className="bg-white rounded-3xl w-full max-w-2xl shadow-2xl overflow-hidden flex flex-col max-h-[95vh]">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4 bg-slate-900/60 backdrop-blur-sm animate-in fade-in duration-200">
+          <div className="bg-white rounded-2xl sm:rounded-3xl w-full max-w-2xl shadow-2xl overflow-hidden flex flex-col max-h-[92vh]">
             
-            <div className="flex justify-between items-center p-6 border-b border-slate-100 bg-slate-50">
-              <h3 className="text-lg font-black text-slate-900 tracking-tight">
+            <div className="flex justify-between items-center p-4 sm:p-6 border-b border-slate-100 bg-slate-50">
+              <h3 className="text-base sm:text-lg font-black text-slate-900 tracking-tight">
                 {editingProduct ? 'Edit Mishi Product' : 'Add New Mishi Product'}
               </h3>
               <button 
                 onClick={() => setIsModalOpen(false)}
-                className="p-2 text-slate-400 hover:text-slate-700 hover:bg-slate-200 rounded-full transition-colors cursor-pointer"
+                className="p-1.5 sm:p-2 text-slate-400 hover:text-slate-700 hover:bg-slate-200 rounded-full transition-colors cursor-pointer"
               >
                 <X size={18} />
               </button>
             </div>
             
-            <form onSubmit={handleSaveProduct} className="p-6 overflow-y-auto space-y-5">
+            <form onSubmit={handleSaveProduct} className="p-4 sm:p-6 overflow-y-auto space-y-4 sm:space-y-5">
               
               <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                 <div>
@@ -589,19 +589,19 @@ export default function ProductsManagement() {
                 
                 <div className="space-y-3 max-h-48 overflow-y-auto">
                   {sizes.map((s, index) => (
-                    <div key={index} className="flex gap-4 items-center bg-slate-50 border border-slate-150 p-2.5 rounded-xl">
-                      <div className="flex-1">
+                    <div key={index} className="flex flex-wrap sm:flex-nowrap gap-2 sm:gap-3 items-center bg-slate-50 border border-slate-150 p-2 sm:p-2.5 rounded-xl">
+                      <div className="flex-1 min-w-[110px]">
                         <input
                            type="text"
                            required
                            value={s.size}
-                           placeholder="e.g. 100g, 200ml, Pack of 3"
+                           placeholder="e.g. 100g, 200ml"
                            onChange={e => handleSizeChange(index, 'size', e.target.value)}
-                           className="w-full bg-white border border-slate-200 rounded-lg px-3 py-2 text-xs font-bold text-slate-900 focus:outline-none"
+                           className="w-full bg-white border border-slate-200 rounded-lg px-2.5 py-1.5 text-xs font-bold text-slate-900 focus:outline-none"
                         />
                       </div>
                       
-                      <div className="w-28">
+                      <div className="w-24 sm:w-28">
                         <input
                            type="number"
                            required
@@ -609,12 +609,12 @@ export default function ProductsManagement() {
                            value={s.price || ''}
                            placeholder="Price (₹)"
                            onChange={e => handleSizeChange(index, 'price', Number(e.target.value))}
-                           className="w-full bg-white border border-slate-200 rounded-lg px-3 py-2 text-xs font-black text-slate-900 focus:outline-none"
+                           className="w-full bg-white border border-slate-200 rounded-lg px-2.5 py-1.5 text-xs font-black text-slate-900 focus:outline-none"
                         />
                       </div>
 
-                      <div className="flex items-center gap-2">
-                        <span className="text-[10px] font-bold text-slate-500 uppercase">Available</span>
+                      <div className="flex items-center gap-1.5 ml-auto sm:ml-0">
+                        <span className="text-[10px] font-bold text-slate-500 uppercase">Active</span>
                         <button
                           type="button"
                           onClick={() => handleSizeChange(index, 'isAvailable', s.isAvailable !== false ? false : true)}
@@ -656,24 +656,24 @@ export default function ProductsManagement() {
 
       {/* Manage Categories Modal */}
       {isCategoryModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm animate-in fade-in duration-200">
-          <div className="bg-white rounded-3xl w-full max-w-md shadow-2xl overflow-hidden flex flex-col max-h-[85vh]">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4 bg-slate-900/60 backdrop-blur-sm animate-in fade-in duration-200">
+          <div className="bg-white rounded-2xl sm:rounded-3xl w-full max-w-md shadow-2xl overflow-hidden flex flex-col max-h-[85vh]">
             
-            <div className="flex justify-between items-center p-6 border-b border-slate-100 bg-slate-50">
-              <h3 className="text-lg font-black text-slate-900 tracking-tight">
+            <div className="flex justify-between items-center p-4 sm:p-6 border-b border-slate-100 bg-slate-50">
+              <h3 className="text-base sm:text-lg font-black text-slate-900 tracking-tight">
                 Manage Categories
               </h3>
               <button 
                 onClick={() => setIsCategoryModalOpen(false)}
-                className="p-2 text-slate-400 hover:text-slate-700 hover:bg-slate-200 rounded-full transition-colors cursor-pointer"
+                className="p-1.5 sm:p-2 text-slate-400 hover:text-slate-700 hover:bg-slate-200 rounded-full transition-colors cursor-pointer"
               >
                 <X size={18} />
               </button>
             </div>
             
-            <div className="p-6 overflow-y-auto flex-1 space-y-6">
+            <div className="p-3.5 sm:p-6 overflow-y-auto flex-1 space-y-4 sm:space-y-6">
               {/* Add New Category Section */}
-              <form onSubmit={handleAddCategoryModal} className="space-y-3 bg-slate-50 border border-slate-100 p-4 rounded-2xl">
+              <form onSubmit={handleAddCategoryModal} className="space-y-2.5 bg-slate-50 border border-slate-100 p-3 sm:p-4 rounded-2xl">
                 <label className="block text-[10px] font-bold text-slate-500 uppercase tracking-widest">Add New Category</label>
                 <div className="flex gap-2">
                   <input 
@@ -681,13 +681,13 @@ export default function ProductsManagement() {
                     required
                     value={newCatName}
                     onChange={e => setNewCatName(e.target.value)}
-                    className="flex-1 bg-white border border-slate-200 rounded-xl px-4 py-2 text-xs font-bold text-slate-900 focus:outline-none focus:border-slate-400"
+                    className="flex-1 bg-white border border-slate-200 rounded-xl px-3 sm:px-4 py-2 text-xs font-bold text-slate-900 focus:outline-none focus:border-slate-400 min-w-0"
                     placeholder="e.g. Wellness, Gifts"
                   />
                   <button 
                     type="submit"
                     disabled={isCategorySubmitting}
-                    className="bg-emerald-600 hover:bg-emerald-700 text-white font-bold px-4 py-2 rounded-xl text-xs flex items-center gap-1 cursor-pointer disabled:opacity-50"
+                    className="bg-emerald-600 hover:bg-emerald-700 text-white font-bold px-3.5 sm:px-4 py-2 rounded-xl text-xs flex items-center gap-1 cursor-pointer disabled:opacity-50 shrink-0"
                   >
                     {isCategorySubmitting ? 'Adding...' : 'Add'}
                   </button>
@@ -697,13 +697,13 @@ export default function ProductsManagement() {
               {/* Category List */}
               <div className="space-y-2">
                 <label className="block text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-1">Active Categories ({categories.length})</label>
-                <div className="divide-y divide-slate-100 max-h-64 overflow-y-auto border border-slate-100 rounded-2xl bg-white p-2">
+                <div className="divide-y divide-slate-100 max-h-64 overflow-y-auto border border-slate-100 rounded-2xl bg-white p-1.5 sm:p-2">
                   {categories.map((cat) => (
-                    <div key={cat} className="flex justify-between items-center py-2.5 px-3 hover:bg-slate-50 rounded-xl transition-colors">
-                      <span className="text-xs font-bold text-slate-800 uppercase tracking-wider">{cat}</span>
+                    <div key={cat} className="flex justify-between items-center py-2 px-2.5 sm:px-3 hover:bg-slate-50 rounded-xl transition-colors gap-2">
+                      <span className="text-xs font-bold text-slate-800 uppercase tracking-wider truncate">{cat}</span>
                       <button 
                         onClick={() => handleDeleteCategoryModal(cat)}
-                        className="p-1.5 text-red-500 hover:bg-red-50 rounded-lg transition-colors cursor-pointer"
+                        className="p-1.5 text-red-500 hover:bg-red-50 rounded-lg transition-colors cursor-pointer shrink-0"
                         title="Delete Category"
                       >
                         <Trash2 size={14} />
@@ -718,10 +718,10 @@ export default function ProductsManagement() {
 
             </div>
             
-            <div className="p-4 border-t border-slate-100 bg-slate-50 flex justify-end">
+            <div className="p-3.5 sm:p-4 border-t border-slate-100 bg-slate-50 flex justify-end">
               <button 
                 onClick={() => setIsCategoryModalOpen(false)}
-                className="px-5 py-2.5 bg-slate-900 hover:bg-slate-800 text-white rounded-xl text-xs font-bold transition-all shadow-sm cursor-pointer"
+                className="w-full sm:w-auto px-5 py-2.5 bg-slate-900 hover:bg-slate-800 text-white rounded-xl text-xs font-bold transition-all shadow-sm cursor-pointer"
               >
                 Close
               </button>

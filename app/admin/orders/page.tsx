@@ -248,15 +248,24 @@ export default function OrdersManagement() {
           )}
         </div>
         
-        <div className="relative w-full xl:w-72">
-          <Search size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" />
+        <div className="relative w-full xl:w-80">
+          <Search size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none z-10" />
           <input 
             type="text" 
-            placeholder="Search Order ID, Name..."
+            placeholder="Search order ID, customer name or phone..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="w-full bg-slate-50 pl-11 pr-4 py-2.5 border border-slate-200 rounded-full text-sm font-medium focus:outline-none focus:border-slate-300 transition-colors placeholder:text-slate-400"
+            className="w-full bg-slate-50 pl-11 pr-8 py-2.5 border border-slate-200 rounded-full text-xs sm:text-sm font-medium text-slate-800 focus:outline-none focus:border-[#2C392A] focus:ring-2 focus:ring-[#2C392A]/10 transition-all placeholder:text-slate-400 placeholder:opacity-100"
           />
+          {search && (
+            <button 
+              onClick={() => setSearch('')}
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 p-1 rounded-full text-xs font-bold transition-colors"
+              title="Clear search"
+            >
+              ✕
+            </button>
+          )}
         </div>
       </div>
 
@@ -303,12 +312,22 @@ export default function OrdersManagement() {
                         </span>
                       </td>
                       <td className="px-6 py-4 text-right">
-                        <button 
-                          onClick={() => { setSelectedOrder(order); setShowInvoiceView(false); }}
-                          className="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold rounded-lg text-xs transition-colors flex items-center gap-1.5 ml-auto"
-                        >
-                          <Eye size={14} /> View Details
-                        </button>
+                        <div className="flex items-center justify-end gap-2">
+                          <button 
+                            onClick={() => { setSelectedOrder(order); setShowInvoiceView(false); }}
+                            className="px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold rounded-lg text-xs transition-colors flex items-center gap-1.5 cursor-pointer"
+                          >
+                            <Eye size={14} /> View Details
+                          </button>
+                          <button 
+                            onClick={() => handleDeleteOrder(order.id)}
+                            disabled={updatingId === order.id}
+                            className="p-2 bg-rose-50 hover:bg-rose-100 text-rose-600 font-bold rounded-lg text-xs transition-colors border border-rose-200 cursor-pointer disabled:opacity-50"
+                            title="Delete Order / Invoice"
+                          >
+                            <Trash2 size={14} />
+                          </button>
+                        </div>
                       </td>
                     </tr>
                   ))
@@ -321,66 +340,52 @@ export default function OrdersManagement() {
 
       {/* Order Details Modal */}
       {selectedOrder && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm animate-in fade-in duration-200">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4 bg-slate-900/60 backdrop-blur-sm animate-in fade-in duration-200">
           <div className="bg-white rounded-2xl w-full max-w-2xl shadow-2xl border border-slate-100 overflow-hidden flex flex-col max-h-[90vh]">
             
-            <div className="flex justify-between items-center p-6 border-b border-slate-100 bg-slate-50">
-              <div className="flex items-center gap-3">
-                {showInvoiceView && (
-                  <button onClick={() => setShowInvoiceView(false)} className="p-1.5 hover:bg-slate-200 rounded-full text-slate-600 transition-colors">
-                    <ArrowLeft size={18} />
-                  </button>
-                )}
-                <div>
-                  <h3 className="text-lg font-black text-slate-900 tracking-tight">{showInvoiceView ? 'Invoice' : 'Order Details'}</h3>
-                  <p className="text-xs font-bold text-slate-500 mt-1 uppercase tracking-widest">{selectedOrder.id}</p>
+            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center p-4 sm:p-6 border-b border-slate-100 bg-slate-50 gap-3">
+              <div className="flex items-center justify-between w-full sm:w-auto">
+                <div className="flex items-center gap-2">
+                  {showInvoiceView && (
+                    <button onClick={() => setShowInvoiceView(false)} className="p-1.5 hover:bg-slate-200 rounded-full text-slate-600 transition-colors">
+                      <ArrowLeft size={18} />
+                    </button>
+                  )}
+                  <div>
+                    <h3 className="text-base sm:text-lg font-black text-slate-900 tracking-tight">{showInvoiceView ? 'Invoice' : 'Order Details'}</h3>
+                    <p className="text-[10px] sm:text-xs font-bold text-slate-500 mt-0.5 uppercase tracking-widest">{selectedOrder.id}</p>
+                  </div>
                 </div>
+                <button 
+                  onClick={() => { setSelectedOrder(null); setShowInvoiceView(false); }}
+                  className="sm:hidden p-1.5 bg-white text-slate-400 hover:text-slate-700 hover:bg-slate-100 rounded-full transition-colors border border-slate-200"
+                >
+                  <X size={16} />
+                </button>
               </div>
-              <div className="flex items-center gap-2">
-                {showInvoiceView ? (
-                  <button 
-                    onClick={() => {
-                      const printContent = document.getElementById('invoice-content');
-                      const windowPrint = window.open('', '', 'left=0,top=0,width=800,height=900,toolbar=0,scrollbars=0,status=0');
-                      if (windowPrint && printContent) {
-                        windowPrint.document.write('<html><head><title>Print Invoice</title>');
-                        windowPrint.document.write('<script src="https://cdn.tailwindcss.com"></script>');
-                        windowPrint.document.write('</head><body style="padding: 20px;">');
-                        windowPrint.document.write(printContent.innerHTML);
-                        windowPrint.document.write('</body></html>');
-                        windowPrint.document.close();
-                        setTimeout(() => {
-                          windowPrint.focus();
-                          windowPrint.print();
-                          windowPrint.close();
-                        }, 500);
-                      }
-                    }}
-                    className="flex items-center gap-2 px-3 py-1.5 bg-slate-900 hover:bg-slate-800 text-white rounded-lg text-xs font-bold transition-colors shadow-sm"
-                  >
-                    <Printer size={14} /> Print
-                  </button>
-                ) : (
-                  <button 
-                    onClick={() => setShowInvoiceView(true)}
-                    className="flex items-center gap-2 px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg text-xs font-bold transition-colors border border-slate-200"
-                  >
-                    <FileText size={14} /> View Invoice
-                  </button>
-                )}
+
+              <div className="flex flex-wrap items-center gap-2 w-full sm:w-auto">
+                <a 
+                  href={`/invoice/${selectedOrder.id}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex-1 sm:flex-initial inline-flex items-center justify-center gap-1.5 px-3 py-1.5 bg-[#2C392A] hover:bg-[#1e271d] text-white rounded-lg text-xs font-bold transition-colors border border-[#2C392A] shadow-sm"
+                >
+                  <FileText size={14} /> View Invoice
+                </a>
                 
                 <button 
                   disabled={updatingId !== null}
                   onClick={() => handleDeleteOrder(selectedOrder.id)}
-                  className="flex items-center gap-1.5 px-3 py-1.5 bg-rose-50 hover:bg-rose-100 text-rose-600 border border-rose-200 rounded-lg text-xs font-bold transition-colors cursor-pointer disabled:opacity-50"
+                  className="flex-1 sm:flex-initial inline-flex items-center justify-center gap-1.5 px-3 py-1.5 bg-rose-50 hover:bg-rose-100 text-rose-600 border border-rose-200 rounded-lg text-xs font-bold transition-colors cursor-pointer disabled:opacity-50"
                   title="Delete Invoice permanently"
                 >
-                  <Trash2 size={14} /> Delete Invoice
+                  <Trash2 size={14} /> Delete
                 </button>
 
                 <button 
                   onClick={() => { setSelectedOrder(null); setShowInvoiceView(false); }}
-                  className="p-2 ml-1 bg-white text-slate-400 hover:text-slate-700 hover:bg-slate-100 rounded-full transition-colors border border-slate-200 shadow-sm cursor-pointer"
+                  className="hidden sm:flex p-2 bg-white text-slate-400 hover:text-slate-700 hover:bg-slate-100 rounded-full transition-colors border border-slate-200 shadow-sm cursor-pointer"
                 >
                   <X size={18} />
                 </button>

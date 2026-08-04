@@ -104,49 +104,88 @@ export default function SacredRitualFinder() {
     setSelectedPref("");
   };
 
-  // Recommendation Matcher
-  const getRecommendation = () => {
-    if (!products || products.length === 0) {
-      return {
-        name: "Pure Natural Sambrani Powder",
-        category: "Pooja Powder",
-        price: 249,
-        imageUrl: "https://www.mishipoojaproducts.com/wp-content/uploads/2026/03/Product-1.jpg",
-        description: "Handcrafted authentic Siddha sambrani resin powder for sacred rituals and room purification.",
-        matchScore: 98,
-        benefits: ["Clears negative room energy", "100% Organic sun-dried resin", "Long-lasting divine aroma"]
-      };
-    }
+  // Recommendation Matcher (returns multiple matching products)
+  const getRecommendations = () => {
+    const candidates = [...products];
 
-    let matched = products.find((p) => {
+    // Fallback list of distinct products if store products not yet populated
+    const fallbackList = [
+      {
+        id: "cup-sambrani",
+        name: "Cup Sambrani",
+        category: "Incense & Dhoop",
+        price: 150,
+        imageUrl: "https://www.mishipoojaproducts.com/wp-content/uploads/2026/03/Product-1.jpg",
+        description: "Handcrafted authentic Siddha sambrani resin cup for sacred rituals and room energy purification.",
+        unitLabel: "g",
+        benefits: ["Clears negative room energy", "100% Organic sun-dried resin", "Long-lasting divine aroma"]
+      },
+      {
+        id: "computer-sambrani",
+        name: "Computer Sambrani",
+        category: "Incense & Dhoop",
+        price: 120,
+        imageUrl: "https://www.mishipoojaproducts.com/wp-content/uploads/2026/03/Product-4.jpg",
+        description: "Convenient modern aromatic sambrani sticks for daily evening prayers and meditation.",
+        unitLabel: "g",
+        benefits: ["Easy to light", "Consistent burning time", "Refreshing divine fragrance"]
+      },
+      {
+        id: "camphor",
+        name: "Pure Natural Camphor",
+        category: "Pooja Items",
+        price: 80,
+        imageUrl: "https://www.mishipoojaproducts.com/wp-content/uploads/2026/03/pr4.jpg",
+        description: "Pure sacred camphor for spiritual purification and high-energy aarthi rituals.",
+        unitLabel: "g",
+        benefits: ["Spiritual purification", "Divine essence", "Instantly clears heavy atmosphere"]
+      },
+      {
+        id: "deepam-oil",
+        name: "Divine Pooja Lamp Oil",
+        category: "Deepam Oil",
+        price: 220,
+        imageUrl: "https://www.mishipoojaproducts.com/wp-content/uploads/2026/03/Product-1.jpg",
+        description: "Pure aromatic lamp oil formulated for long-lasting bright flames and positive energy.",
+        unitLabel: "ml",
+        benefits: ["Pure sesame & aromatic blend", "Smokeless clean burn", "Attracts positive vibrations"]
+      }
+    ];
+
+    const itemsToFilter = candidates.length >= 2 ? candidates : fallbackList;
+
+    let matched = itemsToFilter.filter((p: any) => {
       const cat = (p.category || "").toLowerCase();
       const name = (p.name || "").toLowerCase();
-      if (selectedPref === "powder" && (cat.includes("powder") || name.includes("powder"))) return true;
-      if (selectedPref === "oil" && (cat.includes("oil") || name.includes("oil"))) return true;
-      if (selectedPref === "incense" && (cat.includes("incense") || name.includes("dhoop") || name.includes("sambrani"))) return true;
-      return false;
+      if (selectedPref === "powder") return cat.includes("powder") || name.includes("powder") || cat.includes("herbal");
+      if (selectedPref === "oil") return cat.includes("oil") || name.includes("oil") || cat.includes("deepam");
+      if (selectedPref === "incense") return cat.includes("incense") || name.includes("dhoop") || name.includes("sambrani") || cat.includes("pooja");
+      return true;
     });
 
-    if (!matched) matched = products[0];
+    if (matched.length < 2) {
+      matched = itemsToFilter;
+    }
 
-    return {
-      id: matched.id,
-      name: matched.name,
-      category: matched.category || "Herbal Product",
-      price: matched.price,
-      imageUrl: matched.imageUrl || "https://www.mishipoojaproducts.com/wp-content/uploads/2026/03/Product-1.jpg",
-      description: matched.description || "Authentic traditional formulation crafted for daily sacred living.",
-      rawProduct: matched,
-      matchScore: selectedPref === "all" ? 99 : 96,
-      benefits: [
+    return matched.slice(0, 4).map((p: any, idx: number) => ({
+      id: p.id,
+      name: p.name,
+      category: p.category || "Sacred Ritual",
+      price: p.price,
+      imageUrl: p.imageUrl || "https://www.mishipoojaproducts.com/wp-content/uploads/2026/03/Product-1.jpg",
+      description: p.description || "Authentic traditional formulation crafted for daily sacred living.",
+      unitLabel: p.unitLabel || "unit",
+      rawProduct: p,
+      matchScore: Math.max(88, 99 - idx * 3),
+      benefits: p.benefits || [
         "Crafted with 100% Pure Siddha Herbs",
         "Free from artificial chemical additives",
         "Sourced & sun-dried in Tamil Nadu"
       ]
-    };
+    }));
   };
 
-  const recommendedProduct = step === 3 ? getRecommendation() : null;
+  const recommendedProducts = step === 3 ? getRecommendations() : [];
 
   return (
     <div className="w-full bg-white rounded-3xl p-5 sm:p-8 md:p-10 border border-emerald-100 shadow-xl relative overflow-hidden">
@@ -164,7 +203,7 @@ export default function SacredRitualFinder() {
             Find Your Sacred Herbal Ritual
           </h2>
           <p className="text-[#5F6D59] text-xs sm:text-sm mt-1 font-normal">
-            Answer 2 quick questions to discover your personalized Siddha remedy match.
+            Answer 2 quick questions to discover your personalized Siddha remedy matches.
           </p>
         </div>
 
@@ -275,91 +314,116 @@ export default function SacredRitualFinder() {
           </motion.div>
         )}
 
-        {/* STEP 3: Interactive Results & Personalized Match */}
-        {step === 3 && recommendedProduct && (
+        {/* STEP 3: Interactive Results Grid & Personalized Matches */}
+        {step === 3 && recommendedProducts.length > 0 && (
           <motion.div
             key="step3"
             initial={{ opacity: 0, scale: 0.95 }}
             animate={{ opacity: 1, scale: 1 }}
             exit={{ opacity: 0, scale: 0.95 }}
             transition={{ duration: 0.4 }}
+            className="space-y-6"
           >
-            <div className="bg-gradient-to-r from-emerald-950 via-[#2C392A] to-emerald-950 rounded-3xl p-6 sm:p-8 text-white shadow-2xl border border-emerald-500/30">
-              
-              <div className="flex flex-col md:flex-row items-center gap-6 md:gap-8">
-                {/* Product Image */}
-                <div className="w-full md:w-5/12 aspect-square rounded-2xl overflow-hidden bg-white/10 p-3 relative shrink-0 border border-white/20">
-                  <img
-                    src={recommendedProduct.imageUrl}
-                    alt={recommendedProduct.name}
-                    className="w-full h-full object-cover rounded-xl"
-                  />
-                  <div className="absolute top-4 left-4 bg-emerald-500 text-white text-[10px] font-black px-3 py-1 rounded-full uppercase tracking-wider shadow-md flex items-center gap-1">
-                    <Sparkles size={12} /> {recommendedProduct.matchScore}% Ritual Match
-                  </div>
-                </div>
+            {/* Results Action Bar */}
+            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 bg-emerald-50/80 p-4 rounded-2xl border border-emerald-200">
+              <div>
+                <span className="text-[10px] font-black uppercase tracking-widest text-emerald-800 block">
+                  Match Results Found ({recommendedProducts.length} Products)
+                </span>
+                <p className="text-xs text-emerald-950 font-bold mt-0.5">
+                  Curated Siddha remedies tailored for your selected ritual preferences.
+                </p>
+              </div>
+              <button
+                onClick={handleReset}
+                className="px-4 py-2 rounded-xl bg-[#2C392A] hover:bg-[#1e271d] text-white text-xs font-bold transition-all shadow-md flex items-center gap-1.5 shrink-0"
+              >
+                <RotateCcw size={14} /> Change Selections
+              </button>
+            </div>
 
-                {/* Details */}
-                <div className="w-full md:w-7/12 flex flex-col justify-between">
-                  <div>
-                    <span className="text-emerald-300 text-[10px] font-extrabold uppercase tracking-widest mb-1.5 block">
-                      Recommended Siddha Remedy • {recommendedProduct.category}
-                    </span>
-                    <h3 className={`text-2xl sm:text-3xl font-black text-white mb-2 ${playfair.className}`}>
-                      {recommendedProduct.name}
-                    </h3>
-                    <p className="text-emerald-100/80 text-xs sm:text-sm font-light leading-relaxed mb-4">
-                      {recommendedProduct.description}
-                    </p>
+            {/* Products Grid */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {recommendedProducts.map((prod) => (
+                <div
+                  key={prod.id}
+                  className="bg-gradient-to-r from-emerald-950 via-[#2C392A] to-emerald-950 rounded-3xl p-5 sm:p-6 text-white shadow-xl border border-emerald-500/30 flex flex-col justify-between"
+                >
+                  <div className="flex gap-4 mb-4">
+                    {/* Image */}
+                    <div className="w-28 sm:w-32 aspect-square rounded-2xl overflow-hidden bg-white/10 p-2 relative shrink-0 border border-white/20">
+                      <img
+                        src={prod.imageUrl}
+                        alt={prod.name}
+                        className="w-full h-full object-cover rounded-xl"
+                      />
+                      <div className="absolute top-2 left-2 bg-emerald-500 text-white text-[9px] font-black px-2 py-0.5 rounded-full uppercase tracking-wider shadow-md flex items-center gap-1">
+                        <Sparkles size={10} /> {prod.matchScore}%
+                      </div>
+                    </div>
 
-                    {/* Key Benefits List */}
-                    <div className="space-y-2 mb-6">
-                      {recommendedProduct.benefits.map((b, idx) => (
-                        <div key={idx} className="flex items-center gap-2 text-xs font-semibold text-emerald-200">
-                          <ShieldCheck size={15} className="text-emerald-400 shrink-0" />
-                          <span>{b}</span>
-                        </div>
-                      ))}
+                    {/* Details */}
+                    <div className="flex-1 min-w-0">
+                      <span className="text-emerald-300 text-[9px] font-extrabold uppercase tracking-widest block truncate">
+                        {prod.category}
+                      </span>
+                      <h3 className={`text-lg sm:text-xl font-black text-white mb-1 leading-tight ${playfair.className}`}>
+                        {prod.name}
+                      </h3>
+                      <p className="text-emerald-100/80 text-xs font-light line-clamp-2 leading-relaxed">
+                        {prod.description}
+                      </p>
+                      
+                      <div className="mt-2 space-y-1">
+                        {prod.benefits.slice(0, 2).map((b: string, idx: number) => (
+                          <div key={idx} className="flex items-center gap-1.5 text-[10px] font-semibold text-emerald-200 truncate">
+                            <ShieldCheck size={12} className="text-emerald-400 shrink-0" />
+                            <span className="truncate">{b}</span>
+                          </div>
+                        ))}
+                      </div>
                     </div>
                   </div>
 
-                  {/* Pricing & Cart Action */}
-                  <div className="pt-4 border-t border-white/15 flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-4">
+                  {/* Pricing & Add To Cart Button */}
+                  <div className="pt-3 border-t border-white/15 flex items-center justify-between gap-3">
                     <div>
-                      <span className="text-[10px] text-emerald-300 uppercase tracking-wider block font-bold">
-                        Special Ritual Price
+                      <span className="text-[9px] text-emerald-300 uppercase tracking-wider block font-bold">
+                        Price
                       </span>
-                      <span className="text-2xl font-black text-white">
-                        ₹{recommendedProduct.price}
+                      <span className="text-xl font-black text-white">
+                        ₹{prod.price}
                       </span>
                     </div>
 
-                    <div className="flex gap-2">
-                      <button
-                        onClick={handleReset}
-                        className="px-4 py-3 rounded-2xl bg-white/10 hover:bg-white/20 text-white text-xs font-bold transition-colors flex items-center justify-center gap-1.5 border border-white/20"
-                        title="Start Over"
+                    <div className="flex items-center gap-2">
+                      <Link
+                        href="/products"
+                        className="px-3 py-2 rounded-xl bg-white/10 hover:bg-white/20 text-white text-xs font-bold transition-colors"
                       >
-                        <RotateCcw size={14} /> Retry
-                      </button>
-
+                        View
+                      </Link>
                       <button
                         onClick={() => {
-                          if (recommendedProduct.rawProduct) {
-                            addItem(recommendedProduct.rawProduct, 1, recommendedProduct.rawProduct.unitLabel || "unit");
-                          }
-                          toast.success(`Added ${recommendedProduct.name} to cart!`);
+                          const itemToAdd = prod.rawProduct || {
+                            id: prod.id,
+                            name: prod.name,
+                            price: prod.price,
+                            category: prod.category,
+                            imageUrl: prod.imageUrl,
+                            unitLabel: prod.unitLabel
+                          };
+                          addItem(itemToAdd, 1, prod.unitLabel || "unit");
+                          toast.success(`Added ${prod.name} to cart!`);
                         }}
-                        className="flex-1 sm:flex-initial bg-emerald-500 hover:bg-emerald-400 text-emerald-950 font-black px-6 py-3 rounded-2xl text-xs uppercase tracking-wider transition-all shadow-xl shadow-emerald-500/30 flex items-center justify-center gap-2"
+                        className="bg-emerald-500 hover:bg-emerald-400 text-emerald-950 font-black px-4 py-2 rounded-xl text-xs uppercase tracking-wider transition-all shadow-lg shadow-emerald-500/30 flex items-center gap-1.5"
                       >
-                        <ShoppingCart size={16} /> Add to Cart
+                        <ShoppingCart size={14} /> Add
                       </button>
                     </div>
                   </div>
                 </div>
-
-              </div>
-
+              ))}
             </div>
           </motion.div>
         )}

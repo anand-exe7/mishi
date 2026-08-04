@@ -60,7 +60,7 @@ export default function UserManagementPage() {
   );
 
   return (
-    <div className="max-w-[1400px] mx-auto text-slate-900 font-sans p-2">
+    <div className="w-full max-w-[1600px] mx-auto text-slate-900 font-sans p-2">
       
       {/* Header */}
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-8">

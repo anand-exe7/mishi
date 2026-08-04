@@ -6,6 +6,7 @@ import { motion } from "framer-motion";
 import { ShoppingCart, Trash2, Plus, Minus } from "lucide-react";
 import Link from "next/link";
 import toast from "react-hot-toast";
+import confetti from "canvas-confetti";
 import { useCartStore } from "@/store/store";
 import {
   fetchCoupons,
@@ -103,6 +104,34 @@ export default function CartPage() {
 
       setAppliedCoupon(matched);
       toast.success("Coupon applied successfully!");
+
+      // Fire festive paper blast / confetti explosion!
+      try {
+        confetti({
+          particleCount: 120,
+          spread: 80,
+          origin: { y: 0.6 },
+          colors: ["#2C392A", "#10B981", "#F59E0B", "#EF4444", "#3B82F6", "#EC4899"],
+        });
+        setTimeout(() => {
+          confetti({
+            particleCount: 60,
+            angle: 60,
+            spread: 55,
+            origin: { x: 0 },
+            colors: ["#2C392A", "#10B981", "#F59E0B"],
+          });
+          confetti({
+            particleCount: 60,
+            angle: 120,
+            spread: 55,
+            origin: { x: 1 },
+            colors: ["#2C392A", "#10B981", "#F59E0B"],
+          });
+        }, 150);
+      } catch (confettiErr) {
+        console.error("Confetti launch failed:", confettiErr);
+      }
     } catch (err) {
       console.error(err);
       toast.error("Error applying coupon");
@@ -253,7 +282,7 @@ export default function CartPage() {
   return (
     <div className="bg-[#F9F8F5] min-h-screen font-sans selection:bg-[#7DAA8F]/30 selection:text-[#2C392A] overflow-x-hidden">
       {/* Cart Content */}
-      <section className="pt-24 sm:pt-28 md:pt-36 pb-16 sm:pb-24 px-3 sm:px-6 md:px-16 max-w-[1400px] mx-auto">
+      <section className="pt-6 sm:pt-8 md:pt-10 pb-16 sm:pb-24 px-3 sm:px-6 md:px-16 max-w-[1400px] mx-auto">
         <motion.div
           initial={{ opacity: 0, y: 15 }}
           animate={{ opacity: 1, y: 0 }}
