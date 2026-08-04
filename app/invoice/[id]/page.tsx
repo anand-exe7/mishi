@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState, use } from "react";
-import { ShoppingBag, MapPin, Phone, Printer, Copy, Check } from "lucide-react";
+import { ShoppingBag, MapPin, Phone, Printer, Copy, Check, ArrowLeft } from "lucide-react";
 import Link from "next/link";
 import { fetchOrderById, Order } from "@/lib/db";
 
@@ -43,12 +43,12 @@ export default function InvoicePage({ params }: { params: Promise<{ id: string }
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-[#FCFCFA] flex items-center justify-center">
+      <div className="min-h-screen bg-[#F4F6F4] flex items-center justify-center">
         <div className="animate-pulse flex flex-col items-center gap-4">
-          <div className="w-12 h-12 bg-amber-600 rounded-full flex items-center justify-center">
+          <div className="w-12 h-12 bg-[#2C392A] rounded-full flex items-center justify-center">
             <ShoppingBag className="w-6 h-6 text-white" />
           </div>
-          <p className="text-[#4C3D32] font-bold tracking-widest uppercase text-sm">Generating Digital Bill...</p>
+          <p className="text-[#2C392A] font-bold tracking-widest uppercase text-sm">Generating Digital Bill...</p>
         </div>
       </div>
     );
@@ -56,10 +56,10 @@ export default function InvoicePage({ params }: { params: Promise<{ id: string }
 
   if (error || !order) {
     return (
-      <div className="min-h-screen bg-[#FCFCFA] flex flex-col items-center justify-center gap-4">
-        <p className="text-amber-600 font-bold text-xl">Invoice Not Found</p>
-        <Link href="/admin" className="px-6 py-2 bg-[#E8DEC8] hover:bg-[#DBCABF] rounded-lg text-[#32231A] font-bold transition-colors">
-          Return to Dashboard
+      <div className="min-h-screen bg-[#F4F6F4] flex flex-col items-center justify-center gap-4">
+        <p className="text-[#2C392A] font-bold text-xl">Invoice Not Found</p>
+        <Link href="/products" className="px-6 py-2.5 bg-[#2C392A] hover:bg-[#1e271d] text-white rounded-xl font-bold transition-colors shadow-md">
+          Return to Store
         </Link>
       </div>
     );
@@ -70,7 +70,7 @@ export default function InvoicePage({ params }: { params: Promise<{ id: string }
   };
 
   return (
-    <div className="min-h-screen bg-[#FAFAEB] text-[#32231A] font-sans py-12 px-4 print:p-0 print:bg-white flex flex-col items-center">
+    <div className="min-h-screen bg-[#F4F6F4] text-[#32231A] font-sans py-8 sm:py-12 px-4 print:p-0 print:bg-white flex flex-col items-center">
       <style>{`
         @media print {
           @page {
@@ -86,15 +86,22 @@ export default function InvoicePage({ params }: { params: Promise<{ id: string }
       `}</style>
       
       {/* Top Navigation / Action Bar (Hidden when printing) */}
-      <div className="w-full max-w-3xl flex justify-end items-center mb-8 print:hidden gap-4">
-        <div className="flex items-center gap-3">
+      <div className="w-full max-w-3xl flex flex-wrap justify-between items-center mb-6 sm:mb-8 print:hidden gap-3">
+        <Link
+          href="/products"
+          className="flex items-center gap-2 bg-white hover:bg-emerald-50 text-[#2C392A] font-extrabold text-xs uppercase tracking-wider px-4 py-2.5 rounded-xl shadow-sm border border-emerald-200/80 transition-all"
+        >
+          <ArrowLeft size={16} /> Back to Store
+        </Link>
+
+        <div className="flex items-center gap-2.5">
           <button 
             onClick={handleCopyLink}
-            className="flex items-center gap-2 bg-white hover:bg-[#F0EBE1]/40 text-[#4C3D32] hover:text-amber-700 font-bold text-xs uppercase tracking-wider px-4 py-2 rounded-lg shadow-sm border border-[#E8DEC8] transition-colors cursor-pointer"
+            className="flex items-center gap-2 bg-white hover:bg-slate-50 text-slate-700 hover:text-slate-900 font-bold text-xs uppercase tracking-wider px-4 py-2.5 rounded-xl shadow-sm border border-slate-200 transition-colors cursor-pointer"
           >
             {copied ? (
               <>
-                <Check className="w-4 h-4 text-green-600" /> Copied!
+                <Check className="w-4 h-4 text-emerald-600" /> Copied!
               </>
             ) : (
               <>
@@ -102,9 +109,10 @@ export default function InvoicePage({ params }: { params: Promise<{ id: string }
               </>
             )}
           </button>
+
           <button 
             onClick={handlePrint}
-            className="flex items-center gap-2 bg-amber-600 hover:bg-amber-700 text-white font-bold text-xs uppercase tracking-wider px-5 py-2 rounded-lg shadow-sm transition-colors cursor-pointer"
+            className="flex items-center gap-2 bg-[#2C392A] hover:bg-[#1e271d] text-white font-extrabold text-xs uppercase tracking-wider px-5 py-2.5 rounded-xl shadow-md transition-all cursor-pointer"
           >
             <Printer className="w-4 h-4" /> Download PDF / Print
           </button>
@@ -126,7 +134,7 @@ export default function InvoicePage({ params }: { params: Promise<{ id: string }
               <span className="inline-block text-amber-600 mr-1.5 align-middle -mt-0.5">
                 <MapPin className="w-3.5 h-3.5" />
               </span>
-              <span>123 Spiritual Way, Chennai, Tamil Nadu, India</span>
+              <span>Padasallai street, Lake Road, near to spicot, Chembarambakkam, Tamil Nadu 600123</span>
             </div>
             <div className="flex items-center gap-1.5 justify-center">
               <Phone className="w-3.5 h-3.5 text-amber-600 shrink-0" />

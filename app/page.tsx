@@ -15,7 +15,8 @@ import {
   ChevronLeft,
   Quote,
   X,
-  CheckCircle2
+  CheckCircle2,
+  Globe
 } from "lucide-react";
 import { Playfair_Display } from "next/font/google";
 const playfair = Playfair_Display({ subsets: ["latin"] });
@@ -508,39 +509,151 @@ export default function Home() {
 
           <div className="w-full lg:w-7/12">
             <div className="grid grid-cols-2 gap-3 sm:gap-4">
-              <div className="col-span-2 sm:col-span-1 sm:row-span-2 rounded-2xl sm:rounded-3xl overflow-hidden relative shadow-md aspect-[16/10] sm:aspect-[3/4] border-2 border-white">
-                <video
-                  src={`/${reelVideos[0]}.mp4`}
-                  className="w-full h-full object-cover"
-                  autoPlay
-                  muted
-                  loop
-                  playsInline
+              <div className="col-span-2 sm:col-span-1 sm:row-span-2 rounded-2xl sm:rounded-3xl overflow-hidden relative shadow-md aspect-[16/10] sm:aspect-[3/4] border-2 border-white group">
+                <img
+                  src="/gallery/gallery_setup_1783444417350.png"
+                  alt="Inside Mishi Store Setup"
+                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent flex items-end p-4 text-white font-extrabold text-xs">
+                  Authentic Workshop & Store
+                </div>
+              </div>
+              <div className="col-span-1 rounded-2xl sm:rounded-3xl overflow-hidden relative shadow-md aspect-square border-2 border-white group">
+                <img
+                  src="/gallery/gallery_ingredients_1783444379768.png"
+                  alt="Hand-Harvested Herbs"
+                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                 />
               </div>
-              <div className="col-span-1 rounded-2xl sm:rounded-3xl overflow-hidden relative shadow-md aspect-square border-2 border-white">
-                <video
-                  src={`/${reelVideos[1]}.mp4`}
-                  className="w-full h-full object-cover"
-                  autoPlay
-                  muted
-                  loop
-                  playsInline
-                />
-              </div>
-              <div className="col-span-1 rounded-2xl sm:rounded-3xl overflow-hidden relative shadow-md aspect-square border-2 border-white">
-                <video
-                  src={`/${reelVideos[2]}.mp4`}
-                  className="w-full h-full object-cover"
-                  autoPlay
-                  muted
-                  loop
-                  playsInline
+              <div className="col-span-1 rounded-2xl sm:rounded-3xl overflow-hidden relative shadow-md aspect-square border-2 border-white group">
+                <img
+                  src="/gallery/gallery_sambrani_1783444367509.png"
+                  alt="Traditional Sambrani Resins"
+                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                 />
               </div>
             </div>
           </div>
 
+        </div>
+      </section>
+
+      {/* GLOBAL EXPORTED WORLDWIDE FLAGS SECTION */}
+      <section className="py-10 sm:py-16 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto my-4 sm:my-8">
+        <div className="flex flex-col lg:flex-row gap-8 items-center justify-between">
+          
+          {/* Flag Stand Display on the Left */}
+          <div className="w-full lg:w-4/12 shrink-0 bg-white border border-emerald-900/10 rounded-3xl p-6 sm:p-8 shadow-sm flex flex-col items-start relative overflow-hidden">
+            <div className="flex items-center gap-3 mb-3">
+              <div className="w-12 h-12 rounded-2xl bg-[#2C392A] text-white flex items-center justify-center shadow-md">
+                <Globe size={24} />
+              </div>
+              <div>
+                <span className="text-[10px] font-black uppercase tracking-[0.25em] text-[#7DAA8F] block">
+                  Export Stand
+                </span>
+                <h3 className="text-xl font-black text-[#2C392A]">
+                  Global Hub
+                </h3>
+              </div>
+            </div>
+            <p className="text-xs sm:text-sm text-[#5F6D59] font-medium leading-relaxed mb-4">
+              Our divine pooja products & organic herbal formulations are officially exported across 7+ countries worldwide.
+            </p>
+            <div className="flex items-center gap-2 text-xs font-black text-[#2C392A] bg-emerald-50 px-3.5 py-1.5 rounded-full border border-emerald-100">
+              <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+              Official Exporter & Supplier
+            </div>
+          </div>
+
+          {/* Staggered Flag Row on the Right */}
+          <div className="w-full lg:w-8/12">
+            <div className="mb-4 text-center lg:text-left">
+              <span className="text-[10px] font-extrabold uppercase tracking-[0.2em] text-[#7DAA8F] mb-1 block">
+                Worldwide Reach
+              </span>
+              <h2 className="text-2xl sm:text-3xl font-black text-[#2C392A] tracking-tight">
+                Exported Worldwide
+              </h2>
+            </div>
+
+            {/* Staggered Row Layout (Some Up, Some Down) */}
+            <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-7 gap-3 sm:gap-4 items-center justify-center pt-2">
+              {[
+                { name: "Malaysia", flag: "/flags/Malaysia_240-animated-flag-gifs.gif", offset: "translate-y-0" },
+                { name: "Singapore", flag: "/flags/Singapore_240-animated-flag-gifs.gif", offset: "sm:translate-y-4" },
+                { name: "USA", flag: "/flags/USA_240-animated-flag-gifs.gif", offset: "sm:-translate-y-3" },
+                { name: "UAE", flag: "/flags/United-Arab-Emirates_240-animated-flag-gifs.gif", offset: "sm:translate-y-5" },
+                { name: "Sri Lanka", flag: "/flags/Sri-Lanka_240-animated-flag-gifs.gif", offset: "sm:-translate-y-2" },
+                { name: "Mauritius", flag: "/flags/Mauritius_240-animated-flag-gifs.gif", offset: "sm:translate-y-4" },
+                { name: "Nigeria", flag: "/flags/Nigeria_240-animated-flag-gifs.gif", offset: "translate-y-0" },
+              ].map((country) => (
+                <div
+                  key={country.name}
+                  className={`bg-white rounded-2xl p-3 sm:p-4 flex flex-col items-center justify-center gap-2 border border-neutral-200/80 shadow-sm hover:shadow-md hover:-translate-y-1 transition-all duration-300 group ${country.offset}`}
+                >
+                  <img
+                    src={country.flag}
+                    alt={country.name}
+                    className="h-10 sm:h-12 w-auto object-contain rounded-md shadow-xs group-hover:scale-110 transition-transform"
+                  />
+                  <span className="text-[11px] font-extrabold text-[#2C392A] text-center">
+                    {country.name}
+                  </span>
+                </div>
+              ))}
+            </div>
+          </div>
+
+        </div>
+      </section>
+
+      {/* VIDEO TESTIMONIALS & CUSTOMER REELS SECTION */}
+      <section className="py-10 sm:py-16 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto">
+        <div className="text-center max-w-xl mx-auto mb-8 sm:mb-12">
+          <span className="text-[10px] font-black uppercase tracking-[0.25em] text-[#7DAA8F] bg-emerald-50 px-3.5 py-1 rounded-full border border-emerald-100">
+            Real Customer Experiences
+          </span>
+          <h2 className="text-2xl sm:text-4xl font-black text-[#2C392A] tracking-tight mt-3 mb-2">
+            Video Testimonials & Store Reels
+          </h2>
+          <p className="text-xs sm:text-sm text-[#5F6D59] font-medium">
+            Watch our customers and artisans share their journeys with Mishi Sacred Products.
+          </p>
+        </div>
+
+        <div className="grid grid-cols-2 md:grid-cols-5 gap-3.5 sm:gap-5">
+          {[
+            { title: "Sacred Fragrances", src: "/DX9JNchDWyW.mp4", tag: "Verified Review" },
+            { title: "Natural Sambrani", src: "/DYCWOObD0x3.mp4", tag: "Store Experience" },
+            { title: "Siddha Pooja Blends", src: "/DYTZ_U1idZK.mp4", tag: "Unboxing Reel" },
+            { title: "Temple Rituals", src: "/Daxqbe-ihQE.mp4", tag: "Herbal Review" },
+            { title: "Customer Unboxing", src: "/bg2.mp4", tag: "New Testimonial" },
+          ].map((video, idx) => (
+            <div
+              key={idx}
+              className="bg-white rounded-2xl sm:rounded-3xl overflow-hidden border border-emerald-100 shadow-md relative group aspect-[9/16] flex flex-col justify-end p-3"
+            >
+              <video
+                src={video.src}
+                className="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                autoPlay
+                muted
+                loop
+                playsInline
+              />
+              <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent pointer-events-none" />
+              <div className="relative z-10 text-white">
+                <span className="inline-block bg-emerald-600 text-white text-[9px] font-black uppercase tracking-wider px-2 py-0.5 rounded-full mb-1">
+                  {video.tag}
+                </span>
+                <h4 className="text-xs font-black leading-tight text-white drop-shadow-sm">
+                  {video.title}
+                </h4>
+              </div>
+            </div>
+          ))}
         </div>
       </section>
 
@@ -848,9 +961,11 @@ export default function Home() {
             <h3 className="text-lg font-black text-[#2C392A] mb-1">
               Mishi Pooja Products
             </h3>
-            <p className="text-xs text-[#5F6D59] font-semibold">Tamil Nadu, India</p>
+            <p className="text-xs text-[#5F6D59] font-semibold mb-3 max-w-xs">
+              Padasallai street, Lake Road, near to spicot, Chembarambakkam, Tamil Nadu 600123
+            </p>
             <a
-              href="https://maps.google.com/?q=13.032223,80.0381669"
+              href="https://www.google.com/maps/search/?api=1&query=Padasallai+street,+Lake+Road,+near+to+spicot,+Chembarambakkam,+Tamil+Nadu+600123"
               target="_blank"
               rel="noreferrer"
               className="bg-[#2C392A] text-white px-6 py-3 rounded-full text-xs font-extrabold flex items-center gap-2 hover:bg-[#1e271d] transition-colors shadow-md"
@@ -878,7 +993,9 @@ export default function Home() {
               </div>
               <div>
                 <p className="text-xs font-extrabold text-[#2C392A]">Store Address</p>
-                <p className="text-xs text-[#5F6D59]">213/6A, Eripattai, Chembarambakkam, Chennai – 600123</p>
+                <p className="text-xs text-[#5F6D59] leading-relaxed">
+                  Padasallai street, Lake Road, near to spicot, Chembarambakkam, Tamil Nadu 600123
+                </p>
               </div>
             </div>
 
@@ -937,7 +1054,7 @@ export default function Home() {
             <ul className="space-y-2.5 text-xs sm:text-sm text-white/70 font-light">
               <li className="font-bold text-white">+91 80561 01114</li>
               <li>mishipoojaproducts@gmail.com</li>
-              <li>Chembarambakkam, Chennai</li>
+              <li className="leading-snug">Padasallai street, Lake Road, near to spicot, Chembarambakkam, Tamil Nadu 600123</li>
             </ul>
           </div>
 

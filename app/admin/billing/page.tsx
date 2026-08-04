@@ -171,7 +171,7 @@ export default function POSBillingPanel() {
   };
 
   return (
-    <div className="space-y-6 max-w-7xl mx-auto font-sans text-slate-800">
+    <div className="space-y-6 w-full max-w-[1600px] mx-auto font-sans text-slate-800">
       
       {/* Header Section */}
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 border-b border-slate-200 pb-4">

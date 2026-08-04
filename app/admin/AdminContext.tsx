@@ -7,7 +7,8 @@ import {
   insertOrder, 
   updateOrderStatusDb, 
   fetchWhatsappRequests, 
-  updateWhatsappRequestStatus 
+  updateWhatsappRequestStatus,
+  dbDeleteOrder
 } from '@/lib/db';
 
 type AdminContextType = {
@@ -17,6 +18,7 @@ type AdminContextType = {
   addOrder: (order: Order) => Promise<void>;
   updateOrderStatus: (id: string, status: 'Pending' | 'Processing' | 'Completed' | 'Cancelled') => Promise<void>;
   updateWhatsappStatus: (id: string, status: 'Pending' | 'Processing' | 'Completed' | 'Cancelled') => Promise<void>;
+  deleteOrder: (id: string) => Promise<void>;
   refreshData: () => Promise<void>;
 };
 
@@ -70,6 +72,12 @@ export function AdminProvider({ children }: { children: React.ReactNode }) {
     setOrders((prev) => prev.map(o => o.id === id ? { ...o, status } : o));
   };
 
+  const deleteOrder = async (id: string) => {
+    await dbDeleteOrder(id);
+    setOrders((prev) => prev.filter(o => o.id !== id));
+    setWhatsappRequests((prev) => prev.filter(o => o.id !== id));
+  };
+
   return (
     <AdminContext.Provider value={{ 
       orders, 
@@ -78,6 +86,7 @@ export function AdminProvider({ children }: { children: React.ReactNode }) {
       addOrder, 
       updateOrderStatus, 
       updateWhatsappStatus,
+      deleteOrder,
       refreshData 
     }}>
       {children}

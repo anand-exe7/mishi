@@ -66,12 +66,12 @@ export default function InventoryManagement() {
               placeholder="Search products & categories..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              className="pl-9 pr-4 py-2 border border-slate-200 rounded-full text-sm w-full focus:outline-none focus:border-[#dc2626]"
+              className="pl-9 pr-4 py-2 border border-slate-200 rounded-full text-sm w-full focus:outline-none focus:border-[#2C392A]"
             />
           </div>
           <Link 
             href="/admin/products"
-            className="flex items-center justify-center gap-2 px-5 py-2 bg-[#dc2626] hover:bg-red-700 text-white font-bold rounded-full text-xs transition-colors whitespace-nowrap"
+            className="flex items-center justify-center gap-2 px-5 py-2 bg-[#2C392A] hover:bg-[#1e271d] text-white font-bold rounded-full text-xs transition-colors whitespace-nowrap"
           >
             Manage Catalog
           </Link>
@@ -80,7 +80,7 @@ export default function InventoryManagement() {
 
       {loading ? (
         <div className="flex justify-center items-center py-20 bg-white border border-slate-200 shadow-sm rounded-2xl">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#dc2626]"></div>
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#2C392A]"></div>
         </div>
       ) : (
         <div className="bg-white border border-slate-200 rounded-2xl shadow-sm overflow-hidden">

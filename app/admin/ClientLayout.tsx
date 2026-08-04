@@ -107,9 +107,9 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   const navigation = [
     { name: 'WhatsApp Center', href: '/admin/whatsapp', icon: WhatsAppIcon, color: 'text-[#25D366]' },
     { name: 'Billing', href: '/admin/billing', icon: CreditCard, color: 'text-blue-500' },
-    { name: 'Products', href: '/admin/products', icon: Package, color: 'text-orange-500' },
-    { name: 'POS Analytics', href: '/admin/analytics', icon: BarChart3, color: 'text-amber-500' },
     { name: 'Orders', href: '/admin/orders', icon: ShoppingBag, color: 'text-emerald-500' },
+    { name: 'POS Analytics', href: '/admin/analytics', icon: BarChart3, color: 'text-amber-500' },
+    { name: 'Products', href: '/admin/products', icon: Package, color: 'text-orange-500' },
     { name: 'Coupons', href: '/admin/coupons', icon: Ticket, color: 'text-purple-500' },
     { name: 'Users', href: '/admin/users', icon: Users, color: 'text-pink-500' },
   ];
@@ -134,7 +134,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   if (authLoading || roleLoading) {
     return (
       <div className="min-h-screen bg-slate-50 flex flex-col justify-center items-center gap-4">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#dc2626]"></div>
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#2C392A]"></div>
         <p className="text-xs font-bold text-slate-500 uppercase tracking-widest">Verifying Admin Access...</p>
       </div>
     );
@@ -145,7 +145,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     return (
       <div className="min-h-screen bg-slate-50 flex items-center justify-center p-6 font-sans">
         <div className="bg-white border border-slate-200 shadow-xl rounded-[2rem] p-10 max-w-md w-full text-center flex flex-col items-center">
-          <div className="w-16 h-16 rounded-full bg-rose-50 text-[#dc2626] flex items-center justify-center mb-6">
+          <div className="w-16 h-16 rounded-full bg-emerald-50 text-[#2C392A] flex items-center justify-center mb-6">
             <ShieldAlert size={32} />
           </div>
           <h2 className="text-xl font-black text-slate-900 mb-2 uppercase tracking-wide">Access Denied</h2>
@@ -176,7 +176,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   }
 
   return (
-    <div className="h-screen overflow-hidden bg-slate-50 flex font-sans">
+    <div className="min-h-screen bg-slate-50 flex font-sans">
       {/* Mobile Sidebar Overlay */}
       {isMobileSidebarOpen && (
         <div 
@@ -187,13 +187,13 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
 
       {/* Sidebar */}
       <aside className={`
-        fixed lg:static inset-y-0 left-0 z-50
-        bg-white border-r border-slate-100 flex flex-col
+        fixed lg:sticky top-0 lg:h-screen inset-y-0 left-0 z-50
+        bg-white border-r border-slate-100 flex flex-col shrink-0
         transition-all duration-300 ease-in-out
         ${isMobileSidebarOpen ? 'translate-x-0 w-64' : '-translate-x-full lg:translate-x-0'}
         ${isDesktopSidebarCollapsed ? 'lg:w-20' : 'lg:w-64'}
       `}>
-        <div className="h-16 flex items-center justify-between px-6 border-b border-slate-100">
+        <div className="h-16 flex items-center justify-between px-6 border-b border-slate-100 shrink-0">
           {!isDesktopSidebarCollapsed && (
             <span className="text-xl font-black text-slate-900 tracking-tight whitespace-nowrap overflow-hidden">
               Mishi Admin
@@ -222,7 +222,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                 className={`
                   flex items-center gap-3 px-3 py-3 rounded-xl text-sm font-bold transition-all
                   ${isActive 
-                    ? 'bg-[#dc2626] text-white shadow-md shadow-red-200' 
+                    ? 'bg-[#2C392A] text-white shadow-md shadow-emerald-900/20' 
                     : 'text-slate-500 hover:bg-slate-50 hover:text-slate-900'
                   }
                   ${isDesktopSidebarCollapsed ? 'justify-center' : 'justify-start'}
@@ -238,7 +238,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
           })}
         </nav>
 
-        <div className="p-4 border-t border-slate-100">
+        <div className="p-4 border-t border-slate-100 shrink-0">
           <div className={`flex items-center gap-3 px-2 py-2 ${isDesktopSidebarCollapsed ? 'justify-center' : ''}`}>
             <div className="w-8 h-8 rounded-full bg-slate-100 text-slate-600 flex items-center justify-center font-bold text-sm shrink-0">
               {adminName.charAt(0).toUpperCase()}
@@ -266,9 +266,9 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
       </aside>
 
       {/* Main Content */}
-      <main className="flex-1 flex flex-col min-w-0">
+      <main className="flex-1 flex flex-col min-w-0 min-h-screen">
         {/* Sticky Header */}
-        <header className="h-16 bg-white border-b border-slate-100 sticky top-0 z-30 flex items-center justify-between px-4 lg:px-8">
+        <header className="h-16 bg-white border-b border-slate-100 sticky top-0 z-30 flex items-center justify-between px-4 lg:px-8 shrink-0">
           <div className="flex items-center gap-4">
             <button 
               className="lg:hidden p-2 -ml-2 text-slate-400 hover:text-slate-600"
@@ -295,10 +295,32 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         </header>
 
         {/* Page Content */}
-        <div className="flex-1 p-4 lg:p-8 overflow-y-auto bg-[#f8f9fa]">
+        <div className="flex-1 p-3 sm:p-5 lg:px-8 lg:py-6 bg-[#f8f9fa] flex flex-col justify-between">
           <AdminProvider>
             {children}
           </AdminProvider>
+
+          {/* Admin Footer */}
+          <footer className="mt-8 pt-6 pb-4 border-t border-slate-200 text-xs font-semibold text-slate-500 flex flex-col md:flex-row items-center justify-between gap-3 px-2 shrink-0 text-center md:text-left">
+            <div>
+              © 2026 <span className="font-bold text-slate-800">Mishi Pooja Products</span>. All Rights Reserved
+            </div>
+            <div className="font-medium text-slate-600 text-center">
+              Powered by{" "}
+              <a
+                href="https://www.cenexasystems.com"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="font-bold text-[#2C392A] hover:text-emerald-700 underline underline-offset-2 transition-colors"
+              >
+                Cenexa Systems
+              </a>{" "}
+              © 2026
+            </div>
+            <div className="tracking-[0.15em] font-extrabold text-slate-500 uppercase text-[11px] text-center md:text-right">
+              NATURAL • PURE • SACRED
+            </div>
+          </footer>
         </div>
       </main>
     </div>
