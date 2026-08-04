@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import { Playfair_Display } from "next/font/google";
 import { motion, AnimatePresence } from "framer-motion";
-import { ArrowRight, Plus, Minus, ShoppingCart, Search, X } from "lucide-react";
+import { ArrowRight, Plus, Minus, ShoppingCart, Search, X, Check } from "lucide-react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { useProductStore, useCartStore } from "@/store/store";
@@ -22,6 +22,7 @@ export default function ProductsPage() {
   const urlSearch = searchParams.get("search");
 
   const { products, fetchProducts, loading, error } = useProductStore();
+  const cartItems = useCartStore((state) => state.items);
   const addItem = useCartStore((state) => state.addItem);
 
   useEffect(() => {
@@ -235,9 +236,21 @@ export default function ProductsPage() {
                     <span className="text-emerald-950 font-black text-xs sm:text-base">
                       From ₹{lowestPrice}
                     </span>
-                    <span className="text-[9px] sm:text-[10px] uppercase tracking-wider font-extrabold text-emerald-800 bg-emerald-50 px-2 py-1 sm:px-3 sm:py-1 rounded-full group-hover:bg-[#2C392A] group-hover:text-white transition-colors">
-                      View
-                    </span>
+                    {(() => {
+                      const itemInCart = cartItems.find((i) => i.product.id === product.id);
+                      if (itemInCart) {
+                        return (
+                          <span className="text-[9px] sm:text-[10px] uppercase tracking-wider font-extrabold text-emerald-900 bg-emerald-100 px-2 py-1 sm:px-3 sm:py-1 rounded-full flex items-center gap-1 border border-emerald-300">
+                            <Check size={10} className="text-emerald-800" /> In Cart ({itemInCart.quantity})
+                          </span>
+                        );
+                      }
+                      return (
+                        <span className="text-[9px] sm:text-[10px] uppercase tracking-wider font-extrabold text-emerald-800 bg-emerald-50 px-2 py-1 sm:px-3 sm:py-1 rounded-full group-hover:bg-[#2C392A] group-hover:text-white transition-colors">
+                          View
+                        </span>
+                      );
+                    })()}
                   </div>
                 </motion.div>
               );
@@ -454,7 +467,24 @@ export default function ProductsPage() {
                       }}
                       className="flex-1 bg-[#2C392A] hover:bg-[#1e271d] text-white font-extrabold py-3 px-4 rounded-full uppercase tracking-wider text-xs transition-all shadow-lg shadow-[#2C392A]/20 active:scale-[0.98] flex items-center justify-center gap-2"
                     >
-                      <ShoppingCart size={15} /> Add to Cart
+                      {(() => {
+                        const inCartCount = cartItems
+                          .filter((i) => i.product.id === selectedProduct.id && (!selectedSize || i.unit === selectedSize))
+                          .reduce((acc, i) => acc + i.quantity, 0);
+                        if (inCartCount > 0) {
+                          return (
+                            <>
+                              <Check size={15} className="text-emerald-400" />
+                              <span>In Cart ({inCartCount}) — Add More</span>
+                            </>
+                          );
+                        }
+                        return (
+                          <>
+                            <ShoppingCart size={15} /> Add to Cart
+                          </>
+                        );
+                      })()}
                     </button>
                   </div>
                 </div>

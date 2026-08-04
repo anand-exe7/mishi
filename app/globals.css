@@ -70,3 +70,10 @@ body {
   background-clip: text;
   animation: shimmer 5s ease-in-out infinite;
 }
+
+/* Print CSS Overrides */
+@media print {
+  header, nav, footer, .print\:hidden, [role="navigation"] {
+    display: none !important;
+  }
+}

@@ -99,13 +99,13 @@ export default function Login() {
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               disabled={loading}
-              className="w-full bg-white border border-neutral-200 text-neutral-800 placeholder:text-neutral-400 text-xs sm:text-sm py-3 sm:py-3.5 pl-10 pr-4 rounded-xl shadow-sm focus:outline-none focus:ring-2 focus:ring-red-500/20 focus:border-[#dc2626] transition-all duration-300 disabled:opacity-70"
+              className="w-full bg-white border border-neutral-200 text-neutral-800 placeholder:text-neutral-400 text-xs sm:text-sm py-3 sm:py-3.5 pl-10 pr-4 rounded-xl shadow-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-[#2C392A] transition-all duration-300 disabled:opacity-70"
             />
           </div>
           <button 
             onClick={() => signInWithMagicLink(email)}
             disabled={loading || !email}
-            className="w-full bg-[#dc2626] hover:bg-red-700 text-white text-xs font-bold tracking-wider uppercase py-3.5 rounded-xl shadow-md transition-all duration-300 cursor-pointer flex items-center justify-center gap-2 disabled:opacity-70 disabled:cursor-not-allowed"
+            className="w-full bg-[#2C392A] hover:bg-[#1e271d] text-white text-xs font-bold tracking-wider uppercase py-3.5 rounded-xl shadow-md transition-all duration-300 cursor-pointer flex items-center justify-center gap-2 disabled:opacity-70 disabled:cursor-not-allowed"
           >
             {loading && <Loader2 className="w-4 h-4 animate-spin" />}
             Continue with Email

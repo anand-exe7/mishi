@@ -56,7 +56,7 @@ export default function ProfilePage() {
   return (
     <div className="bg-[#F9F8F5] min-h-screen font-sans selection:bg-[#7DAA8F]/30 selection:text-[#2C392A] overflow-x-hidden">
       {/* Main Content */}
-      <section className="pt-24 sm:pt-28 md:pt-36 pb-16 sm:pb-24 px-3.5 sm:px-6 md:px-16 max-w-[1400px] mx-auto min-h-[80vh]">
+      <section className="pt-4 sm:pt-6 md:pt-8 pb-16 sm:pb-24 px-3.5 sm:px-6 md:px-16 max-w-[1400px] mx-auto min-h-[80vh]">
         <motion.div
           initial={{ opacity: 0, y: 15 }}
           animate={{ opacity: 1, y: 0 }}
@@ -109,62 +109,72 @@ export default function ProfilePage() {
                   </div>
                 ) : (
                   <div className="space-y-4 sm:space-y-6">
-                    {orders.map((order) => (
-                      <div key={order.id} className="flex flex-col p-4 sm:p-6 border border-emerald-100 rounded-2xl hover:border-emerald-300 transition-colors bg-[#F9F8F5]">
-                        <div className="flex flex-col sm:flex-row justify-between sm:items-start mb-3 gap-2 border-b border-emerald-100 pb-3">
-                          <div>
-                            <div className="flex items-center gap-2 sm:gap-3 flex-wrap">
-                              <h3 className="text-sm sm:text-base font-black text-emerald-950">{order.id}</h3>
-                              <span className={`text-[9px] sm:text-[10px] font-black uppercase tracking-wider px-2 py-0.5 rounded-full ${
-                                order.status === 'Completed' ? 'bg-emerald-100 text-emerald-800' :
-                                order.status === 'Cancelled' ? 'bg-rose-100 text-rose-700' : 'bg-amber-100 text-amber-800'
-                              }`}>
-                                {order.status}
-                              </span>
-                            </div>
-                            <p className="text-[11px] sm:text-xs text-[#5F6D59] mt-1">
-                              Placed on {order.createdAt ? new Date(order.createdAt).toLocaleDateString(undefined, { year: 'numeric', month: 'long', day: 'numeric' }) : 'N/A'}
-                            </p>
-                          </div>
-                          <span className="text-base sm:text-xl font-black text-emerald-950">₹{order.totalPrice.toLocaleString('en-IN')}</span>
-                        </div>
+                    {orders.map((order) => {
+                      const cleanItems = (order.items || []).filter((item: any) => item.productId !== 'META_DISCOUNT' && !item.isMeta && !item.name?.toLowerCase().includes('discount applied'));
+                      const itemsSum = cleanItems.reduce((acc, item) => acc + (item.price * item.quantity), 0);
+                      const displaySubtotal = itemsSum > 0 ? itemsSum : (order.subtotal || order.totalPrice);
+                      const displayDiscount = (order.couponDiscount || 0) > 0 
+                        ? order.couponDiscount 
+                        : (itemsSum > order.totalPrice ? itemsSum - order.totalPrice : 0);
+                      const couponLabel = order.couponCode ? ` (${order.couponCode})` : '';
 
-                        <div className="space-y-2">
-                          {order.items.map((item, idx) => (
-                            <div key={idx} className="flex justify-between items-center text-xs sm:text-sm text-emerald-900">
-                              <div>
-                                <span className="font-bold text-emerald-950">{item.quantity}x</span> {item.name}
-                                {item.size && <span className="ml-1.5 text-[10px] text-[#5F6D59]">({item.size})</span>}
+                      return (
+                        <div key={order.id} className="flex flex-col p-4 sm:p-6 border border-emerald-100 rounded-2xl hover:border-emerald-300 transition-colors bg-[#F9F8F5]">
+                          <div className="flex flex-col sm:flex-row justify-between sm:items-start mb-3 gap-2 border-b border-emerald-100 pb-3">
+                            <div>
+                              <div className="flex items-center gap-2 sm:gap-3 flex-wrap">
+                                <h3 className="text-sm sm:text-base font-black text-emerald-950">{order.id}</h3>
+                                <span className={`text-[9px] sm:text-[10px] font-black uppercase tracking-wider px-2 py-0.5 rounded-full ${
+                                  order.status === 'Completed' ? 'bg-emerald-100 text-emerald-800' :
+                                  order.status === 'Cancelled' ? 'bg-rose-100 text-rose-700' : 'bg-amber-100 text-amber-800'
+                                }`}>
+                                  {order.status}
+                                </span>
                               </div>
-                              <span className="font-bold text-emerald-950">₹{(item.price * item.quantity).toLocaleString('en-IN')}</span>
+                              <p className="text-[11px] sm:text-xs text-[#5F6D59] mt-1">
+                                Placed on {order.createdAt ? new Date(order.createdAt).toLocaleDateString(undefined, { year: 'numeric', month: 'long', day: 'numeric' }) : 'N/A'}
+                              </p>
                             </div>
-                          ))}
-                        </div>
+                            <span className="text-base sm:text-xl font-black text-emerald-950">₹{order.totalPrice.toLocaleString('en-IN')}</span>
+                          </div>
 
-                        <div className="flex justify-between text-[11px] sm:text-xs text-[#5F6D59] mt-3 pt-3 border-t border-emerald-100 font-medium">
-                          <span>Subtotal</span>
-                          <span>₹{order.subtotal.toLocaleString('en-IN')}</span>
+                          <div className="space-y-2">
+                            {cleanItems.map((item, idx) => (
+                              <div key={idx} className="flex justify-between items-center text-xs sm:text-sm text-emerald-900">
+                                <div>
+                                  <span className="font-bold text-emerald-950">{item.quantity}x</span> {item.name}
+                                  {item.size && <span className="ml-1.5 text-[10px] text-[#5F6D59]">({item.size})</span>}
+                                </div>
+                                <span className="font-bold text-emerald-950">₹{(item.price * item.quantity).toLocaleString('en-IN')}</span>
+                              </div>
+                            ))}
+                          </div>
+
+                          <div className="flex justify-between text-[11px] sm:text-xs text-[#5F6D59] mt-3 pt-3 border-t border-emerald-100 font-medium">
+                            <span>Subtotal</span>
+                            <span>₹{displaySubtotal.toLocaleString('en-IN')}</span>
+                          </div>
+                          {displayDiscount > 0 && (
+                            <div className="flex justify-between text-[11px] sm:text-xs text-red-600 font-bold mt-1">
+                              <span>Coupon Discount{couponLabel}</span>
+                              <span>-₹{displayDiscount.toLocaleString('en-IN')}</span>
+                            </div>
+                          )}
+                          {order.manualDiscount > 0 && (
+                            <div className="flex justify-between text-[11px] sm:text-xs text-red-600 font-bold mt-1">
+                              <span>Manual Discount</span>
+                              <span>-₹{order.manualDiscount.toLocaleString('en-IN')}</span>
+                            </div>
+                          )}
+                          {order.deliveryCharge > 0 && (
+                            <div className="flex justify-between text-[11px] sm:text-xs text-[#5F6D59] mt-1">
+                              <span>Delivery Charge</span>
+                              <span>₹{order.deliveryCharge.toLocaleString('en-IN')}</span>
+                            </div>
+                          )}
                         </div>
-                        {order.couponDiscount > 0 && (
-                          <div className="flex justify-between text-[11px] sm:text-xs text-red-600 font-bold mt-1">
-                            <span>Coupon Discount ({order.couponCode})</span>
-                            <span>-₹{order.couponDiscount.toLocaleString('en-IN')}</span>
-                          </div>
-                        )}
-                        {order.manualDiscount > 0 && (
-                          <div className="flex justify-between text-[11px] sm:text-xs text-red-600 font-bold mt-1">
-                            <span>Manual Discount</span>
-                            <span>-₹{order.manualDiscount.toLocaleString('en-IN')}</span>
-                          </div>
-                        )}
-                        {order.deliveryCharge > 0 && (
-                          <div className="flex justify-between text-[11px] sm:text-xs text-[#5F6D59] mt-1">
-                            <span>Delivery Charge</span>
-                            <span>₹{order.deliveryCharge.toLocaleString('en-IN')}</span>
-                          </div>
-                        )}
-                      </div>
-                    ))}
+                      );
+                    })}
                   </div>
                 )}
               </div>

@@ -73,39 +73,32 @@ export default function GlobalNav() {
     }
   };
 
-  // Hide navbar on admin or login routes
-  if (pathname.startsWith("/admin") || pathname.startsWith("/login")) {
+  // Hide navbar on admin, login, or invoice routes
+  if (pathname.startsWith("/admin") || pathname.startsWith("/login") || pathname.startsWith("/invoice")) {
     return null;
   }
 
-  const navLinks = [
+  const navLinks: Array<{ href: string; label: string; icon: any; badge?: number }> = [
     { href: "/", label: t("nav.home"), icon: Home },
     { href: "/products", label: t("nav.products"), icon: Package },
-    {
-      href: "/cart",
-      label: t("nav.cart"),
-      icon: ShoppingBag,
-      badge: cartCount,
-    },
+    { href: "/cart", label: t("nav.cart"), icon: ShoppingCart, badge: cartCount },
     { href: "/profile", label: "Profile", icon: User },
   ];
 
   return (
     <>
       <header
-        className={`fixed top-0 left-0 right-0 z-50 w-full transition-shadow duration-300 py-3 ${
-          isScrolled
-            ? "bg-white/95 backdrop-blur-md shadow-md border-b border-emerald-900/10"
-            : "bg-white/95 backdrop-blur-md border-b border-emerald-950/5"
+        className={`sticky top-0 z-40 w-full transition-all duration-300 bg-white/95 backdrop-blur-md border-b border-emerald-100/80 print:hidden ${
+          isScrolled ? "shadow-md py-1.5 sm:py-2" : "shadow-sm py-2 sm:py-3"
         }`}
       >
         <div className="max-w-7xl mx-auto px-2.5 sm:px-6 lg:px-8 flex items-center justify-between gap-1.5 sm:gap-4">
-          {/* Brand Logo - Scaled Prominently */}
-          <Link href="/" className="flex items-center shrink group min-w-0">
+          {/* Brand Logo - Responsive Sizing to avoid clashing with right controls on small mobile */}
+          <Link href="/" className="flex items-center shrink min-w-0 group">
             <img
               src="/logo.webp"
               alt="Mishi"
-              className="h-8 xs:h-10 sm:h-12 md:h-14 max-w-[170px] xs:max-w-[210px] sm:max-w-none w-auto object-contain transition-transform duration-300 group-hover:scale-105"
+              className="h-8 xs:h-10 sm:h-12 md:h-14 max-w-[140px] xs:max-w-[185px] sm:max-w-none w-auto object-contain transition-transform duration-300 group-hover:scale-105"
             />
           </Link>
 
@@ -134,53 +127,58 @@ export default function GlobalNav() {
 
           {/* Desktop Nav Links (visible on lg+) */}
           <nav className="hidden lg:flex items-center gap-6 text-sm font-bold text-zinc-700 shrink-0">
-            {navLinks.map((link) => {
-              const isActive =
-                link.href === "/"
-                  ? pathname === "/"
-                  : pathname.startsWith(link.href);
-              return (
-                <Link
-                  key={link.href}
-                  href={link.href}
-                  className={`transition-colors py-1 hover:text-emerald-700 relative flex items-center gap-1.5 ${
-                    isActive ? "text-emerald-800 font-black" : ""
-                  }`}
-                >
-                  <span>{link.label}</span>
-                  {isActive && (
-                    <motion.div
-                      layoutId="activeNavIndicator"
-                      className="absolute bottom-0 left-0 right-0 h-0.5 bg-emerald-600 rounded-full"
-                    />
-                  )}
-                </Link>
-              );
-            })}
+            {navLinks
+              .filter((l) => l.href !== "/cart")
+              .map((link) => {
+                const Icon = link.icon;
+                const isActive =
+                  link.href === "/"
+                    ? pathname === "/"
+                    : pathname.startsWith(link.href);
+                return (
+                  <Link
+                    key={link.href}
+                    href={link.href}
+                    className={`transition-colors py-1 hover:text-emerald-700 relative flex items-center gap-1.5 ${
+                      isActive ? "text-emerald-800 font-black" : ""
+                    }`}
+                  >
+                    <Icon size={16} className={isActive ? "text-emerald-800" : "text-emerald-700"} />
+                    <span>{link.label}</span>
+                    {isActive && (
+                      <motion.div
+                        layoutId="activeNavIndicator"
+                        className="absolute bottom-0 left-0 right-0 h-0.5 bg-emerald-600 rounded-full"
+                      />
+                    )}
+                  </Link>
+                );
+              })}
           </nav>
 
-          {/* Right Controls (Language, Cart, Burger Menu Button) */}
+          {/* Right Controls (Language, Trolley Icon with Floating Count Badge, Burger Menu) */}
           <div className="flex items-center gap-1.5 sm:gap-2.5 shrink-0">
-            {/* Language Switcher Button - Always Visible */}
+            {/* Language Switcher Button with Flags */}
             <button
               onClick={() => setLang(lang === "en" ? "ta" : "en")}
               title="Switch Language"
-              className="flex items-center gap-1 sm:gap-1.5 bg-[#2C392A] text-white rounded-full px-2.5 sm:px-3.5 py-1 sm:py-1.5 text-[10px] sm:text-xs font-black hover:bg-[#1e271d] transition-all shadow-sm border border-emerald-500/20"
+              className="flex items-center gap-1 sm:gap-1.5 bg-[#2C392A] text-white rounded-full px-2.5 sm:px-3.5 py-1.5 text-[10px] sm:text-xs font-black hover:bg-[#1e271d] transition-all shadow-sm border border-emerald-500/20"
               aria-label="Language selector"
             >
-              <Globe size={13} className="text-emerald-400 shrink-0" />
+              <span className="text-xs sm:text-sm leading-none">{lang === "en" ? "🇬🇧" : "🇮🇳"}</span>
               <span>{lang === "en" ? "EN" : "தமிழ்"}</span>
             </button>
 
-            {/* Shopping Cart Icon with Live Count Badge */}
+            {/* Dedicated Trolley Icon Button with Number Floating Above It */}
             <Link
               href="/cart"
-              className="p-1.5 sm:p-2 text-emerald-900 hover:text-emerald-700 transition-colors relative flex items-center justify-center rounded-full hover:bg-emerald-50 shrink-0"
-              aria-label="Cart"
+              className="relative p-2.5 sm:p-3 rounded-2xl bg-emerald-50 hover:bg-emerald-100/90 text-[#2C392A] border border-emerald-200/90 transition-all shadow-sm flex items-center justify-center shrink-0 group cursor-pointer"
+              aria-label="Shopping Cart"
+              title="View Cart"
             >
-              <ShoppingCart size={20} className="sm:w-5 sm:h-5 text-[#2C392A]" />
+              <ShoppingCart size={20} className="text-[#2C392A] group-hover:scale-110 transition-transform shrink-0" />
               {cartCount > 0 && (
-                <span className="absolute -top-1 -right-1 bg-emerald-600 text-white text-[9px] sm:text-[10px] font-black w-4.5 h-4.5 flex items-center justify-center rounded-full border-2 border-white shadow-sm">
+                <span className="absolute -top-2 -right-2 bg-[#2C392A] text-white text-[10px] font-black min-w-[20px] h-[20px] rounded-full flex items-center justify-center px-1 border-2 border-white shadow-md leading-none animate-pulse">
                   {cartCount}
                 </span>
               )}

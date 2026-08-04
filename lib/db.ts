@@ -300,36 +300,59 @@ export const fetchOrders = async (): Promise<Order[]> => {
 
 export const fetchOrderById = async (id: string): Promise<Order | null> => {
   const { data: o, error: oError } = await supabase.from('orders').select('*, order_items(*)').eq('id', id).single();
-  if (oError) {
-    if (oError.code === 'PGRST116') return null; // Not found
-    throw oError;
+  if (!oError && o) {
+    return {
+      id: o.id,
+      customerName: o.customer_name,
+      customerPhone: o.customer_phone,
+      customerEmail: o.customer_email,
+      customerAddress: o.customer_address,
+      source: o.source,
+      items: (o.order_items || []).map((it: any) => ({
+        productId: it.product_id,
+        name: it.name,
+        size: it.size,
+        quantity: it.quantity,
+        price: it.price,
+      })),
+      subtotal: o.subtotal,
+      totalPrice: o.total_price,
+      status: o.status,
+      createdAt: o.created_at,
+      couponCode: o.coupon_code,
+      couponDiscount: o.coupon_discount,
+      manualDiscount: o.manual_discount,
+      deliveryCharge: o.delivery_charge,
+      cashReceived: o.cash_received,
+      changeReturned: o.change_returned,
+    };
   }
 
-  return {
-    id: o.id,
-    customerName: o.customer_name,
-    customerPhone: o.customer_phone,
-    customerEmail: o.customer_email,
-    customerAddress: o.customer_address,
-    source: o.source,
-    items: o.order_items.map((it: any) => ({
-      productId: it.product_id,
-      name: it.name,
-      size: it.size,
-      quantity: it.quantity,
-      price: it.price,
-    })),
-    subtotal: o.subtotal,
-    totalPrice: o.total_price,
-    status: o.status,
-    createdAt: o.created_at,
-    couponCode: o.coupon_code,
-    couponDiscount: o.coupon_discount,
-    manualDiscount: o.manual_discount,
-    deliveryCharge: o.delivery_charge,
-    cashReceived: o.cash_received,
-    changeReturned: o.change_returned,
-  };
+  // Fallback to whatsapp_requests table
+  const { data: w, error: wError } = await supabase.from('whatsapp_requests').select('*').eq('id', id).single();
+  if (!wError && w) {
+    return {
+      id: w.id,
+      customerName: w.customer_name,
+      customerPhone: w.customer_phone,
+      customerEmail: w.customer_email || '',
+      customerAddress: w.customer_address || '',
+      source: 'ONLINE',
+      items: (w.items || []).filter((it: any) => it.productId !== 'META_DISCOUNT' && !it.isMeta),
+      subtotal: w.total_price,
+      totalPrice: w.total_price,
+      status: w.status,
+      createdAt: w.created_at,
+      couponCode: '',
+      couponDiscount: 0,
+      manualDiscount: 0,
+      deliveryCharge: 0,
+      cashReceived: 0,
+      changeReturned: 0,
+    };
+  }
+
+  return null;
 };
 
 export const fetchOrdersByEmail = async (email: string): Promise<Order[]> => {
@@ -448,17 +471,7 @@ export const updateOrderStatusDb = async (id: string, status: string) => {
 // WHATSAPP REQUESTS
 // ============================
 export const insertWhatsappRequest = async (order: Order) => {
-  const itemsWithMeta = [...(order.items || [])];
-  if (order.couponDiscount > 0) {
-    itemsWithMeta.push({
-      productId: 'META_DISCOUNT',
-      name: `Discount Applied: ${order.couponCode || 'Manual'}`,
-      size: 'Discount',
-      quantity: 1,
-      price: -order.couponDiscount,
-      isMeta: true
-    } as any);
-  }
+  const cleanItems = (order.items || []).filter((it: any) => it.productId !== 'META_DISCOUNT' && !it.isMeta);
 
   const { error } = await supabase.from('whatsapp_requests').insert([{
     id: order.id,
@@ -468,7 +481,7 @@ export const insertWhatsappRequest = async (order: Order) => {
     customer_address: order.customerAddress || '',
     total_price: order.totalPrice,
     status: order.status || 'Pending',
-    items: itemsWithMeta,
+    items: cleanItems,
   }]);
   if (error) throw error;
 
@@ -488,25 +501,46 @@ export const fetchWhatsappRequests = async (): Promise<Order[]> => {
     
   if (error) throw error;
   
-  return data.map((o: any) => ({
-    id: o.id,
-    customerName: o.customer_name,
-    customerPhone: o.customer_phone,
-    customerEmail: o.customer_email,
-    customerAddress: o.customer_address,
-    source: 'ONLINE',
-    items: o.items || [],
-    subtotal: o.total_price,
-    totalPrice: o.total_price,
-    status: o.status,
-    createdAt: o.created_at,
-    couponCode: '',
-    couponDiscount: 0,
-    manualDiscount: 0,
-    deliveryCharge: 0,
-    cashReceived: 0,
-    changeReturned: 0,
-  }));
+  return data.map((o: any) => {
+    const rawItems = o.items || [];
+    const cleanItems = rawItems.filter((it: any) => it.productId !== 'META_DISCOUNT' && !it.isMeta && !it.name?.toLowerCase().includes('discount applied'));
+    const metaItem = rawItems.find((it: any) => it.productId === 'META_DISCOUNT' || it.isMeta || it.name?.toLowerCase().includes('discount applied'));
+
+    const itemsSum = cleanItems.reduce((acc: number, item: any) => acc + ((item.price || 0) * (item.quantity || 1)), 0);
+
+    let couponDiscount = o.coupon_discount || 0;
+    let couponCode = o.coupon_code || '';
+
+    if (metaItem) {
+      couponDiscount = Math.abs(metaItem.price || 0);
+      couponCode = metaItem.name ? metaItem.name.replace('Discount Applied: ', '') : 'COUPON';
+    } else if (!couponDiscount && itemsSum > o.total_price) {
+      couponDiscount = itemsSum - o.total_price;
+      couponCode = 'COUPON';
+    }
+
+    const subtotal = itemsSum > 0 ? itemsSum : o.total_price;
+
+    return {
+      id: o.id,
+      customerName: o.customer_name,
+      customerPhone: o.customer_phone,
+      customerEmail: o.customer_email,
+      customerAddress: o.customer_address,
+      source: 'ONLINE',
+      items: cleanItems,
+      subtotal: subtotal,
+      totalPrice: o.total_price,
+      status: o.status,
+      createdAt: o.created_at,
+      couponCode: couponCode,
+      couponDiscount: couponDiscount,
+      manualDiscount: 0,
+      deliveryCharge: 0,
+      cashReceived: 0,
+      changeReturned: 0,
+    };
+  });
 };
 
 export const updateWhatsappRequestStatus = async (id: string, status: string) => {
@@ -514,25 +548,44 @@ export const updateWhatsappRequestStatus = async (id: string, status: string) =>
   if (error) throw error;
 };
 
-export const generateSequentialOrderId = async (isOnline: boolean = true) => {
-  if (!isOnline) {
-    const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
-    let randomString = '';
-    for (let i = 0; i < 5; i++) {
-      randomString += chars.charAt(Math.floor(Math.random() * chars.length));
-    }
-    return `INV-2026-${randomString}`;
+export const dbDeleteOrder = async (id: string) => {
+  await supabase.from('order_items').delete().eq('order_id', id);
+  const { error: oError } = await supabase.from('orders').delete().eq('id', id);
+  if (oError) {
+    const { error: wError } = await supabase.from('whatsapp_requests').delete().eq('id', id);
+    if (wError) throw wError;
   }
-  
-  const prefix = "ORD-2026-";
+};
+
+export const generateSequentialOrderId = async (_isOnline: boolean = true) => {
+  const currentYear = new Date().getFullYear();
+  const prefix = `ORD-${currentYear}-`;
   try {
-    const { count: c1 } = await supabase.from('orders').select('*', { count: 'exact', head: true });
-    const { count: c2 } = await supabase.from('whatsapp_requests').select('*', { count: 'exact', head: true });
-    const nextVal = (c1 || 0) + (c2 || 0) + 1;
+    const { data: oData } = await supabase.from('orders').select('id');
+    const { data: wData } = await supabase.from('whatsapp_requests').select('id');
+    
+    let maxSeq = 0;
+    const parseSeq = (idStr: string) => {
+      if (!idStr || typeof idStr !== 'string') return;
+      const regex = new RegExp(`^ORD-${currentYear}-(\\d+)$`, 'i');
+      const match = idStr.trim().match(regex) || idStr.trim().match(/ORD-\d{4}-(\d+)/i);
+      if (match) {
+        const num = parseInt(match[1], 10);
+        // Exclude legacy random numbers (> 7000) so counter starts cleanly from 00001, 00002, 00003...
+        if (!isNaN(num) && num < 7000 && num > maxSeq) {
+          maxSeq = num;
+        }
+      }
+    };
+
+    if (oData) oData.forEach(item => parseSeq(item.id));
+    if (wData) wData.forEach(item => parseSeq(item.id));
+
+    const nextVal = maxSeq + 1;
     return `${prefix}${String(nextVal).padStart(5, '0')}`;
   } catch (e) {
-    const randomChars = Math.random().toString(36).substring(2, 7).toUpperCase();
-    return `${prefix}${randomChars}`;
+    console.error('Error generating order ID:', e);
+    return `${prefix}00001`;
   }
 };
 
