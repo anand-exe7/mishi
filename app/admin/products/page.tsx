@@ -45,7 +45,7 @@ export default function ProductsManagement() {
   const [toast, setToast] = useState<{ message: string, type: 'success' | 'error' } | null>(null);
   const [saving, setSaving] = useState(false);
 
-  const themeColor = '#dc2626'; // Match Mishi Red
+  const themeColor = '#2C392A'; // Match Mishi Green Theme
 
   const showToast = (message: string, type: 'success' | 'error') => {
     setToast({ message, type });
@@ -353,7 +353,7 @@ export default function ProductsManagement() {
                       <div className="flex justify-center">
                         <button 
                           onClick={() => handleToggleProductStatus(product)}
-                          className={`relative inline-flex h-5 w-9 items-center rounded-full transition-colors focus:outline-none ${product.isAvailable !== false ? 'bg-[#dc2626]' : 'bg-slate-200'}`}
+                          className={`relative inline-flex h-5 w-9 items-center rounded-full transition-colors focus:outline-none ${product.isAvailable !== false ? 'bg-[#2C392A]' : 'bg-slate-200'}`}
                         >
                           <span className={`inline-block h-3.5 w-3.5 transform rounded-full bg-white transition-transform ${product.isAvailable !== false ? 'translate-x-4.5' : 'translate-x-1'}`} />
                         </button>

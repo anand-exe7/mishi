@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useMemo } from 'react';
-import { Search, CheckCircle2, AlertCircle, Eye, X, ChevronDown, MessageSquare, Printer, FileText, ArrowLeft } from 'lucide-react';
+import { Search, CheckCircle2, AlertCircle, Eye, X, ChevronDown, MessageSquare, Printer, FileText, ArrowLeft, Trash2 } from 'lucide-react';
 import { useAdmin } from '../AdminContext';
 import { Order } from '@/lib/db';
 
@@ -9,11 +9,10 @@ const STATUS_COLORS: Record<string, string> = {
   'Pending': 'bg-purple-100 text-purple-700 border-purple-200',
   'Processing': 'bg-amber-100 text-amber-700 border-amber-200',
   'Completed': 'bg-emerald-100 text-emerald-700 border-emerald-200',
-  'Cancelled': 'bg-rose-100 text-rose-700 border-rose-200',
 };
 
 export default function OrdersManagement() {
-  const { orders, updateOrderStatus, loading } = useAdmin();
+  const { orders, updateOrderStatus, deleteOrder, loading } = useAdmin();
   const [search, setSearch] = useState('');
   const [period, setPeriod] = useState('All Time');
   const [customFrom, setCustomFrom] = useState('');
@@ -24,14 +23,31 @@ export default function OrdersManagement() {
   const [updatingId, setUpdatingId] = useState<string | null>(null);
   const [showInvoiceView, setShowInvoiceView] = useState(false);
 
-  const themeColor = '#dc2626'; // Match Mishi Red
+  const themeColor = '#2C392A'; // Match Mishi Green Theme
 
   const showToast = (message: string, type: 'success' | 'error') => {
     setToast({ message, type });
     setTimeout(() => setToast(null), 3000);
   };
 
-  const handleStatusChange = async (orderId: string, newStatus: 'Pending' | 'Processing' | 'Completed' | 'Cancelled') => {
+  const handleDeleteOrder = async (orderId: string) => {
+    if (window.confirm(`Are you sure you want to delete Invoice #${orderId}? This action cannot be undone and will automatically remove its data from all sales analytics.`)) {
+      try {
+        setUpdatingId(orderId);
+        await deleteOrder(orderId);
+        showToast(`Invoice #${orderId} deleted successfully`, 'success');
+        setSelectedOrder(null);
+        setShowInvoiceView(false);
+      } catch (err) {
+        console.error(err);
+        showToast('Failed to delete invoice', 'error');
+      } finally {
+        setUpdatingId(null);
+      }
+    }
+  };
+
+  const handleStatusChange = async (orderId: string, newStatus: 'Pending' | 'Processing' | 'Completed') => {
     try {
       setUpdatingId(orderId);
       await updateOrderStatus(orderId, newStatus);
@@ -71,7 +87,7 @@ export default function OrdersManagement() {
       <div className="p-8 bg-white border border-slate-200 rounded-xl" id="invoice-content">
         <div className="flex justify-between items-start border-b border-slate-200 pb-6 mb-6">
           <div>
-            <h1 className="text-3xl font-black text-[#dc2626] tracking-tighter">MISHI</h1>
+            <h1 className="text-3xl font-black text-[#2C392A] tracking-tighter">MISHI</h1>
             <p className="text-xs text-slate-500 font-medium mt-1">Premium Clothing Brand</p>
           </div>
           <div className="text-right">
@@ -156,13 +172,35 @@ export default function OrdersManagement() {
   };
 
   const filteredOrders = useMemo(() => {
-    return orders.filter(o => 
-      o.id.startsWith('INV-') &&
-      (o.id.toLowerCase().includes(search.toLowerCase()) || 
-      o.customerName.toLowerCase().includes(search.toLowerCase()) ||
-      o.customerPhone.includes(search))
-    );
-  }, [orders, search]);
+    const now = new Date();
+    return orders.filter(o => {
+      // Period filter
+      if (o.createdAt) {
+        const orderDate = new Date(o.createdAt);
+        if (period === 'Today' && orderDate.toDateString() !== now.toDateString()) return false;
+        if (period === 'Week') {
+          const oneWeekAgo = new Date();
+          oneWeekAgo.setDate(now.getDate() - 7);
+          if (orderDate < oneWeekAgo) return false;
+        }
+        if (period === 'Month' && (orderDate.getMonth() !== now.getMonth() || orderDate.getFullYear() !== now.getFullYear())) return false;
+        if (period === 'Year' && orderDate.getFullYear() !== now.getFullYear()) return false;
+        if (period === 'Custom' && customFrom && customTo) {
+          const from = new Date(customFrom);
+          const to = new Date(customTo);
+          to.setHours(23, 59, 59, 999);
+          if (orderDate < from || orderDate > to) return false;
+        }
+      }
+
+      // Search filter
+      return (
+        o.id.toLowerCase().includes(search.toLowerCase()) || 
+        o.customerName.toLowerCase().includes(search.toLowerCase()) ||
+        o.customerPhone.includes(search)
+      );
+    });
+  }, [orders, search, period, customFrom, customTo]);
 
   return (
     <div className="space-y-6 relative max-w-full overflow-hidden">
@@ -330,9 +368,19 @@ export default function OrdersManagement() {
                     <FileText size={14} /> View Invoice
                   </button>
                 )}
+                
+                <button 
+                  disabled={updatingId !== null}
+                  onClick={() => handleDeleteOrder(selectedOrder.id)}
+                  className="flex items-center gap-1.5 px-3 py-1.5 bg-rose-50 hover:bg-rose-100 text-rose-600 border border-rose-200 rounded-lg text-xs font-bold transition-colors cursor-pointer disabled:opacity-50"
+                  title="Delete Invoice permanently"
+                >
+                  <Trash2 size={14} /> Delete Invoice
+                </button>
+
                 <button 
                   onClick={() => { setSelectedOrder(null); setShowInvoiceView(false); }}
-                  className="p-2 ml-2 bg-white text-slate-400 hover:text-slate-700 hover:bg-slate-100 rounded-full transition-colors border border-slate-200 shadow-sm cursor-pointer"
+                  className="p-2 ml-1 bg-white text-slate-400 hover:text-slate-700 hover:bg-slate-100 rounded-full transition-colors border border-slate-200 shadow-sm cursor-pointer"
                 >
                   <X size={18} />
                 </button>
@@ -370,13 +418,14 @@ export default function OrdersManagement() {
                       className="w-full appearance-none bg-white border border-slate-200 rounded-xl px-4 py-2.5 text-xs font-bold focus:outline-none cursor-pointer uppercase text-slate-700"
                     >
                       <option value="Completed">Completed</option>
-                      <option value="Cancelled">Cancelled</option>
+                      <option value="Processing">Processing</option>
+                      <option value="Pending">Pending</option>
                     </select>
                     <ChevronDown size={14} className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
                   </div>
                   <div className="mt-3 flex justify-between text-xs font-medium text-slate-600">
                     <span>Source:</span>
-                    <span className="font-bold uppercase tracking-widest text-[#dc2626]">{selectedOrder.source}</span>
+                    <span className="font-bold uppercase tracking-widest text-[#2C392A]">{selectedOrder.source}</span>
                   </div>
                 </div>
               </div>

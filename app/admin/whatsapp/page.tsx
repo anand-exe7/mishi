@@ -121,46 +121,6 @@ export default function WhatsAppCenter() {
     });
   }, [whatsappRequests]);
 
-  // Derived Metrics from data
-  const metrics = useMemo(() => {
-    return {
-      total: whatsappRequests.length,
-      pending: whatsappRequests.filter(i => i.status === 'Pending').length,
-      processing: whatsappRequests.filter(i => i.status === 'Processing').length,
-      completed: whatsappRequests.filter(i => i.status === 'Completed').length,
-    };
-  }, [whatsappRequests]);
-
-  const copyMessage = (inq: any) => {
-    const itemsText = inq.items.map((i: any) => `• ${i.name} - ${i.size || 'Standard'} × ${i.quantity} = ₹${(i.price * i.quantity).toLocaleString('en-IN')}`).join('\n');
-    const discountText = inq.discount > 0 ? `\nDiscount Applied: -₹${inq.discount.toLocaleString('en-IN')}` : '';
-    
-    const message = `*Order Request — Mishi Pooja Products*
-*Invoice ID:* ${inq.id}
-
-👤 ${inq.customerName} | 📞 ${inq.customerPhone}
-📍 ${inq.customerAddress || 'No address provided'}
-
-*Items:*
-${itemsText}
-
-Subtotal: ₹${inq.subtotal.toLocaleString('en-IN')}${discountText}
-💰 *Total Amount: ₹${inq.totalPrice.toLocaleString('en-IN')}*`;
-
-    navigator.clipboard.writeText(message);
-    setCopiedId(inq.id);
-    setTimeout(() => setCopiedId(null), 2000);
-  };
-
-  const handleStatusChange = async (id: string, newStatus: 'Pending' | 'Processing' | 'Completed' | 'Cancelled') => {
-    try {
-      await updateWhatsappStatus(id, newStatus);
-    } catch (err) {
-      console.error(err);
-      alert('Failed to update request status.');
-    }
-  };
-
   const filteredInquiries = useMemo(() => {
     return processedData.filter(inq => {
       // Search filter
@@ -206,6 +166,46 @@ Subtotal: ₹${inq.subtotal.toLocaleString('en-IN')}${discountText}
     });
   }, [processedData, filter, search, customFrom, customTo]);
 
+  // Derived Metrics dynamically calculated from filteredInquiries
+  const metrics = useMemo(() => {
+    return {
+      total: filteredInquiries.length,
+      pending: filteredInquiries.filter(i => i.status === 'Pending').length,
+      processing: filteredInquiries.filter(i => i.status === 'Processing').length,
+      completed: filteredInquiries.filter(i => i.status === 'Completed').length,
+    };
+  }, [filteredInquiries]);
+
+  const copyMessage = (inq: any) => {
+    const itemsText = inq.items.map((i: any) => `• ${i.name} - ${i.size || 'Standard'} × ${i.quantity} = ₹${(i.price * i.quantity).toLocaleString('en-IN')}`).join('\n');
+    const discountText = inq.discount > 0 ? `\nDiscount Applied: -₹${inq.discount.toLocaleString('en-IN')}` : '';
+    
+    const message = `*Order Request — Mishi Pooja Products*
+*Invoice ID:* ${inq.id}
+
+👤 ${inq.customerName} | 📞 ${inq.customerPhone}
+📍 ${inq.customerAddress || 'No address provided'}
+
+*Items:*
+${itemsText}
+
+Subtotal: ₹${inq.subtotal.toLocaleString('en-IN')}${discountText}
+💰 *Total Amount: ₹${inq.totalPrice.toLocaleString('en-IN')}*`;
+
+    navigator.clipboard.writeText(message);
+    setCopiedId(inq.id);
+    setTimeout(() => setCopiedId(null), 2000);
+  };
+
+  const handleStatusChange = async (id: string, newStatus: 'Pending' | 'Processing' | 'Completed' | 'Cancelled') => {
+    try {
+      await updateWhatsappStatus(id, newStatus);
+    } catch (err) {
+      console.error(err);
+      alert('Failed to update request status.');
+    }
+  };
+
   return (
     <div className="space-y-6 max-w-full overflow-hidden">
       
@@ -214,7 +214,7 @@ Subtotal: ₹${inq.subtotal.toLocaleString('en-IN')}${discountText}
         <div className="flex items-center gap-3">
           <WhatsAppIcon size={32} className="text-[#25D366]" />
           <h1 className="text-2xl font-black text-slate-900 tracking-tight">WhatsApp Center</h1>
-          <span className="bg-amber-100 text-amber-600 text-[10px] font-bold px-3 py-1 rounded-full uppercase tracking-widest animate-pulse">
+          <span className="bg-amber-100 text-amber-700 text-[10px] font-bold px-3 py-1 rounded-full uppercase tracking-widest animate-pulse">
             {metrics.pending} pending
           </span>
         </div>
@@ -225,7 +225,7 @@ Subtotal: ₹${inq.subtotal.toLocaleString('en-IN')}${discountText}
               <button 
                 key={f}
                 onClick={() => setFilter(f)}
-                className={`px-4 py-1.5 rounded-full transition-colors ${filter === f ? 'bg-slate-800 text-white' : 'hover:bg-slate-50'}`}
+                className={`px-4 py-1.5 rounded-full transition-colors ${filter === f ? 'bg-[#2C392A] text-white' : 'hover:bg-slate-50'}`}
               >
                 {f}
               </button>
@@ -253,21 +253,21 @@ Subtotal: ₹${inq.subtotal.toLocaleString('en-IN')}${discountText}
 
       {/* Metric Cards */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-6 flex flex-col justify-center items-center h-[120px]">
-          <span className="text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-2">Total Requests</span>
-          <span className="text-4xl font-black text-blue-600">{metrics.total}</span>
+        <div className="bg-emerald-50/50 rounded-2xl border border-emerald-100 shadow-sm p-6 flex flex-col justify-center items-center h-[120px]">
+          <span className="text-[10px] font-bold text-emerald-700 uppercase tracking-widest mb-2">Total Requests</span>
+          <span className="text-4xl font-black text-emerald-800">{metrics.total}</span>
         </div>
         <div className="bg-amber-50/50 rounded-2xl border border-amber-100 shadow-sm p-6 flex flex-col justify-center items-center h-[120px]">
-          <span className="text-[10px] font-bold text-amber-500 uppercase tracking-widest mb-2">Pending</span>
-          <span className="text-4xl font-black text-amber-500">{metrics.pending}</span>
+          <span className="text-[10px] font-bold text-amber-600 uppercase tracking-widest mb-2">Pending</span>
+          <span className="text-4xl font-black text-amber-600">{metrics.pending}</span>
         </div>
         <div className="bg-blue-50/50 rounded-2xl border border-blue-100 shadow-sm p-6 flex flex-col justify-center items-center h-[120px]">
-          <span className="text-[10px] font-bold text-blue-500 uppercase tracking-widest mb-2">Processing</span>
-          <span className="text-4xl font-black text-blue-500">{metrics.processing}</span>
+          <span className="text-[10px] font-bold text-blue-600 uppercase tracking-widest mb-2">Processing</span>
+          <span className="text-4xl font-black text-blue-600">{metrics.processing}</span>
         </div>
-        <div className="bg-emerald-50/50 rounded-2xl border border-emerald-100 shadow-sm p-6 flex flex-col justify-center items-center h-[120px]">
-          <span className="text-[10px] font-bold text-emerald-500 uppercase tracking-widest mb-2">Completed</span>
-          <span className="text-4xl font-black text-emerald-500">{metrics.completed}</span>
+        <div className="bg-emerald-100/60 rounded-2xl border border-emerald-200 shadow-sm p-6 flex flex-col justify-center items-center h-[120px]">
+          <span className="text-[10px] font-bold text-emerald-800 uppercase tracking-widest mb-2">Completed</span>
+          <span className="text-4xl font-black text-emerald-700">{metrics.completed}</span>
         </div>
       </div>
 
@@ -289,14 +289,14 @@ Subtotal: ₹${inq.subtotal.toLocaleString('en-IN')}${discountText}
               placeholder="Search requests..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              className="pl-9 pr-4 py-2 border-2 border-slate-200 rounded-full text-sm font-medium text-slate-950 placeholder:text-slate-400 w-full focus:outline-none focus:border-[#dc2626]"
+              className="pl-9 pr-4 py-2 border-2 border-slate-200 rounded-full text-sm font-medium text-slate-950 placeholder:text-slate-400 w-full focus:outline-none focus:border-emerald-600"
             />
           </div>
         </div>
 
         {loading ? (
           <div className="flex justify-center items-center py-20">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#dc2626]"></div>
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-emerald-600"></div>
           </div>
         ) : (
           <div className="overflow-x-auto w-full">
@@ -389,7 +389,7 @@ Subtotal: ₹${inq.subtotal.toLocaleString('en-IN')}${discountText}
                                   </div>
                                   <button 
                                     onClick={() => copyMessage(inq)}
-                                    className="flex items-center justify-center gap-2 w-full py-2.5 bg-[#dc2626] hover:bg-red-700 text-white font-bold rounded-xl transition-colors cursor-pointer"
+                                    className="flex items-center justify-center gap-2 w-full py-2.5 bg-[#2C392A] hover:bg-[#1e271d] text-white font-bold rounded-xl transition-colors cursor-pointer"
                                   >
                                     {copiedId === inq.id ? <><Check size={16} /> Copied</> : <><Copy size={16} /> Copy Message</>}
                                   </button>

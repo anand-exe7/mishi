@@ -499,19 +499,19 @@ export default function ProductsPage() {
                 to your cart.
               </p>
 
-              <div className="flex flex-col sm:flex-row gap-3 justify-center">
+              <div className="flex flex-col gap-2.5 max-w-xs mx-auto">
+                <Link
+                  href="/cart"
+                  className="w-full py-3.5 rounded-full bg-[#2C392A] text-white font-extrabold text-xs uppercase tracking-widest hover:bg-[#1e271d] transition-all shadow-lg shadow-[#2C392A]/20 text-center flex items-center justify-center gap-2"
+                >
+                  <ShoppingCart size={15} /> Go to Checkout
+                </Link>
                 <button
                   onClick={() => setCartSuccessDetails(null)}
-                  className="px-5 py-3 rounded-full border border-emerald-200 text-emerald-800 font-bold text-xs uppercase tracking-widest hover:bg-emerald-50 transition-colors w-full sm:w-auto flex-1"
+                  className="w-full py-3 rounded-full border border-emerald-200 text-emerald-800 font-bold text-xs uppercase tracking-widest hover:bg-emerald-50 transition-colors text-center"
                 >
                   Continue Shopping
                 </button>
-                <Link
-                  href="/cart"
-                  className="px-5 py-3 rounded-full bg-[#2C392A] text-white font-bold text-xs uppercase tracking-widest hover:bg-[#1e271d] transition-colors shadow-lg shadow-[#2C392A]/20 text-center w-full sm:w-auto flex-1"
-                >
-                  Go to Checkout
-                </Link>
               </div>
             </motion.div>
           </motion.div>

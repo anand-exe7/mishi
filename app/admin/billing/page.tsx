@@ -176,7 +176,7 @@ export default function POSBillingPanel() {
       {/* Header Section */}
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 border-b border-slate-200 pb-4">
         <div className="flex items-center gap-2">
-          <div className="w-1.5 h-6 bg-[#dc2626] rounded-full"></div>
+          <div className="w-1.5 h-6 bg-[#2C392A] rounded-full"></div>
           <h1 className="text-xl font-black text-slate-900 tracking-tight">POS Billing Panel</h1>
           <span className="text-slate-300 mx-2">|</span>
           <p className="text-xs font-medium text-slate-500 mt-1">Quick invoice generator & database synced checkout</p>
@@ -208,7 +208,7 @@ export default function POSBillingPanel() {
           {/* Customer Details */}
           <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-6">
             <h2 className="flex items-center gap-2 text-sm font-bold text-slate-800 mb-6">
-              <User size={18} className="text-[#dc2626]" /> Customer Details
+              <User size={18} className="text-[#2C392A]" /> Customer Details
             </h2>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div>
@@ -252,13 +252,11 @@ export default function POSBillingPanel() {
             </div>
           </div>
 
-
-
           {/* Order Items */}
           <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-6">
             <div className="flex justify-between items-center mb-6">
               <h2 className="flex items-center gap-2 text-sm font-bold text-slate-800">
-                <FileText size={18} className="text-[#dc2626]" /> Order Items
+                <FileText size={18} className="text-[#2C392A]" /> Order Items
               </h2>
               <div className="flex flex-wrap gap-2">
                 <button 
@@ -477,7 +475,7 @@ export default function POSBillingPanel() {
           <div className="bg-white rounded-[2rem] shadow-2xl w-full max-w-4xl max-h-[90vh] flex flex-col overflow-hidden animate-in zoom-in-95 duration-200">
             <div className="p-6 border-b border-slate-100 flex justify-between items-center bg-slate-50">
               <h2 className="text-lg font-black text-slate-900 flex items-center gap-2">
-                <Search className="text-[#dc2626]" /> Product Catalog
+                <Search className="text-[#2C392A]" /> Product Catalog
               </h2>
               <button 
                 onClick={() => setIsCatalogModalOpen(false)}
@@ -495,7 +493,7 @@ export default function POSBillingPanel() {
                   placeholder="Search products..."
                   value={catalogSearch}
                   onChange={e => setCatalogSearch(e.target.value)}
-                  className="w-full pl-12 pr-4 py-3 border-2 border-slate-200 rounded-xl text-sm font-bold text-slate-900 focus:outline-none focus:border-[#dc2626] transition-colors"
+                  className="w-full pl-12 pr-4 py-3 border-2 border-slate-200 rounded-xl text-sm font-bold text-slate-900 focus:outline-none focus:border-[#2C392A] transition-colors"
                 />
               </div>
             </div>
@@ -506,7 +504,7 @@ export default function POSBillingPanel() {
               ) : (
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                   {filteredProducts.map(p => (
-                    <div key={p.id} className="bg-white border border-slate-200 rounded-xl p-4 shadow-sm hover:border-[#dc2626] transition-colors flex flex-col justify-between">
+                    <div key={p.id} className="bg-white border border-slate-200 rounded-xl p-4 shadow-sm hover:border-[#2C392A] transition-colors flex flex-col justify-between">
                       <div>
                         <h3 className="font-bold text-slate-900 text-sm mb-1">{p.name}</h3>
                         <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest bg-slate-100 px-2 py-0.5 rounded">{p.category}</span>
@@ -536,7 +534,7 @@ export default function POSBillingPanel() {
                                     });
                                     setCatalogQuantities(prev => ({ ...prev, [`${p.id}-${s.size}`]: 1 }));
                                   }}
-                                  className="px-3 py-1 bg-slate-100 hover:bg-[#dc2626] hover:text-white text-slate-700 font-bold rounded-lg transition-colors cursor-pointer"
+                                  className="px-3 py-1 bg-slate-100 hover:bg-[#2C392A] hover:text-white text-slate-700 font-bold rounded-lg transition-colors cursor-pointer"
                                 >
                                   Add
                                 </button>
@@ -565,7 +563,7 @@ export default function POSBillingPanel() {
                                     });
                                     setCatalogQuantities(prev => ({ ...prev, [`${p.id}-Standard`]: 1 }));
                                   }}
-                                  className="px-3 py-1 bg-slate-100 hover:bg-[#dc2626] hover:text-white text-slate-700 font-bold rounded-lg transition-colors cursor-pointer"
+                                  className="px-3 py-1 bg-slate-100 hover:bg-[#2C392A] hover:text-white text-slate-700 font-bold rounded-lg transition-colors cursor-pointer"
                                 >
                                   Add
                                 </button>
