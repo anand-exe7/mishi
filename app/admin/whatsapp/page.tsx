@@ -182,22 +182,43 @@ export default function WhatsAppCenter() {
     };
   }, [filteredInquiries]);
 
+  const getFormattedWhatsAppMessage = (inq: any) => {
+    const itemsSummary = (inq.items || [])
+      .map(
+        (item: any) =>
+          `- ${item.quantity}x ${item.name} (${item.size || 'Unit'}) - ₹${(item.price * item.quantity).toLocaleString('en-IN')}`
+      )
+      .join('\n');
+
+    const discountText = inq.discount > 0
+      ? `\n\n*Subtotal:* ₹${inq.subtotal.toLocaleString('en-IN')}\n*Discount (${inq.couponCode || 'Coupon'}):* -₹${inq.discount.toLocaleString('en-IN')}`
+      : `\n\n*Subtotal:* ₹${inq.subtotal.toLocaleString('en-IN')}`;
+
+    return `🙏 *Hello Mishi Pooja Products!*
+
+I would like to place an order. 📦
+
+*Order ID:* ${inq.id}
+
+👤 *Customer Details:*
+*Name:* ${inq.customerName}
+*Phone:* ${inq.customerPhone}
+*Address:* ${inq.customerAddress || 'N/A'}
+
+🛒 *Order Summary:*
+${itemsSummary}${discountText}
+
+💳 *Final Total:* ₹${inq.totalPrice.toLocaleString('en-IN')}
+
+📱 *GPay Number:* 9894609057
+
+🚚 _Delivery charges may vary based on location._
+
+Please confirm my order. Thank you! ✨`;
+  };
+
   const copyMessage = (inq: any) => {
-    const itemsText = inq.items.map((i: any) => `• ${i.name} - ${i.size || 'Standard'} × ${i.quantity} = ₹${(i.price * i.quantity).toLocaleString('en-IN')}`).join('\n');
-    const discountText = inq.discount > 0 ? `\nDiscount Applied: -₹${inq.discount.toLocaleString('en-IN')}` : '';
-    
-    const message = `*Order Request — Mishi Pooja Products*
-*Invoice ID:* ${inq.id}
-
-👤 ${inq.customerName} | 📞 ${inq.customerPhone}
-📍 ${inq.customerAddress || 'No address provided'}
-
-*Items:*
-${itemsText}
-
-Subtotal: ₹${inq.subtotal.toLocaleString('en-IN')}${discountText}
-💰 *Total Amount: ₹${inq.totalPrice.toLocaleString('en-IN')}*`;
-
+    const message = getFormattedWhatsAppMessage(inq);
     navigator.clipboard.writeText(message);
     setCopiedId(inq.id);
     setTimeout(() => setCopiedId(null), 2000);
@@ -419,12 +440,21 @@ Subtotal: ₹${inq.subtotal.toLocaleString('en-IN')}${discountText}
                           </div>
                         </div>
 
+                        {/* Exact Customer WhatsApp Message Preview Box */}
+                        <div className="bg-[#1e271d] text-emerald-100 p-3.5 rounded-xl text-[11px] font-mono whitespace-pre-wrap leading-relaxed border border-emerald-800 shadow-inner">
+                          <div className="flex items-center justify-between border-b border-emerald-800/80 pb-2 mb-2">
+                            <span className="font-sans font-extrabold text-[10px] text-emerald-400 uppercase tracking-widest">Customer WhatsApp Message</span>
+                            <span className="font-sans text-[9px] bg-emerald-900/60 text-emerald-300 px-2 py-0.5 rounded-full font-bold">Exact Message</span>
+                          </div>
+                          {getFormattedWhatsAppMessage(inq)}
+                        </div>
+
                         {/* Copy WhatsApp Message Button */}
                         <button 
                           onClick={() => copyMessage(inq)}
                           className="flex items-center justify-center gap-2 w-full py-2.5 bg-[#2C392A] hover:bg-[#1e271d] text-white font-bold rounded-xl text-xs transition-colors cursor-pointer"
                         >
-                          {copiedId === inq.id ? <><Check size={14} /> Copied</> : <><Copy size={14} /> Copy Message</>}
+                          {copiedId === inq.id ? <><Check size={14} /> Copied Message!</> : <><Copy size={14} /> Copy Message</>}
                         </button>
                       </div>
                     )}
@@ -522,11 +552,21 @@ Subtotal: ₹${inq.subtotal.toLocaleString('en-IN')}${discountText}
                                       <h4 className="text-xs font-bold text-slate-500 uppercase tracking-widest mb-1">Delivery Address</h4>
                                       <p className="text-slate-600 text-sm whitespace-pre-wrap leading-relaxed">{inq.customerAddress || 'No address provided.'}</p>
                                     </div>
+
+                                    {/* Exact WhatsApp Message Box */}
+                                    <div className="bg-[#1e271d] text-emerald-100 p-3.5 rounded-xl text-xs font-mono whitespace-pre-wrap leading-relaxed border border-emerald-800 shadow-inner">
+                                      <div className="flex items-center justify-between border-b border-emerald-800/80 pb-2 mb-2 font-sans">
+                                        <span className="font-extrabold text-[10px] text-emerald-400 uppercase tracking-widest">Customer WhatsApp Message</span>
+                                        <span className="text-[9px] bg-emerald-900/60 text-emerald-300 px-2 py-0.5 rounded-full font-bold">Exact Message</span>
+                                      </div>
+                                      {getFormattedWhatsAppMessage(inq)}
+                                    </div>
+
                                     <button 
                                       onClick={() => copyMessage(inq)}
-                                      className="flex items-center justify-center gap-2 w-full py-2.5 bg-[#2C392A] hover:bg-[#1e271d] text-white font-bold rounded-xl transition-colors cursor-pointer"
+                                      className="flex items-center justify-center gap-2 w-full py-2.5 bg-[#2C392A] hover:bg-[#1e271d] text-white font-bold rounded-xl transition-colors cursor-pointer text-xs"
                                     >
-                                      {copiedId === inq.id ? <><Check size={16} /> Copied</> : <><Copy size={16} /> Copy Message</>}
+                                      {copiedId === inq.id ? <><Check size={16} /> Copied Message!</> : <><Copy size={16} /> Copy Message</>}
                                     </button>
                                   </div>
 

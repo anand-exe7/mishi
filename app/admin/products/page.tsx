@@ -8,6 +8,7 @@ import {
   upsertProduct, 
   dbDeleteProduct, 
   insertCategory,
+  updateCategory,
   dbDeleteCategory,
   Product, 
   ProductSize 
@@ -24,6 +25,11 @@ export default function ProductsManagement() {
   const [isCategoryModalOpen, setIsCategoryModalOpen] = useState(false);
   const [newCatName, setNewCatName] = useState('');
   const [isCategorySubmitting, setIsCategorySubmitting] = useState(false);
+
+  // Edit Category state
+  const [editingCatName, setEditingCatName] = useState<string | null>(null);
+  const [editedCatNameValue, setEditedCatNameValue] = useState('');
+  const [isEditingCategorySubmitting, setIsEditingCategorySubmitting] = useState(false);
   
   // New Category input state
   const [showNewCatInput, setShowNewCatInput] = useState(false);
@@ -181,6 +187,44 @@ export default function ProductsManagement() {
       showToast(`Failed to add category: ${err?.message || err}`, 'error');
     } finally {
       setIsCategorySubmitting(false);
+    }
+  };
+
+  const handleStartEditCategory = (catName: string) => {
+    setEditingCatName(catName);
+    setEditedCatNameValue(catName);
+  };
+
+  const handleCancelEditCategory = () => {
+    setEditingCatName(null);
+    setEditedCatNameValue('');
+  };
+
+  const handleSaveEditedCategory = async (oldCatName: string) => {
+    const trimmedNewName = editedCatNameValue.trim();
+    if (!trimmedNewName) {
+      showToast('Category name cannot be empty', 'error');
+      return;
+    }
+    if (trimmedNewName === oldCatName) {
+      setEditingCatName(null);
+      return;
+    }
+    try {
+      setIsEditingCategorySubmitting(true);
+      await updateCategory(oldCatName, trimmedNewName);
+      setCategories(prev => prev.map(c => c === oldCatName ? trimmedNewName : c));
+      if (category === oldCatName) {
+        setCategory(trimmedNewName);
+      }
+      await loadData();
+      setEditingCatName(null);
+      showToast(`Category renamed successfully!`, 'success');
+    } catch (err: any) {
+      console.error(err);
+      showToast(`Failed to update category: ${err?.message || err}`, 'error');
+    } finally {
+      setIsEditingCategorySubmitting(false);
     }
   };
 
@@ -700,14 +744,56 @@ export default function ProductsManagement() {
                 <div className="divide-y divide-slate-100 max-h-64 overflow-y-auto border border-slate-100 rounded-2xl bg-white p-1.5 sm:p-2">
                   {categories.map((cat) => (
                     <div key={cat} className="flex justify-between items-center py-2 px-2.5 sm:px-3 hover:bg-slate-50 rounded-xl transition-colors gap-2">
-                      <span className="text-xs font-bold text-slate-800 uppercase tracking-wider truncate">{cat}</span>
-                      <button 
-                        onClick={() => handleDeleteCategoryModal(cat)}
-                        className="p-1.5 text-red-500 hover:bg-red-50 rounded-lg transition-colors cursor-pointer shrink-0"
-                        title="Delete Category"
-                      >
-                        <Trash2 size={14} />
-                      </button>
+                      {editingCatName === cat ? (
+                        <div className="flex items-center gap-2 w-full">
+                          <input 
+                            type="text"
+                            value={editedCatNameValue}
+                            onChange={e => setEditedCatNameValue(e.target.value)}
+                            className="flex-1 bg-white border border-slate-300 rounded-lg px-2.5 py-1 text-xs font-bold text-slate-900 focus:outline-none focus:border-slate-500 min-w-0"
+                            autoFocus
+                          />
+                          <button 
+                            type="button"
+                            disabled={isEditingCategorySubmitting}
+                            onClick={() => handleSaveEditedCategory(cat)}
+                            className="p-1.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg transition-colors cursor-pointer shrink-0"
+                            title="Save Category Name"
+                          >
+                            <CheckCircle size={14} />
+                          </button>
+                          <button 
+                            type="button"
+                            onClick={handleCancelEditCategory}
+                            className="p-1.5 bg-slate-100 hover:bg-slate-200 text-slate-600 rounded-lg transition-colors cursor-pointer shrink-0"
+                            title="Cancel Edit"
+                          >
+                            <X size={14} />
+                          </button>
+                        </div>
+                      ) : (
+                        <>
+                          <span className="text-xs font-bold text-slate-800 uppercase tracking-wider truncate">{cat}</span>
+                          <div className="flex items-center gap-1 shrink-0">
+                            <button 
+                              type="button"
+                              onClick={() => handleStartEditCategory(cat)}
+                              className="p-1.5 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors cursor-pointer"
+                              title="Edit Category Name"
+                            >
+                              <Edit2 size={14} />
+                            </button>
+                            <button 
+                              type="button"
+                              onClick={() => handleDeleteCategoryModal(cat)}
+                              className="p-1.5 text-red-500 hover:bg-red-50 rounded-lg transition-colors cursor-pointer"
+                              title="Delete Category"
+                            >
+                              <Trash2 size={14} />
+                            </button>
+                          </div>
+                        </>
+                      )}
                     </div>
                   ))}
                   {categories.length === 0 && (

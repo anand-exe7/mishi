@@ -5,12 +5,14 @@ import { Playfair_Display } from "next/font/google";
 import { motion } from "framer-motion";
 import { ShoppingCart, Trash2, Plus, Minus } from "lucide-react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import toast from "react-hot-toast";
 import confetti from "canvas-confetti";
 import { useCartStore } from "@/store/store";
 import {
   fetchCoupons,
   insertWhatsappRequest,
+  insertOrder,
   Order,
   OrderItem,
   Coupon,
@@ -21,6 +23,7 @@ import { useAuth } from "@/lib/useAuth";
 const playfair = Playfair_Display({ subsets: ["latin"] });
 
 export default function CartPage() {
+  const router = useRouter();
   const [isMounted, setIsMounted] = useState(false);
   const { user } = useAuth();
   const [formData, setFormData] = useState({
@@ -187,9 +190,9 @@ export default function CartPage() {
     };
 
     try {
-      // 1. Insert order to Supabase
+      // 1. Insert order to Supabase whatsapp_requests table ONLY
       await insertWhatsappRequest(orderPayload);
-      toast.success("Order saved to database!");
+      toast.success("Order request sent successfully!");
 
       // 2. Format WhatsApp redirect message
       let rawWhatsApp =
@@ -218,19 +221,16 @@ export default function CartPage() {
           : `\n\n*Subtotal:* ₹${subtotal}`;
       const message = `${ePray} *Hello Mishi Pooja Products!*\n\nI would like to place an order. ${ePackage}\n\n*Order ID:* ${orderId}\n\n${ePerson} *Customer Details:*\n*Name:* ${formData.name}\n*Phone:* ${formData.phone}\n*Address:* ${formData.address}\n\n${eCart} *Order Summary:*\n${itemsSummary}${discountText}\n\n${eCard} *Final Total:* ₹${finalTotal}\n\n${eMobile} *GPay Number:* 9894609057\n\n${eTruck} _Delivery charges may vary based on location._\n\nPlease confirm my order. Thank you! ${eSparkle}`;
 
-      // 3. Clear Zustand cart and redirect to WhatsApp
+      // 3. Clear Zustand cart, open WhatsApp, and navigate to Profile
       clearCart();
       window.open(
         `https://api.whatsapp.com/send/?phone=${adminWhatsApp}&text=${encodeURIComponent(message)}`,
         "_blank",
       );
+      router.push("/profile");
     } catch (err: any) {
       console.error("Error creating order:", err?.message || err);
-      toast.error(
-        `Failed to place order in database: ${err?.message || "Unknown error"}. Redirecting to WhatsApp anyway...`,
-      );
 
-      // Fallback redirect even if DB insert fails
       let rawWhatsAppFallback =
         process.env.NEXT_PUBLIC_ADMIN_WHATSAPP || "919894609057";
       const adminWhatsAppFallback =
@@ -258,10 +258,13 @@ export default function CartPage() {
           ? `\n\n*Subtotal:* ₹${subtotal}\n*Discount (${appliedCoupon?.code}):* -₹${couponDiscount}`
           : `\n\n*Subtotal:* ₹${subtotal}`;
       const message = `${ePray} *Hello Mishi Pooja Products!*\n\nI would like to place an order. ${ePackage}\n\n*Order ID:* ${orderId}\n\n${ePerson} *Customer Details:*\n*Name:* ${formData.name}\n*Phone:* ${formData.phone}\n*Address:* ${formData.address}\n\n${eCart} *Order Summary:*\n${itemsSummary}${discountText}\n\n${eCard} *Final Total:* ₹${finalTotal}\n\n${eMobile} *GPay Number:* 9894609057\n\n${eTruck} _Delivery charges may vary based on location._\n\nPlease confirm my order. Thank you! ${eSparkle}`;
+
+      clearCart();
       window.open(
         `https://api.whatsapp.com/send/?phone=${adminWhatsAppFallback}&text=${encodeURIComponent(message)}`,
         "_blank",
       );
+      router.push("/profile");
     }
   };
 
