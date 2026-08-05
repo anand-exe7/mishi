@@ -549,25 +549,6 @@ export default function ProductsPage() {
       </AnimatePresence>
 
       </main>
-
-      {/* Footer */}
-      <footer className="w-full bg-[#2C392A] text-white/80">
-        <div className="py-6 px-4 md:px-12 text-[10px] md:text-xs font-bold uppercase tracking-wider flex flex-col md:flex-row justify-between items-center gap-3 text-center">
-          <div>© 2026 Mishi Pooja Products. All Rights Reserved</div>
-          <div>
-            Powered by{" "}
-            <a
-              href="https://www.cenexasystems.com"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="text-emerald-300 hover:text-white transition-colors"
-            >
-              Cenexa Systems
-            </a>
-          </div>
-          <div className="text-emerald-400">PURE • ORGANIC • PROVEN</div>
-        </div>
-      </footer>
     </div>
   );
 }

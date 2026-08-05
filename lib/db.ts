@@ -136,6 +136,17 @@ export const insertCategory = async (name: string): Promise<string> => {
   return name;
 };
 
+export const updateCategory = async (oldName: string, newName: string) => {
+  const { error: catError } = await supabase.from('categories').update({ name: newName }).eq('name', oldName);
+  if (catError) throw catError;
+
+  // Also update category references in products table
+  const { error: prodError } = await supabase.from('products').update({ category: newName }).eq('category', oldName);
+  if (prodError) {
+    console.error('Error updating category references in products:', prodError);
+  }
+};
+
 export const dbDeleteCategory = async (name: string) => {
   const { error } = await supabase.from('categories').delete().eq('name', name);
   if (error) throw error;
@@ -268,17 +279,21 @@ export const dbDeleteCoupon = async (code: string) => {
 // ORDERS
 // ============================
 export const fetchOrders = async (): Promise<Order[]> => {
-  const { data: ordersData, error: oError } = await supabase.from('orders').select('*, order_items(*)').order('created_at', { ascending: false });
+  const { data: ordersData, error: oError } = await supabase
+    .from('orders')
+    .select('*, order_items(*)')
+    .order('created_at', { ascending: false });
+
   if (oError) throw oError;
 
-  return ordersData.map((o: any) => ({
+  return (ordersData || []).map((o: any) => ({
     id: o.id,
     customerName: o.customer_name,
     customerPhone: o.customer_phone,
     customerEmail: o.customer_email,
     customerAddress: o.customer_address,
-    source: o.source,
-    items: o.order_items.map((it: any) => ({
+    source: o.source || 'POS',
+    items: (o.order_items || []).map((it: any) => ({
       productId: it.product_id,
       name: it.name,
       size: it.size,
@@ -561,25 +576,21 @@ export const generateSequentialOrderId = async (_isOnline: boolean = true) => {
   const currentYear = new Date().getFullYear();
   const prefix = `ORD-${currentYear}-`;
   try {
-    const { data: oData } = await supabase.from('orders').select('id');
     const { data: wData } = await supabase.from('whatsapp_requests').select('id');
     
     let maxSeq = 0;
-    const parseSeq = (idStr: string) => {
-      if (!idStr || typeof idStr !== 'string') return;
-      const regex = new RegExp(`^ORD-${currentYear}-(\\d+)$`, 'i');
-      const match = idStr.trim().match(regex) || idStr.trim().match(/ORD-\d{4}-(\d+)/i);
-      if (match) {
-        const num = parseInt(match[1], 10);
-        // Exclude legacy random numbers (> 7000) so counter starts cleanly from 00001, 00002, 00003...
-        if (!isNaN(num) && num < 7000 && num > maxSeq) {
-          maxSeq = num;
+    if (wData && wData.length > 0) {
+      wData.forEach((item: any) => {
+        if (!item.id || typeof item.id !== 'string') return;
+        const match = item.id.trim().match(/ORD-\d{4}-(\d+)/i) || item.id.trim().match(/ORD-(\d+)/i);
+        if (match) {
+          const num = parseInt(match[1], 10);
+          if (!isNaN(num) && num > maxSeq) {
+            maxSeq = num;
+          }
         }
-      }
-    };
-
-    if (oData) oData.forEach(item => parseSeq(item.id));
-    if (wData) wData.forEach(item => parseSeq(item.id));
+      });
+    }
 
     const nextVal = maxSeq + 1;
     return `${prefix}${String(nextVal).padStart(5, '0')}`;
@@ -587,5 +598,11 @@ export const generateSequentialOrderId = async (_isOnline: boolean = true) => {
     console.error('Error generating order ID:', e);
     return `${prefix}00001`;
   }
+};
+
+export const generateBillingInvoiceId = async () => {
+  const currentYear = new Date().getFullYear();
+  const randomStr = Math.random().toString(36).substring(2, 7).toUpperCase();
+  return `INV-${currentYear}-${randomStr}`;
 };
 
