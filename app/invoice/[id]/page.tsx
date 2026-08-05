@@ -41,6 +41,18 @@ export default function InvoicePage({ params }: { params: Promise<{ id: string }
     fetchOrder();
   }, [id]);
 
+  useEffect(() => {
+    if (order && typeof window !== 'undefined') {
+      const searchParams = new URLSearchParams(window.location.search);
+      if (searchParams.get('print') === 'true') {
+        const timer = setTimeout(() => {
+          window.print();
+        }, 500);
+        return () => clearTimeout(timer);
+      }
+    }
+  }, [order]);
+
   if (loading) {
     return (
       <div className="min-h-screen bg-[#F4F6F4] flex items-center justify-center">
@@ -114,7 +126,7 @@ export default function InvoicePage({ params }: { params: Promise<{ id: string }
             onClick={handlePrint}
             className="flex items-center gap-2 bg-[#2C392A] hover:bg-[#1e271d] text-white font-extrabold text-xs uppercase tracking-wider px-5 py-2.5 rounded-xl shadow-md transition-all cursor-pointer"
           >
-            <Printer className="w-4 h-4" /> Download PDF / Print
+            <Printer className="w-4 h-4" /> Print / Bluetooth Printer
           </button>
         </div>
       </div>

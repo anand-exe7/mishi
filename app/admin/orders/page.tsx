@@ -11,6 +11,19 @@ const STATUS_COLORS: Record<string, string> = {
   'Completed': 'bg-emerald-100 text-emerald-700 border-emerald-200',
 };
 
+const WhatsAppIcon = ({ size = 14, className = "" }: { size?: number; className?: string }) => (
+  <svg 
+    xmlns="http://www.w3.org/2000/svg" 
+    width={size} 
+    height={size} 
+    viewBox="0 0 24 24" 
+    fill="currentColor"
+    className={className}
+  >
+    <path d="M12.031 0C5.385 0 0 5.385 0 12.031c0 2.12.553 4.185 1.603 6.006L0 24l6.102-1.583A11.968 11.968 0 0012.031 24C18.675 24 24 18.675 24 12.031 24 5.385 18.675 0 12.031 0zm.014 22.016a9.932 9.932 0 01-5.064-1.39l-.363-.216-3.762.976.996-3.663-.237-.377a9.936 9.936 0 01-1.529-5.315c0-5.49 4.466-9.956 9.959-9.956 5.49 0 9.956 4.466 9.956 9.956 0 5.493-4.466 9.959-9.956 9.959zm5.459-7.461c-.3-.15-1.772-.874-2.046-.974-.275-.101-.476-.15-.676.15-.199.3-.774.974-.949 1.174-.175.199-.35.225-.65.075-.3-.15-1.265-.466-2.41-1.487-.892-.795-1.493-1.777-1.668-2.077-.175-.3-.018-.462.13-.61.135-.133.3-.35.45-.525.15-.175.199-.3.3-.5.1-.199.05-.375-.025-.525-.075-.15-.676-1.626-.926-2.226-.243-.585-.49-.506-.676-.515-.174-.008-.374-.008-.574-.008-.2 0-.525.075-.8.375-.275.3-1.05 1.026-1.05 2.502 0 1.476 1.075 2.901 1.225 3.101.15.199 2.114 3.227 5.122 4.527.715.309 1.273.494 1.708.632.718.228 1.372.196 1.889.119.577-.086 1.772-.724 2.022-1.424.25-.7.25-1.299.175-1.424-.075-.125-.275-.225-.575-.375z" />
+  </svg>
+);
+
 export default function OrdersManagement() {
   const { orders, updateOrderStatus, deleteOrder, loading } = useAdmin();
   const [search, setSearch] = useState('');
@@ -72,13 +85,17 @@ export default function OrdersManagement() {
       return;
     }
     
-    const itemsText = order.items.map(i => `• ${i.name} (${i.size || 'Standard'}) - ${i.quantity} x ₹${i.price} = ₹${i.quantity * i.price}`).join('%0A');
-    let message = `Hello ${order.customerName}, this is regarding your order ${order.id} from Mishi!%0A%0A`;
-    message += `*Order Details:*%0A${itemsText}%0A%0A`;
-    message += `*Total: ₹${order.totalPrice}*%0A%0A`;
-    message += `Let us know if you need any assistance!`;
+    let message = `Mishi Pooja Products- Purchase Successful!%0A%0A`;
+    message += `Hi ${order.customerName},%0A`;
+    message += `Thank you for shopping with us! You can view, download, or print your official digital invoice here:%0A%0A`;
+    message += `${window.location.origin}/invoice/${order.id}%0A%0A`;
+    message += `Have a great day!`;
 
     window.open(`https://api.whatsapp.com/send/?phone=91${cleanPhone}&text=${message}`, '_blank');
+  };
+
+  const handlePrintOrder = (orderId: string) => {
+    window.open(`/invoice/${orderId}?print=true`, '_blank');
   };
 
   const renderInvoice = () => {
@@ -194,11 +211,10 @@ export default function OrdersManagement() {
       }
 
       // Search filter
-      return (
-        o.id.toLowerCase().includes(search.toLowerCase()) || 
-        o.customerName.toLowerCase().includes(search.toLowerCase()) ||
-        o.customerPhone.includes(search)
-      );
+      const idMatch = (o.id || '').toLowerCase().includes(search.toLowerCase());
+      const nameMatch = (o.customerName || '').toLowerCase().includes(search.toLowerCase());
+      const phoneMatch = (o.customerPhone || '').includes(search);
+      return idMatch || nameMatch || phoneMatch;
     });
   }, [orders, search, period, customFrom, customTo]);
 
@@ -216,8 +232,8 @@ export default function OrdersManagement() {
 
       <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-4 mb-2">
         <div>
-          <h1 className="text-2xl font-black text-slate-900 tracking-tight">Orders Management</h1>
-          <p className="text-sm font-medium text-slate-500 mt-1">Track and update e-commerce orders</p>
+          <h1 className="text-2xl font-black text-slate-900 tracking-tight">Billing Invoices (POS)</h1>
+          <p className="text-sm font-medium text-slate-500 mt-1">Track and print POS store billing invoices (INV-)</p>
         </div>
       </div>
 
@@ -365,11 +381,19 @@ export default function OrdersManagement() {
               </div>
 
               <div className="flex flex-wrap items-center gap-2 w-full sm:w-auto">
+                <button 
+                  onClick={() => handlePrintOrder(selectedOrder.id)}
+                  className="flex-1 sm:flex-initial inline-flex items-center justify-center gap-1.5 px-3 py-1.5 bg-[#2C392A] hover:bg-[#1e271d] text-white rounded-lg text-xs font-bold transition-colors border border-[#2C392A] shadow-sm cursor-pointer"
+                  title="Print receipt / Bluetooth Thermal Print"
+                >
+                  <Printer size={14} /> Print / Bluetooth
+                </button>
+
                 <a 
                   href={`/invoice/${selectedOrder.id}`}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="flex-1 sm:flex-initial inline-flex items-center justify-center gap-1.5 px-3 py-1.5 bg-[#2C392A] hover:bg-[#1e271d] text-white rounded-lg text-xs font-bold transition-colors border border-[#2C392A] shadow-sm"
+                  className="flex-1 sm:flex-initial inline-flex items-center justify-center gap-1.5 px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg text-xs font-bold transition-colors border border-slate-200 shadow-sm"
                 >
                   <FileText size={14} /> View Invoice
                 </a>
@@ -397,13 +421,13 @@ export default function OrdersManagement() {
                 <>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div className="bg-slate-50 rounded-xl p-5 border border-slate-100">
-                  <div className="flex justify-between items-start mb-3">
+                  <div className="flex justify-between items-start mb-3 gap-2">
                     <h4 className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Customer Information</h4>
                     <button 
                       onClick={() => handleWhatsAppCustomer(selectedOrder)}
-                      className="px-2.5 py-1 text-[10px] font-bold bg-green-50 text-green-700 rounded border border-green-200 hover:bg-green-100 flex items-center gap-1 transition-colors cursor-pointer"
+                      className="px-3 py-1.5 text-xs font-bold bg-[#25D366] hover:bg-[#20bd5a] text-white rounded-lg flex items-center gap-1.5 shadow-sm transition-colors cursor-pointer shrink-0"
                     >
-                      <MessageSquare size={12} /> WhatsApp Customer
+                      <WhatsAppIcon size={14} /> WhatsApp Customer
                     </button>
                   </div>
                   <p className="font-bold text-slate-900 text-sm mb-1">{selectedOrder.customerName}</p>

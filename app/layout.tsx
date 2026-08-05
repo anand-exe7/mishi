@@ -19,6 +19,8 @@ export const metadata: Metadata = {
 };
 
 import GlobalNav from "../components/GlobalNav";
+import ScrollToTop from "../components/ScrollToTop";
+import Footer from "../components/Footer";
 
 export default function RootLayout({
   children,
@@ -30,9 +32,11 @@ export default function RootLayout({
       lang="en"
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
     >
-      <body className="min-h-full flex flex-col">
+      <body className="min-h-full flex flex-col justify-between">
+        <ScrollToTop />
         <GlobalNav />
-        {children}
+        <div className="flex-1 flex flex-col">{children}</div>
+        <Footer />
         <Toaster position="bottom-right" />
       </body>
     </html>
