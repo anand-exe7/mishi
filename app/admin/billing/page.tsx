@@ -68,6 +68,19 @@ export default function POSBillingPanel() {
           weight = sizeOpt.weightGrams;
         }
       }
+      if (!weight && item.size) {
+        const lower = item.size.toLowerCase();
+        if (lower.includes('kg')) {
+          const num = parseFloat(lower.replace(/[^0-9.]/g, ''));
+          if (num) weight = Math.round(num * 1000);
+        } else if (lower.includes('g') || lower.includes('gm')) {
+          const num = parseFloat(lower.replace(/[^0-9.]/g, ''));
+          if (num) weight = Math.round(num);
+        }
+      }
+      if (!weight) {
+        weight = 250; // Fallback default 250g per unit
+      }
       return acc + (weight * item.qty);
     }, 0);
   };

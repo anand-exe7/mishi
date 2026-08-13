@@ -97,14 +97,28 @@ export const useProductStore = create<ProductStore>((set) => ({
     try {
       const dbProducts = await dbFetchProducts();
       let mapped: Product[] = dbProducts.map((p) => {
-        // Map db sizes to predefined options
-        const predefinedOptions = p.sizes.map((s) => ({
-          quantity: parseInt(s.size.replace(/[^0-9]/g, '')) || 1,
-          unit: s.size.replace(/[0-9]/g, '').trim().toLowerCase() || 'unit',
-          label: s.size,
-          price: s.price,
-          isAvailable: s.isAvailable !== false,
-        }));
+        // Map db sizes to predefined options with weightGrams
+        const predefinedOptions = p.sizes.map((s) => {
+          let weight = s.weightGrams || 0;
+          if (!weight) {
+            const lower = s.size.toLowerCase();
+            if (lower.includes('kg')) {
+              const num = parseFloat(lower.replace(/[^0-9.]/g, ''));
+              if (num) weight = Math.round(num * 1000);
+            } else if (lower.includes('g') || lower.includes('gm')) {
+              const num = parseFloat(lower.replace(/[^0-9.]/g, ''));
+              if (num) weight = Math.round(num);
+            }
+          }
+          return {
+            quantity: parseInt(s.size.replace(/[^0-9]/g, '')) || 1,
+            unit: s.size.replace(/[0-9]/g, '').trim().toLowerCase() || 'unit',
+            label: s.size,
+            price: s.price,
+            weightGrams: weight,
+            isAvailable: s.isAvailable !== false,
+          };
+        });
 
         // Determine unit type
         let unitType: 'weight' | 'volume' | 'unit' = 'unit';
@@ -135,6 +149,7 @@ export const useProductStore = create<ProductStore>((set) => ({
           unitType,
           unitLabel,
           imageUrl: p.image || '',
+          sizes: p.sizes,
           predefinedOptions,
         };
       });

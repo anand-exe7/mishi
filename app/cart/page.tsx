@@ -88,7 +88,7 @@ export default function CartPage() {
     return items.reduce((acc, item) => {
       let weight = 0;
       if (item.product.predefinedOptions && item.product.predefinedOptions.length > 0) {
-        const option = item.product.predefinedOptions.find((opt: any) => opt.label === item.unit);
+        const option = item.product.predefinedOptions.find((opt: any) => opt.label === item.unit || opt.unit === item.unit);
         if (option && (option as any).weightGrams) {
           weight = (option as any).weightGrams;
         }
@@ -98,6 +98,19 @@ export default function CartPage() {
         if (sizeOpt && sizeOpt.weightGrams) {
           weight = sizeOpt.weightGrams;
         }
+      }
+      if (!weight && item.unit) {
+        const lower = item.unit.toLowerCase();
+        if (lower.includes('kg')) {
+          const num = parseFloat(lower.replace(/[^0-9.]/g, ''));
+          if (num) weight = Math.round(num * 1000);
+        } else if (lower.includes('g') || lower.includes('gm')) {
+          const num = parseFloat(lower.replace(/[^0-9.]/g, ''));
+          if (num) weight = Math.round(num);
+        }
+      }
+      if (!weight) {
+        weight = 250; // Fallback default 250g per unit
       }
       return acc + weight * item.quantity;
     }, 0);
@@ -598,11 +611,6 @@ export default function CartPage() {
                     <div className="flex justify-between items-center text-xs pt-1">
                       <span className="text-[#5F6D59]">
                         Delivery Fee
-                        {calculateTotalWeightGrams() > 0 && (
-                          <span className="text-[10px] text-emerald-800 font-normal ml-1">
-                            ({(calculateTotalWeightGrams() / 1000).toFixed(2)} kg)
-                          </span>
-                        )}
                       </span>
                       <span className="font-bold text-emerald-800 text-xs">
                         ₹{calculateDelivery()}
