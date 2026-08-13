@@ -6,6 +6,22 @@ export interface ProductSize {
   size: string;
   price: number;
   isAvailable?: boolean;
+  weightGrams?: number;
+}
+
+export interface DeliveryTier {
+  id: string;
+  regionId: string;
+  minWeightGrams: number;
+  maxWeightGrams: number | null;
+  charge: number;
+}
+
+export interface DeliveryRegion {
+  id: string;
+  name: string;
+  isActive: boolean;
+  tiers: DeliveryTier[];
 }
 
 export interface Product {
@@ -166,7 +182,8 @@ export const fetchProducts = async (): Promise<Product[]> => {
     const prodSizes = sizes.filter((s: any) => s.product_id === p.id).map((s: any) => ({
       size: s.size,
       price: s.price,
-      isAvailable: s.is_available
+      isAvailable: s.is_available,
+      weightGrams: s.weight_grams || 0,
     }));
 
     return {
@@ -225,6 +242,7 @@ export const upsertProduct = async (product: Product, imageFile?: File): Promise
       size: s.size,
       price: s.price,
       is_available: s.isAvailable !== false,
+      weight_grams: s.weightGrams || 0,
       sort_order: index,
     }));
     const { error: sError } = await supabase.from('product_sizes').insert(sizesToInsert);
@@ -604,5 +622,81 @@ export const generateBillingInvoiceId = async () => {
   const currentYear = new Date().getFullYear();
   const randomStr = Math.random().toString(36).substring(2, 7).toUpperCase();
   return `INV-${currentYear}-${randomStr}`;
+};
+
+// ============================
+// DELIVERY REGIONS & TIERS
+// ============================
+export const fetchDeliveryRegions = async (onlyActive = false): Promise<DeliveryRegion[]> => {
+  let query = supabase.from('delivery_regions').select('*');
+  if (onlyActive) {
+    query = query.eq('is_active', true);
+  }
+  const { data: regions, error: rError } = await query.order('name');
+  if (rError) throw rError;
+
+  const { data: tiers, error: tError } = await supabase
+    .from('delivery_tiers')
+    .select('*')
+    .order('min_weight_grams');
+  if (tError) throw tError;
+
+  return (regions || []).map((r: any) => ({
+    id: r.id,
+    name: r.name,
+    isActive: r.is_active,
+    tiers: (tiers || [])
+      .filter((t: any) => t.region_id === r.id)
+      .map((t: any) => ({
+        id: t.id,
+        regionId: t.region_id,
+        minWeightGrams: t.min_weight_grams,
+        maxWeightGrams: t.max_weight_grams,
+        charge: t.charge,
+      })),
+  }));
+};
+
+export const upsertDeliveryRegion = async (region: { id?: string; name: string; isActive?: boolean }): Promise<string> => {
+  const payload: any = { name: region.name };
+  if (region.id) payload.id = region.id;
+  if (region.isActive !== undefined) payload.is_active = region.isActive;
+
+  const { data, error } = await supabase.from('delivery_regions').upsert(payload).select().single();
+  if (error) throw error;
+  return data.id;
+};
+
+export const dbDeleteDeliveryRegion = async (id: string) => {
+  const { error } = await supabase.from('delivery_regions').delete().eq('id', id);
+  if (error) throw error;
+};
+
+export const setDeliveryTiers = async (regionId: string, tiers: { minWeightGrams: number; maxWeightGrams: number | null; charge: number }[]) => {
+  const { error: delError } = await supabase.from('delivery_tiers').delete().eq('region_id', regionId);
+  if (delError) throw delError;
+
+  if (tiers.length > 0) {
+    const toInsert = tiers.map(t => ({
+      region_id: regionId,
+      min_weight_grams: t.minWeightGrams,
+      max_weight_grams: t.maxWeightGrams,
+      charge: t.charge,
+    }));
+    const { error: insError } = await supabase.from('delivery_tiers').insert(toInsert);
+    if (insError) throw insError;
+  }
+};
+
+export const calculateDeliveryFee = (totalWeightGrams: number, region: DeliveryRegion): number => {
+  if (!region || !region.tiers || region.tiers.length === 0) return 0;
+
+  const matchedTier = region.tiers.find(tier => {
+    const minMatch = totalWeightGrams >= tier.minWeightGrams;
+    const maxMatch = tier.maxWeightGrams === null || tier.maxWeightGrams === undefined || totalWeightGrams <= tier.maxWeightGrams;
+    return minMatch && maxMatch;
+  });
+
+  return matchedTier ? matchedTier.charge : 0;
 };
 

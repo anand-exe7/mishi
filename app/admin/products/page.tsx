@@ -124,7 +124,7 @@ export default function ProductsManagement() {
     setIsAvailable(true);
     setImage('');
     setImageFile(null);
-    setSizes([{ size: 'Standard', price: 0, isAvailable: true }]);
+    setSizes([{ size: 'Standard', price: 0, weightGrams: 0, isAvailable: true }]);
     setIsModalOpen(true);
   };
 
@@ -140,7 +140,7 @@ export default function ProductsManagement() {
     setIsAvailable(product.isAvailable !== false);
     setImage(product.image || '');
     setImageFile(null);
-    setSizes(product.sizes.length > 0 ? [...product.sizes] : [{ size: 'Standard', price: 0, isAvailable: true }]);
+    setSizes(product.sizes.length > 0 ? product.sizes.map(s => ({ ...s, weightGrams: s.weightGrams || 0 })) : [{ size: 'Standard', price: 0, weightGrams: 0, isAvailable: true }]);
     setIsModalOpen(true);
   };
 
@@ -149,7 +149,14 @@ export default function ProductsManagement() {
   };
 
   const handleSizeChange = (index: number, field: keyof ProductSize, value: any) => {
-    setSizes(sizes.map((s, idx) => idx === index ? { ...s, [field]: value } : s));
+    let parsedValue = value;
+    if (field === 'price' || field === 'weightGrams') {
+      if (typeof value === 'string') {
+        const cleaned = value.replace(/^0+(?=\d)/, '');
+        parsedValue = cleaned === '' ? 0 : parseFloat(cleaned) || 0;
+      }
+    }
+    setSizes(sizes.map((s, idx) => idx === index ? { ...s, [field]: parsedValue } : s));
   };
 
   const handleRemoveSizeRow = (index: number) => {
@@ -353,7 +360,7 @@ export default function ProductsManagement() {
               <thead className="border-b border-slate-100 bg-slate-50">
                 <tr className="text-[10px] uppercase tracking-widest font-bold text-slate-500">
                   <th className="px-6 py-4">Product</th>
-                  <th className="px-6 py-4">Tamil Name</th>
+                  <th className="px-6 py-4">Weight</th>
                   <th className="px-6 py-4">Category</th>
                   <th className="px-6 py-4 text-center">Sizes & Pricing</th>
                   <th className="px-6 py-4 text-center">Status</th>
@@ -377,7 +384,23 @@ export default function ProductsManagement() {
                       </div>
                     </td>
                     <td className="px-6 py-4 font-medium text-slate-600">
-                      {product.tamilName || '-'}
+                      <div className="flex flex-col gap-1">
+                        {product.sizes && product.sizes.length > 0 ? (
+                          product.sizes.map((s, i) => (
+                            <span key={i} className="text-xs font-bold text-slate-700">
+                              {s.weightGrams ? (
+                                <span className="px-2 py-0.5 bg-cyan-50 text-cyan-800 border border-cyan-200/60 rounded-md inline-block">
+                                  {s.weightGrams >= 1000 ? `${(s.weightGrams / 1000).toFixed(1)} kg` : `${s.weightGrams} g`}
+                                </span>
+                              ) : (
+                                <span className="text-slate-400 font-normal">0 g</span>
+                              )}
+                            </span>
+                          ))
+                        ) : (
+                          <span className="text-slate-400">-</span>
+                        )}
+                      </div>
                     </td>
                     <td className="px-6 py-4">
                       <span className="inline-block px-3 py-1 bg-slate-100 text-slate-600 rounded-full text-[10px] font-bold uppercase tracking-wider">
@@ -621,58 +644,98 @@ export default function ProductsManagement() {
               {/* Sizes Variants Section */}
               <div className="border-t border-slate-100 pt-4">
                 <div className="flex justify-between items-center mb-3">
-                  <span className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Size Variants & Prices *</span>
+                  <div>
+                    <span className="text-[10px] font-bold text-slate-500 uppercase tracking-widest block">Size Variants, Prices & Weights *</span>
+                    <span className="text-[10px] text-slate-400">Specify weight in grams (e.g. 500g = 500, 1kg = 1000) for delivery fee calculation.</span>
+                  </div>
                   <button
                     type="button"
                     onClick={handleAddSizeRow}
-                    className="text-xs text-[#dc2626] font-bold hover:underline flex items-center gap-1 cursor-pointer"
+                    className="text-xs text-[#dc2626] font-bold hover:underline flex items-center gap-1 cursor-pointer shrink-0"
                   >
-                    <PlusCircle size={14} /> Add Size Variant
+                    <PlusCircle size={14} /> Add Variant
                   </button>
                 </div>
                 
-                <div className="space-y-3 max-h-48 overflow-y-auto">
+                {/* Column Headers */}
+                <div className="hidden sm:grid grid-cols-12 gap-3 text-[10px] font-black text-slate-400 uppercase tracking-wider px-3 mb-1.5">
+                  <span className="col-span-4">Variant Name</span>
+                  <span className="col-span-3">Price (₹)</span>
+                  <span className="col-span-3">Weight (Grams)</span>
+                  <span className="col-span-1 text-center">Status</span>
+                  <span className="col-span-1 text-right">Delete</span>
+                </div>
+
+                <div className="space-y-3 max-h-56 overflow-y-auto pr-1">
                   {sizes.map((s, index) => (
-                    <div key={index} className="flex flex-wrap sm:flex-nowrap gap-2 sm:gap-3 items-center bg-slate-50 border border-slate-150 p-2 sm:p-2.5 rounded-xl">
-                      <div className="flex-1 min-w-[110px]">
+                    <div key={index} className="flex flex-wrap sm:flex-nowrap gap-2 sm:gap-3 items-center bg-slate-50 border border-slate-200 p-3 sm:p-2.5 rounded-xl">
+                      {/* Variant Name Input */}
+                      <div className="flex-1 min-w-[120px]">
+                        <label className="block sm:hidden text-[9px] font-extrabold text-slate-400 uppercase mb-0.5">Variant Name</label>
                         <input
                            type="text"
                            required
                            value={s.size}
-                           placeholder="e.g. 100g, 200ml"
+                           placeholder="e.g. 100g / Small / Pack of 1"
                            onChange={e => handleSizeChange(index, 'size', e.target.value)}
-                           className="w-full bg-white border border-slate-200 rounded-lg px-2.5 py-1.5 text-xs font-bold text-slate-900 focus:outline-none"
+                           className="w-full bg-white border border-slate-200 rounded-lg px-2.5 py-1.5 text-xs font-bold text-slate-900 focus:outline-none focus:border-slate-400"
                         />
                       </div>
                       
-                      <div className="w-24 sm:w-28">
-                        <input
-                           type="number"
-                           required
-                           min="0"
-                           value={s.price || ''}
-                           placeholder="Price (₹)"
-                           onChange={e => handleSizeChange(index, 'price', Number(e.target.value))}
-                           className="w-full bg-white border border-slate-200 rounded-lg px-2.5 py-1.5 text-xs font-black text-slate-900 focus:outline-none"
-                        />
+                      {/* Price Input */}
+                      <div className="w-full sm:w-28">
+                        <label className="block sm:hidden text-[9px] font-extrabold text-slate-400 uppercase mb-0.5">Price (₹)</label>
+                        <div className="relative flex items-center">
+                          <span className="absolute left-2.5 text-xs font-bold text-slate-400">₹</span>
+                          <input
+                             type="number"
+                             required
+                             min="0"
+                             value={s.price ? s.price : ''}
+                             placeholder="0"
+                             onChange={e => handleSizeChange(index, 'price', e.target.value)}
+                             className="w-full bg-white border border-slate-200 rounded-lg pl-6 pr-2 py-1.5 text-xs font-black text-slate-900 focus:outline-none focus:border-slate-400"
+                          />
+                        </div>
                       </div>
 
-                      <div className="flex items-center gap-1.5 ml-auto sm:ml-0">
-                        <span className="text-[10px] font-bold text-slate-500 uppercase">Active</span>
+                      {/* Weight (Grams) Input */}
+                      <div className="w-full sm:w-32">
+                        <label className="block sm:hidden text-[9px] font-extrabold text-slate-400 uppercase mb-0.5">Weight (Grams)</label>
+                        <div className="relative flex items-center">
+                          <input
+                             type="number"
+                             min="0"
+                             value={s.weightGrams ? s.weightGrams : ''}
+                             placeholder="0"
+                             onChange={e => handleSizeChange(index, 'weightGrams', e.target.value)}
+                             className="w-full bg-white border border-slate-200 rounded-lg pl-2.5 pr-7 py-1.5 text-xs font-bold text-slate-900 focus:outline-none focus:border-cyan-500"
+                             title="Weight in grams for delivery calculation"
+                          />
+                          <span className="absolute right-2 text-[10px] font-bold text-slate-400">g</span>
+                        </div>
+                      </div>
+
+                      {/* Active Status */}
+                      <div className="flex items-center gap-1.5 ml-auto sm:ml-0 pt-1 sm:pt-0">
+                        <span className="text-[10px] font-bold text-slate-500 uppercase sm:hidden">Active</span>
                         <button
                           type="button"
                           onClick={() => handleSizeChange(index, 'isAvailable', s.isAvailable !== false ? false : true)}
                           className={`relative inline-flex h-4 w-7 items-center rounded-full transition-colors focus:outline-none ${s.isAvailable !== false ? 'bg-emerald-600' : 'bg-slate-200'}`}
+                          title="Toggle Variant Status"
                         >
                           <span className={`inline-block h-3 w-3 transform rounded-full bg-white transition-transform ${s.isAvailable !== false ? 'translate-x-3.5' : 'translate-x-0.5'}`} />
                         </button>
                       </div>
 
+                      {/* Delete Row Button */}
                       <button
                         type="button"
                         disabled={sizes.length === 1}
                         onClick={() => handleRemoveSizeRow(index)}
-                        className="p-1.5 text-red-400 hover:text-red-600 hover:bg-red-50 rounded-lg cursor-pointer disabled:opacity-30"
+                        className="p-1.5 text-red-400 hover:text-red-600 hover:bg-red-50 rounded-lg cursor-pointer disabled:opacity-30 pt-1 sm:pt-1.5"
+                        title="Remove Variant"
                       >
                         <Trash2 size={16} />
                       </button>

@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import { User, FileText, Trash2, CheckCircle2, ChevronDown, Search, Plus } from 'lucide-react';
 import { useAdmin } from '../AdminContext';
-import { fetchProducts, fetchCoupons, Product, Coupon, Order, OrderItem, generateBillingInvoiceId } from '@/lib/db';
+import { fetchProducts, fetchCoupons, fetchDeliveryRegions, calculateDeliveryFee, Product, Coupon, Order, OrderItem, generateBillingInvoiceId, DeliveryRegion } from '@/lib/db';
 
 export default function POSBillingPanel() {
   const { addOrder } = useAdmin();
@@ -14,6 +14,8 @@ export default function POSBillingPanel() {
   
   const [products, setProducts] = useState<Product[]>([]);
   const [coupons, setCoupons] = useState<Coupon[]>([]);
+  const [deliveryRegions, setDeliveryRegions] = useState<DeliveryRegion[]>([]);
+  const [selectedRegionId, setSelectedRegionId] = useState<string>('');
   const [loading, setLoading] = useState(true);
   
   // Billing items: { productId, name, size, qty, price }
@@ -39,12 +41,14 @@ export default function POSBillingPanel() {
     const loadCatalogData = async () => {
       try {
         setLoading(true);
-        const [fetchedProducts, fetchedCoupons] = await Promise.all([
+        const [fetchedProducts, fetchedCoupons, fetchedRegions] = await Promise.all([
           fetchProducts(),
-          fetchCoupons()
+          fetchCoupons(),
+          fetchDeliveryRegions(true)
         ]);
         setProducts(fetchedProducts);
         setCoupons(fetchedCoupons.filter(c => c.status === 'ACTIVE'));
+        setDeliveryRegions(fetchedRegions);
       } catch (err) {
         console.error('Error fetching billing panel catalog data:', err);
       } finally {
@@ -53,6 +57,30 @@ export default function POSBillingPanel() {
     };
     loadCatalogData();
   }, []);
+
+  const calculateCartWeight = () => {
+    return items.reduce((acc, item) => {
+      const product = products.find(p => p.id === item.productId);
+      let weight = 0;
+      if (product && product.sizes) {
+        const sizeOpt = product.sizes.find(s => s.size === item.size);
+        if (sizeOpt && sizeOpt.weightGrams) {
+          weight = sizeOpt.weightGrams;
+        }
+      }
+      return acc + (weight * item.qty);
+    }, 0);
+  };
+
+  useEffect(() => {
+    if (!selectedRegionId) return;
+    const region = deliveryRegions.find(r => r.id === selectedRegionId);
+    if (region) {
+      const weight = calculateCartWeight();
+      const fee = calculateDeliveryFee(weight, region);
+      setDelivery(fee);
+    }
+  }, [selectedRegionId, items, deliveryRegions]);
 
   const filteredProducts = products.filter(p => 
     p.name.toLowerCase().includes(catalogSearch.toLowerCase()) && p.isAvailable !== false
@@ -454,8 +482,36 @@ export default function POSBillingPanel() {
                 </div>
               )}
 
+              {deliveryRegions.length > 0 && (
+                <div>
+                  <label className="block text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-2">Delivery Region (Auto-Fee)</label>
+                  <div className="relative">
+                    <select 
+                      value={selectedRegionId}
+                      onChange={e => setSelectedRegionId(e.target.value)}
+                      className="w-full appearance-none bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-xs font-bold text-slate-900 focus:outline-none cursor-pointer"
+                    >
+                      <option value="">Select Region (Optional)</option>
+                      {deliveryRegions.map(r => (
+                        <option key={r.id} value={r.id}>
+                          {r.name}
+                        </option>
+                      ))}
+                    </select>
+                    <ChevronDown size={16} className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
+                  </div>
+                </div>
+              )}
+
               <div className="flex justify-between items-center text-xs sm:text-sm border-b border-slate-100 pb-4 sm:pb-5 font-medium">
-                <span className="text-slate-500">Delivery Charge</span>
+                <span className="text-slate-500 flex items-center gap-1">
+                  Delivery Charge
+                  {calculateCartWeight() > 0 && (
+                    <span className="text-[10px] text-slate-400 font-normal">
+                      ({(calculateCartWeight() / 1000).toFixed(2)} kg)
+                    </span>
+                  )}
+                </span>
                 <input 
                   type="number" 
                   value={delivery || ''}

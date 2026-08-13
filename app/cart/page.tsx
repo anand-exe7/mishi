@@ -17,6 +17,9 @@ import {
   OrderItem,
   Coupon,
   generateSequentialOrderId,
+  fetchDeliveryRegions,
+  calculateDeliveryFee,
+  DeliveryRegion,
 } from "@/lib/db";
 import { useAuth } from "@/lib/useAuth";
 
@@ -38,8 +41,19 @@ export default function CartPage() {
   const [appliedCoupon, setAppliedCoupon] = useState<Coupon | null>(null);
   const [isApplyingCoupon, setIsApplyingCoupon] = useState(false);
 
+  const [deliveryRegions, setDeliveryRegions] = useState<DeliveryRegion[]>([]);
+  const [selectedRegionId, setSelectedRegionId] = useState<string>("");
+
   useEffect(() => {
     setIsMounted(true);
+    fetchDeliveryRegions(true)
+      .then((regions) => {
+        setDeliveryRegions(regions);
+        if (regions.length > 0) {
+          setSelectedRegionId(regions[0].id);
+        }
+      })
+      .catch((err) => console.error("Error loading delivery regions:", err));
   }, []);
 
   // Helper to get item price based on selected size
@@ -68,6 +82,32 @@ export default function CartPage() {
     if (!appliedCoupon) return 0;
     const subtotal = calculateSubtotal();
     return Math.round((subtotal * appliedCoupon.discount) / 100);
+  };
+
+  const calculateTotalWeightGrams = () => {
+    return items.reduce((acc, item) => {
+      let weight = 0;
+      if (item.product.predefinedOptions && item.product.predefinedOptions.length > 0) {
+        const option = item.product.predefinedOptions.find((opt: any) => opt.label === item.unit);
+        if (option && (option as any).weightGrams) {
+          weight = (option as any).weightGrams;
+        }
+      }
+      if (!weight && (item.product as any).sizes) {
+        const sizeOpt = (item.product as any).sizes.find((s: any) => s.size === item.unit);
+        if (sizeOpt && sizeOpt.weightGrams) {
+          weight = sizeOpt.weightGrams;
+        }
+      }
+      return acc + weight * item.quantity;
+    }, 0);
+  };
+
+  const calculateDelivery = () => {
+    const selectedRegion = deliveryRegions.find((r) => r.id === selectedRegionId);
+    if (!selectedRegion) return 0;
+    const totalWeight = calculateTotalWeightGrams();
+    return calculateDeliveryFee(totalWeight, selectedRegion);
   };
 
   const handleApplyCoupon = async () => {
@@ -157,7 +197,9 @@ export default function CartPage() {
     const orderId = await generateSequentialOrderId(true);
     const subtotal = calculateSubtotal();
     const couponDiscount = calculateDiscount();
-    const finalTotal = subtotal - couponDiscount;
+    const deliveryCharge = calculateDelivery();
+    const finalTotal = subtotal - couponDiscount + deliveryCharge;
+    const selectedRegion = deliveryRegions.find((r) => r.id === selectedRegionId);
 
     // Map cart items to DB OrderItems
     const dbItems: OrderItem[] = items.map((item) => ({
@@ -184,7 +226,7 @@ export default function CartPage() {
       couponCode: appliedCoupon?.code || "",
       couponDiscount: couponDiscount,
       manualDiscount: 0,
-      deliveryCharge: 0,
+      deliveryCharge: deliveryCharge,
       cashReceived: 0,
       changeReturned: 0,
     };
@@ -219,7 +261,11 @@ export default function CartPage() {
         couponDiscount > 0
           ? `\n\n*Subtotal:* ₹${subtotal}\n*Discount (${appliedCoupon?.code}):* -₹${couponDiscount}`
           : `\n\n*Subtotal:* ₹${subtotal}`;
-      const message = `${ePray} *Hello Mishi Pooja Products!*\n\nI would like to place an order. ${ePackage}\n\n*Order ID:* ${orderId}\n\n${ePerson} *Customer Details:*\n*Name:* ${formData.name}\n*Phone:* ${formData.phone}\n*Address:* ${formData.address}\n\n${eCart} *Order Summary:*\n${itemsSummary}${discountText}\n\n${eCard} *Final Total:* ₹${finalTotal}\n\n${eMobile} *GPay Number:* 9894609057\n\n${eTruck} _Delivery charges may vary based on location._\n\nPlease confirm my order. Thank you! ${eSparkle}`;
+      
+      const regionText = selectedRegion ? `\n*Delivery Region:* ${selectedRegion.name}` : "";
+      const deliveryText = `\n*Delivery Charge:* ₹${deliveryCharge}`;
+
+      const message = `${ePray} *Hello Mishi Pooja Products!*\n\nI would like to place an order. ${ePackage}\n\n*Order ID:* ${orderId}\n\n${ePerson} *Customer Details:*\n*Name:* ${formData.name}\n*Phone:* ${formData.phone}\n*Address:* ${formData.address}${regionText}\n\n${eCart} *Order Summary:*\n${itemsSummary}${discountText}${deliveryText}\n\n${eCard} *Final Total:* ₹${finalTotal}\n\n${eMobile} *GPay Number:* 9894609057\n\nPlease confirm my order. Thank you! ${eSparkle}`;
 
       // 3. Clear Zustand cart, open WhatsApp, and navigate to Profile
       clearCart();
@@ -257,7 +303,9 @@ export default function CartPage() {
         couponDiscount > 0
           ? `\n\n*Subtotal:* ₹${subtotal}\n*Discount (${appliedCoupon?.code}):* -₹${couponDiscount}`
           : `\n\n*Subtotal:* ₹${subtotal}`;
-      const message = `${ePray} *Hello Mishi Pooja Products!*\n\nI would like to place an order. ${ePackage}\n\n*Order ID:* ${orderId}\n\n${ePerson} *Customer Details:*\n*Name:* ${formData.name}\n*Phone:* ${formData.phone}\n*Address:* ${formData.address}\n\n${eCart} *Order Summary:*\n${itemsSummary}${discountText}\n\n${eCard} *Final Total:* ₹${finalTotal}\n\n${eMobile} *GPay Number:* 9894609057\n\n${eTruck} _Delivery charges may vary based on location._\n\nPlease confirm my order. Thank you! ${eSparkle}`;
+      const regionText = selectedRegion ? `\n*Delivery Region:* ${selectedRegion.name}` : "";
+      const deliveryText = `\n*Delivery Charge:* ₹${deliveryCharge}`;
+      const message = `${ePray} *Hello Mishi Pooja Products!*\n\nI would like to place an order. ${ePackage}\n\n*Order ID:* ${orderId}\n\n${ePerson} *Customer Details:*\n*Name:* ${formData.name}\n*Phone:* ${formData.phone}\n*Address:* ${formData.address}${regionText}\n\n${eCart} *Order Summary:*\n${itemsSummary}${discountText}${deliveryText}\n\n${eCard} *Final Total:* ₹${finalTotal}\n\n${eMobile} *GPay Number:* 9894609057\n\nPlease confirm my order. Thank you! ${eSparkle}`;
 
       clearCart();
       window.open(
@@ -480,6 +528,30 @@ export default function CartPage() {
                     ></textarea>
                   </div>
 
+                  <div>
+                    <label className="text-[10px] font-extrabold text-emerald-800 uppercase tracking-wider mb-1 block">
+                      Delivery Region *
+                    </label>
+                    {deliveryRegions.length === 0 ? (
+                      <div className="text-xs text-slate-500 bg-emerald-50/40 border border-emerald-200 rounded-xl px-3.5 py-2.5">
+                        Standard Delivery
+                      </div>
+                    ) : (
+                      <select
+                        required
+                        value={selectedRegionId}
+                        onChange={(e) => setSelectedRegionId(e.target.value)}
+                        className="w-full bg-emerald-50/40 border border-emerald-200 rounded-xl px-3.5 py-2.5 sm:py-3 text-xs sm:text-sm focus:outline-none focus:border-emerald-600 transition-colors text-emerald-950 font-bold"
+                      >
+                        {deliveryRegions.map((r) => (
+                          <option key={r.id} value={r.id}>
+                            {r.name}
+                          </option>
+                        ))}
+                      </select>
+                    )}
+                  </div>
+
                   <div className="border-t border-emerald-100 pt-4 mt-4 space-y-3">
                     <div className="flex gap-2">
                       <input
@@ -518,21 +590,28 @@ export default function CartPage() {
                       </span>
                     </div>
                     {appliedCoupon && (
-                      <div className="flex justify-between text-xs text-emerald-700 font-bold">
+                      <div className="flex justify-[#5F6D59] text-xs text-emerald-700 font-bold justify-between">
                         <span>Discount ({appliedCoupon.discount}%)</span>
                         <span>-₹{calculateDiscount()}</span>
                       </div>
                     )}
                     <div className="flex justify-between items-center text-xs pt-1">
-                      <span className="text-[#5F6D59]">Delivery</span>
-                      <span className="font-bold text-emerald-700 text-[11px]">
-                        Calculated on WhatsApp
+                      <span className="text-[#5F6D59]">
+                        Delivery Fee
+                        {calculateTotalWeightGrams() > 0 && (
+                          <span className="text-[10px] text-emerald-800 font-normal ml-1">
+                            ({(calculateTotalWeightGrams() / 1000).toFixed(2)} kg)
+                          </span>
+                        )}
+                      </span>
+                      <span className="font-bold text-emerald-800 text-xs">
+                        ₹{calculateDelivery()}
                       </span>
                     </div>
                     <div className="flex justify-between text-base font-black text-emerald-950 pt-3 border-t border-emerald-100">
                       <span>Total</span>
                       <span className="text-emerald-700">
-                        ₹{calculateSubtotal() - calculateDiscount()}
+                        ₹{calculateSubtotal() - calculateDiscount() + calculateDelivery()}
                       </span>
                     </div>
                   </div>
