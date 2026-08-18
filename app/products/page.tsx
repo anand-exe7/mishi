@@ -204,11 +204,11 @@ export default function ProductsPage() {
                   className="group flex flex-col bg-white border border-emerald-100 rounded-2xl sm:rounded-3xl p-2.5 sm:p-4 shadow-sm hover:shadow-xl transition-all duration-300 hover:-translate-y-1 cursor-pointer relative h-full justify-between"
                 >
                   <div>
-                    <div className="w-full aspect-[4/5] rounded-xl sm:rounded-2xl overflow-hidden mb-2.5 sm:mb-4 relative bg-[#F9F8F5]">
+                    <div className="w-full aspect-square sm:aspect-[4/5] rounded-xl sm:rounded-2xl overflow-hidden mb-2.5 sm:mb-4 relative bg-[#F9F8F5] p-1.5 sm:p-2">
                       <img
                         src={product.imageUrl || "/placeholder.jpg"}
                         alt={product.name}
-                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500 ease-out"
+                        className="w-full h-full object-contain group-hover:scale-105 transition-transform duration-500 ease-out"
                       />
                       <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors"></div>
                       <div className="hidden sm:flex absolute bottom-3 right-3 bg-white/90 backdrop-blur-md p-2.5 rounded-full text-emerald-950 opacity-0 group-hover:opacity-100 transition-opacity translate-y-2 group-hover:translate-y-0 shadow-md">

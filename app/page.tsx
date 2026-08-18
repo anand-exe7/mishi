@@ -25,6 +25,7 @@ import { useProductStore, useLangStore } from "@/store/store";
 import { getT } from "@/lib/translations";
 import Link from "next/link";
 import SacredRitualFinder from "@/components/SacredRitualFinder";
+import InstagramIcon from "@/components/InstagramIcon";
 
 const reelVideos = ["DX9JNchDWyW", "DYTZ_U1idZK", "DYCWOObD0x3", "Daxqbe-ihQE"];
 
@@ -238,7 +239,7 @@ export default function Home() {
 
                 <button
                   onClick={scrollToRitualFinder}
-                  className="flex-1 sm:flex-initial bg-emerald-600 text-white px-4 sm:px-7 py-3.5 sm:py-4 rounded-full font-extrabold text-[11px] sm:text-sm hover:bg-emerald-700 transition-all flex items-center justify-center gap-1.5 sm:gap-2 shadow-lg shadow-emerald-600/20 active:scale-[0.98] border border-emerald-500/30 whitespace-nowrap"
+                  className="flex-1 sm:flex-initial bg-emerald-600 text-white px-4 sm:px-7 py-3.5 sm:py-4 rounded-full font-extrabold text-[11px] sm:text-sm hover:bg-emerald-700 transition-all flex items-center justify-center gap-1.5 sm:gap-2 shadow-lg shadow-emerald-600/20 active:scale-[0.98] border border-emerald-500/30 min-w-0 sm:whitespace-nowrap"
                 >
                   <Sparkles size={16} /> Find Ritual Match
                 </button>
@@ -443,7 +444,7 @@ export default function Home() {
               <div className="w-full aspect-square rounded-2xl bg-white p-2.5 sm:p-3 shadow-sm border border-neutral-200/80 group-hover:shadow-md group-hover:border-[#7DAA8F]/50 transition-all relative overflow-hidden">
                 <img
                   src={`https://www.mishipoojaproducts.com/wp-content/uploads/2026/03/Product-${cat.img}.jpg`}
-                  className="w-full h-full object-cover rounded-xl group-hover:scale-105 transition-transform duration-300"
+                  className="w-full h-full object-contain rounded-xl group-hover:scale-105 transition-transform duration-300"
                   alt={t(cat.key)}
                 />
               </div>
@@ -509,7 +510,7 @@ export default function Home() {
 
           <div className="w-full lg:w-7/12">
             <div className="grid grid-cols-2 sm:grid-rows-2 gap-3 sm:gap-4 sm:aspect-[3/2]">
-              <div className="col-span-2 sm:col-span-1 sm:row-span-2 rounded-2xl sm:rounded-3xl overflow-hidden relative shadow-md aspect-[16/10] sm:aspect-auto sm:h-full border-2 border-white group">
+              <div className="col-span-2 sm:col-span-1 sm:row-span-2 rounded-2xl sm:rounded-3xl overflow-hidden relative shadow-md aspect-square sm:aspect-auto sm:h-full border-2 border-white group">
                 <img
                   src="/gallery/gallery_setup_1783444417350.png"
                   alt="Inside Mishi Store Setup"
@@ -588,10 +589,17 @@ export default function Home() {
                 { name: "Sri Lanka", flag: "/flags/Sri-Lanka_240-animated-flag-gifs.gif", offset: "sm:-translate-y-2" },
                 { name: "Mauritius", flag: "/flags/Mauritius_240-animated-flag-gifs.gif", offset: "sm:translate-y-4" },
                 { name: "Nigeria", flag: "/flags/Nigeria_240-animated-flag-gifs.gif", offset: "translate-y-0" },
-              ].map((country) => (
+              ].map((country, idx, arr) => {
+                // On mobile (2 cols) the final tile is orphaned in the left column - centre it.
+                const isOrphan = idx === arr.length - 1 && arr.length % 2 === 1;
+                return (
                 <div
                   key={country.name}
-                  className={`bg-white rounded-2xl p-3 sm:p-4 flex flex-col items-center justify-center gap-2 border border-neutral-200/80 shadow-sm hover:shadow-md hover:-translate-y-1 transition-all duration-300 group ${country.offset}`}
+                  className={`bg-white rounded-2xl p-3 sm:p-4 flex flex-col items-center justify-center gap-2 border border-neutral-200/80 shadow-sm hover:shadow-md hover:-translate-y-1 transition-all duration-300 group ${country.offset} ${
+                    isOrphan
+                      ? "col-span-2 w-[calc(50%-0.375rem)] mx-auto sm:col-span-1 sm:w-auto sm:mx-0"
+                      : ""
+                  }`}
                 >
                   <img
                     src={country.flag}
@@ -602,7 +610,8 @@ export default function Home() {
                     {country.name}
                   </span>
                 </div>
-              ))}
+                );
+              })}
             </div>
           </div>
 
@@ -623,13 +632,14 @@ export default function Home() {
           </p>
         </div>
 
-        <div className="grid grid-cols-2 md:grid-cols-5 gap-3.5 sm:gap-5">
+        <div className="grid grid-cols-2 sm:grid-cols-3 gap-3.5 sm:gap-5 max-w-5xl mx-auto">
           {[
             { title: "Sacred Fragrances", src: "/DX9JNchDWyW.mp4", tag: "Verified Review" },
             { title: "Natural Sambrani", src: "/DYCWOObD0x3.mp4", tag: "Store Experience" },
             { title: "Siddha Pooja Blends", src: "/DYTZ_U1idZK.mp4", tag: "Unboxing Reel" },
             { title: "Temple Rituals", src: "/Daxqbe-ihQE.mp4", tag: "Herbal Review" },
-            { title: "Customer Unboxing", src: "/bg2.mp4", tag: "New Testimonial" },
+            { title: "Customer Unboxing", src: "/DcD0kIWI-rd.mp4", tag: "New Testimonial" },
+            { title: "Sacred Store Tour", src: "/Db5kysJo3hb.mp4", tag: "Store Reel" },
           ].map((video, idx) => (
             <div
               key={idx}
@@ -654,6 +664,43 @@ export default function Home() {
               </div>
             </div>
           ))}
+        </div>
+
+        {/* FOLLOW US ON INSTAGRAM */}
+        <div className="mt-8 sm:mt-12 max-w-5xl mx-auto">
+          <div className="relative overflow-hidden rounded-3xl border border-emerald-100 bg-white shadow-md">
+            <div className="absolute inset-0 bg-gradient-to-br from-[#F58529]/10 via-[#DD2A7B]/10 to-[#8134AF]/10 pointer-events-none" />
+            <div className="relative flex flex-col sm:flex-row items-center justify-between gap-5 sm:gap-6 p-6 sm:p-8 text-center sm:text-left">
+
+              <div className="flex flex-col sm:flex-row items-center gap-4 sm:gap-5 min-w-0">
+                <span className="w-14 h-14 sm:w-16 sm:h-16 rounded-2xl bg-gradient-to-tr from-[#F58529] via-[#DD2A7B] to-[#8134AF] flex items-center justify-center shadow-lg shrink-0">
+                  <InstagramIcon size={30} className="text-white" />
+                </span>
+                <div className="min-w-0">
+                  <span className="text-[10px] font-black uppercase tracking-[0.25em] text-[#7DAA8F] block mb-1">
+                    Follow Our Journey
+                  </span>
+                  <h3 className="text-xl sm:text-2xl font-black text-[#2C392A] tracking-tight">
+                    @mishi_sambrani
+                  </h3>
+                  <p className="text-xs sm:text-sm text-[#5F6D59] font-medium mt-1 max-w-sm">
+                    Daily sacred rituals, new arrivals & behind-the-scenes from our workshop.
+                  </p>
+                </div>
+              </div>
+
+              <a
+                href="https://www.instagram.com/mishi_sambrani/"
+                target="_blank"
+                rel="noopener noreferrer"
+                aria-label="Follow Mishi Pooja Products on Instagram"
+                className="w-full sm:w-auto shrink-0 bg-gradient-to-tr from-[#F58529] via-[#DD2A7B] to-[#8134AF] text-white px-7 py-3.5 rounded-full font-extrabold text-xs sm:text-sm inline-flex items-center justify-center gap-2 hover:opacity-90 transition-opacity shadow-lg active:scale-[0.98]"
+              >
+                <InstagramIcon size={17} className="text-white" /> Follow on Instagram
+              </a>
+
+            </div>
+          </div>
         </div>
       </section>
 
@@ -690,11 +737,11 @@ export default function Home() {
                 className="bg-white rounded-2xl sm:rounded-3xl overflow-hidden border border-neutral-200/80 shadow-sm hover:shadow-xl transition-all group p-3 sm:p-4 flex flex-col justify-between"
               >
                 <div>
-                  <div className="w-full aspect-square rounded-xl sm:rounded-2xl bg-[#F9F8F5] mb-3 overflow-hidden relative border border-neutral-100">
+                  <div className="w-full aspect-square rounded-xl sm:rounded-2xl bg-[#F9F8F5] mb-3 overflow-hidden relative border border-neutral-100 p-1.5 sm:p-2">
                     <img
                       src={p.imageUrl}
                       alt={p.name}
-                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                      className="w-full h-full object-contain group-hover:scale-105 transition-transform duration-300"
                     />
                     <span className="absolute top-2 left-2 bg-[#7DAA8F] text-white text-[9px] font-extrabold px-2 py-0.5 rounded-full uppercase">
                       Pure
@@ -709,8 +756,8 @@ export default function Home() {
                 </div>
 
                 <div className="pt-2 border-t border-neutral-100 flex items-center justify-between mt-2">
-                  <span className="font-black text-[#2C392A] text-sm sm:text-base">
-                    ₹{p.price}
+                  <span className="font-sans font-black text-[#2C392A] text-sm sm:text-base tracking-tight">
+                    <span className="text-[10px] sm:text-xs font-bold text-[#5F6D59] mr-1 align-middle">From</span> ₹{p.price}
                   </span>
                   <span className="w-7 h-7 rounded-full bg-[#2C392A] text-white flex items-center justify-center group-hover:bg-[#7DAA8F] transition-colors">
                     <ShoppingCart size={13} />
@@ -1006,6 +1053,7 @@ export default function Home() {
               <div>
                 <p className="text-xs font-extrabold text-[#2C392A]">Contact Phone</p>
                 <p className="text-xs text-[#5F6D59] font-bold">+91 80561 01114</p>
+                <p className="text-xs text-[#5F6D59] font-bold">+91 73395 18091</p>
               </div>
             </div>
           </div>

@@ -3,6 +3,7 @@
 import React from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import InstagramIcon from "@/components/InstagramIcon";
 
 export default function Footer() {
   const pathname = usePathname();
@@ -56,9 +57,31 @@ export default function Footer() {
           </h4>
           <ul className="space-y-2.5 text-xs sm:text-sm text-white/70 font-light">
             <li className="font-bold text-white">+91 80561 01114</li>
+            <li className="font-bold text-white">+91 73395 18091</li>
             <li>mishipoojaproducts@gmail.com</li>
             <li className="leading-snug">Padasallai street, Lake Road, near to spicot, Chembarambakkam, Tamil Nadu 600123</li>
           </ul>
+
+          {/* Social Links */}
+          <div className="mt-5">
+            <h4 className="text-white font-extrabold mb-3 text-xs sm:text-sm uppercase tracking-wider">
+              Follow Us
+            </h4>
+            <a
+              href="https://www.instagram.com/mishi_sambrani/"
+              target="_blank"
+              rel="noopener noreferrer"
+              aria-label="Follow Mishi Pooja Products on Instagram"
+              className="inline-flex items-center gap-2.5 bg-white/10 hover:bg-white/20 border border-white/15 rounded-full pl-2.5 pr-4 py-2 transition-colors group"
+            >
+              <span className="w-8 h-8 rounded-full bg-gradient-to-tr from-[#F58529] via-[#DD2A7B] to-[#8134AF] flex items-center justify-center shrink-0">
+                <InstagramIcon size={16} className="text-white" />
+              </span>
+              <span className="text-xs font-bold text-white group-hover:text-emerald-300 transition-colors">
+                @mishi_sambrani
+              </span>
+            </a>
+          </div>
         </div>
 
       </div>
