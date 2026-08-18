@@ -248,7 +248,7 @@ export default function DeliveryManagement() {
   };
 
   return (
-    <div className="space-y-6 max-w-7xl mx-auto font-sans text-slate-800">
+    <div className="space-y-6 w-full max-w-[1600px] mx-auto font-sans text-slate-800">
       
       {/* Toast Notification */}
       {toast && (

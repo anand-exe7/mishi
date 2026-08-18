@@ -153,7 +153,7 @@ export default function Home() {
       {/* HERO SECTION */}
       <section
         id="home"
-        className="w-full pt-24 xs:pt-28 sm:pt-32 lg:pt-36 pb-10 sm:pb-16 lg:pb-24 relative overflow-hidden bg-gradient-to-b from-[#F2F0E8] via-[#F9F8F5] to-[#F9F8F5]"
+        className="w-full pt-8 xs:pt-10 sm:pt-12 lg:pt-16 pb-8 sm:pb-12 lg:pb-16 relative overflow-hidden bg-gradient-to-b from-[#F2F0E8] via-[#F9F8F5] to-[#F9F8F5]"
       >
         <motion.div
           animate={{ scale: [1, 1.2, 1], opacity: [0.3, 0.6, 0.3] }}
@@ -316,7 +316,7 @@ export default function Home() {
         </div>
 
         {/* 4 Trust Badges Grid */}
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-10 sm:mt-16">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-8 sm:mt-10">
           <div className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4">
             
             <div className="bg-white rounded-2xl p-3.5 sm:p-4 flex items-center gap-3 border border-neutral-200/80 shadow-sm hover:shadow-md transition-all">
@@ -385,7 +385,7 @@ export default function Home() {
       </section>
 
       {/* SHOP BY CATEGORY */}
-      <section className="py-10 sm:py-16 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto">
+      <section className="py-8 sm:py-10 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto">
         <div className="flex flex-col sm:flex-row sm:justify-between sm:items-end gap-2 mb-6 sm:mb-8">
           <div>
             <h3 className="text-[10px] font-extrabold uppercase tracking-[0.2em] text-[#7DAA8F] mb-1">
@@ -470,7 +470,7 @@ export default function Home() {
       {/* INSIDE OUR STORE */}
       <section
         id="about"
-        className="py-12 sm:py-20 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto bg-white rounded-3xl my-6 border border-neutral-200/60 shadow-sm"
+        className="py-10 sm:py-14 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto bg-white rounded-3xl my-6 border border-neutral-200/60 shadow-sm"
       >
         <div className="flex flex-col lg:flex-row gap-8 sm:gap-12 lg:gap-16 items-center">
           
@@ -508,8 +508,8 @@ export default function Home() {
           </div>
 
           <div className="w-full lg:w-7/12">
-            <div className="grid grid-cols-2 gap-3 sm:gap-4">
-              <div className="col-span-2 sm:col-span-1 sm:row-span-2 rounded-2xl sm:rounded-3xl overflow-hidden relative shadow-md aspect-[16/10] sm:aspect-[3/4] border-2 border-white group">
+            <div className="grid grid-cols-2 sm:grid-rows-2 gap-3 sm:gap-4 sm:aspect-[3/2]">
+              <div className="col-span-2 sm:col-span-1 sm:row-span-2 rounded-2xl sm:rounded-3xl overflow-hidden relative shadow-md aspect-[16/10] sm:aspect-auto sm:h-full border-2 border-white group">
                 <img
                   src="/gallery/gallery_setup_1783444417350.png"
                   alt="Inside Mishi Store Setup"
@@ -519,14 +519,14 @@ export default function Home() {
                   Authentic Workshop & Store
                 </div>
               </div>
-              <div className="col-span-1 rounded-2xl sm:rounded-3xl overflow-hidden relative shadow-md aspect-square border-2 border-white group">
+              <div className="col-span-1 rounded-2xl sm:rounded-3xl overflow-hidden relative shadow-md aspect-square sm:aspect-auto sm:h-full border-2 border-white group">
                 <img
                   src="/gallery/gallery_ingredients_1783444379768.png"
                   alt="Hand-Harvested Herbs"
                   className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                 />
               </div>
-              <div className="col-span-1 rounded-2xl sm:rounded-3xl overflow-hidden relative shadow-md aspect-square border-2 border-white group">
+              <div className="col-span-1 rounded-2xl sm:rounded-3xl overflow-hidden relative shadow-md aspect-square sm:aspect-auto sm:h-full border-2 border-white group">
                 <img
                   src="/gallery/gallery_sambrani_1783444367509.png"
                   alt="Traditional Sambrani Resins"
@@ -658,7 +658,7 @@ export default function Home() {
       </section>
 
       {/* TOP SELLING PRODUCTS */}
-      <section className="py-10 sm:py-16 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto">
+      <section className="py-8 sm:py-10 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto">
         <div className="flex flex-col sm:flex-row sm:justify-between sm:items-end gap-2 mb-6 sm:mb-8">
           <div>
             <h3 className="text-[10px] font-extrabold uppercase tracking-[0.2em] text-[#7DAA8F] mb-1 flex items-center gap-1.5">

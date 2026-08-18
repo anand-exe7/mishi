@@ -7,7 +7,7 @@ import {
   BarChart3, ShoppingBag, 
   Ticket, CreditCard, Users, 
   Menu, X, PanelLeftClose, PanelLeftOpen, Package,
-  ShieldAlert, LogOut, Truck
+  ShieldAlert, LogOut, Truck, Store
 } from 'lucide-react';
 import { AdminProvider } from './AdminContext';
 import { useAuth } from '@/lib/useAuth';
@@ -211,6 +211,23 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         </div>
 
         <nav className="flex-1 px-3 py-6 space-y-2 overflow-y-auto overflow-x-hidden">
+          {/* Back to Storefront */}
+          <Link
+            href="/"
+            title="Back to Store"
+            className={`
+              flex items-center gap-3 px-3 py-3 mb-2 rounded-xl text-sm font-bold transition-all
+              border border-emerald-100 bg-emerald-50 text-[#2C392A] hover:bg-emerald-100
+              ${isDesktopSidebarCollapsed ? 'justify-center' : 'justify-start'}
+            `}
+            onClick={() => setMobileSidebarOpen(false)}
+          >
+            <Store size={20} className="shrink-0 text-emerald-600" />
+            {!isDesktopSidebarCollapsed && (
+              <span className="whitespace-nowrap">Back to Store</span>
+            )}
+          </Link>
+
           {navigation.map((item) => {
             const isActive = pathname.startsWith(item.href);
             const Icon = item.icon;

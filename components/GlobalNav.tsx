@@ -92,9 +92,9 @@ export default function GlobalNav() {
           isScrolled ? "shadow-md py-1.5 sm:py-2" : "shadow-sm py-2 sm:py-3"
         }`}
       >
-        <div className="max-w-7xl mx-auto px-2.5 sm:px-6 lg:px-8 flex items-center justify-between gap-1.5 sm:gap-4">
-          {/* Brand Logo - Responsive Sizing to avoid clashing with right controls on small mobile */}
-          <Link href="/" className="flex items-center shrink min-w-0 group">
+        <div className="relative w-full px-2.5 sm:px-4 lg:px-6 flex items-center justify-between gap-1.5 sm:gap-4">
+          {/* Brand Logo - Pinned to the far left */}
+          <Link href="/" className="flex items-center shrink min-w-0 group mr-auto">
             <img
               src="/logo.webp"
               alt="Mishi"
@@ -102,10 +102,10 @@ export default function GlobalNav() {
             />
           </Link>
 
-          {/* Desktop Search Bar (visible on md+) */}
+          {/* Desktop Search Bar - Absolutely centered in the navbar */}
           <form
             onSubmit={handleSearchSubmit}
-            className="hidden md:flex flex-1 max-w-xs lg:max-w-md mx-4 relative"
+            className="hidden md:flex relative flex-1 max-w-xs mx-4 xl:absolute xl:left-1/2 xl:-translate-x-1/2 xl:mx-0 xl:w-full xl:flex-none xl:max-w-xs 2xl:max-w-md"
           >
             <div className="absolute left-3.5 top-1/2 -translate-y-1/2 text-emerald-700/60">
               <Search size={15} />

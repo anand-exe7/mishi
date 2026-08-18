@@ -101,7 +101,7 @@ export default function ProductsPage() {
     <div className="bg-[#F9F8F5] min-h-screen flex flex-col justify-between font-sans selection:bg-[#7DAA8F]/30 selection:text-[#2C392A] overflow-x-hidden">
       <main className="flex-1">
         {/* Hero Header */}
-      <section className="pt-24 sm:pt-28 md:pt-36 pb-10 sm:pb-16 px-4 sm:px-6 md:px-16 bg-white border-b border-emerald-900/10">
+      <section className="pt-8 sm:pt-10 md:pt-14 pb-8 sm:pb-10 px-4 sm:px-6 md:px-16 bg-white border-b border-emerald-900/10">
         <div className="max-w-[1400px] mx-auto text-center">
           <motion.div
             initial={{ opacity: 0, y: 15 }}
