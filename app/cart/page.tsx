@@ -251,7 +251,7 @@ export default function CartPage() {
 
       // 2. Format WhatsApp redirect message
       let rawWhatsApp =
-        process.env.NEXT_PUBLIC_ADMIN_WHATSAPP || "919894609057";
+        process.env.NEXT_PUBLIC_ADMIN_WHATSAPP || "918056101114";
       const adminWhatsApp =
         rawWhatsApp.length === 10 ? `91${rawWhatsApp}` : rawWhatsApp;
       let itemsSummary = items
@@ -291,7 +291,7 @@ export default function CartPage() {
       console.error("Error creating order:", err?.message || err);
 
       let rawWhatsAppFallback =
-        process.env.NEXT_PUBLIC_ADMIN_WHATSAPP || "919894609057";
+        process.env.NEXT_PUBLIC_ADMIN_WHATSAPP || "918056101114";
       const adminWhatsAppFallback =
         rawWhatsAppFallback.length === 10
           ? `91${rawWhatsAppFallback}`
@@ -390,11 +390,11 @@ export default function CartPage() {
                     key={`${item.product.id}-${item.unit}`}
                     className="bg-white rounded-2xl sm:rounded-3xl p-3.5 sm:p-6 border border-emerald-100 shadow-sm flex flex-row items-start gap-3 sm:gap-6"
                   >
-                    <div className="w-20 h-20 sm:w-28 sm:h-28 bg-[#F9F8F5] rounded-xl overflow-hidden shrink-0 border border-emerald-100">
+                    <div className="w-20 h-20 sm:w-28 sm:h-28 bg-[#F9F8F5] rounded-xl overflow-hidden shrink-0 border border-emerald-100 p-1">
                       <img
                         src={item.product.imageUrl || "/placeholder.jpg"}
                         alt={item.product.name}
-                        className="w-full h-full object-cover"
+                        className="w-full h-full object-contain"
                       />
                     </div>
 

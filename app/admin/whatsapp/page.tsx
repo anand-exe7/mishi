@@ -36,7 +36,7 @@ const mockInquiries: Inquiry[] = [
     id: '1',
     created_at: new Date().toISOString(),
     customer_name: 'Rahul Kumar',
-    customer_phone: '7904199050',
+    customer_phone: '9876543210',
     notes: '123 Main Street\nINVOICE_ID: ORD-2026-0030',
     status: 'pending',
     total_amount: 945,
