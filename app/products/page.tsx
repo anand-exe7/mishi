@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, Suspense } from "react";
 import { Playfair_Display } from "next/font/google";
 import { motion, AnimatePresence } from "framer-motion";
 import { ArrowRight, Plus, Minus, ShoppingCart, Search, X, Check } from "lucide-react";
@@ -12,6 +12,14 @@ import { toast } from "react-hot-toast";
 const playfair = Playfair_Display({ subsets: ["latin"] });
 
 export default function ProductsPage() {
+  return (
+    <Suspense fallback={null}>
+      <ProductsPageInner />
+    </Suspense>
+  );
+}
+
+function ProductsPageInner() {
   const [selectedProduct, setSelectedProduct] = useState<any>(null);
   const [qty, setQty] = useState(1);
   const [selectedSize, setSelectedSize] = useState("");
