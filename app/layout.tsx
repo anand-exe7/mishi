@@ -43,14 +43,8 @@ export const metadata: Metadata = {
   alternates: {
     canonical: "/",
   },
-  icons: {
-    icon: [
-      { url: "/logo.webp", type: "image/webp" },
-      { url: "/favicon.ico", sizes: "any" },
-    ],
-    shortcut: "/logo.webp",
-    apple: "/logo.webp",
-  },
+  // Icons are picked up automatically from app/icon.webp and app/apple-icon.webp
+  // (Next.js file-based convention). No manual icons block needed.
   openGraph: {
     type: "website",
     siteName: SITE_NAME,
