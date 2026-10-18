@@ -3,11 +3,11 @@
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
-import { 
-  BarChart3, ShoppingBag, 
-  Ticket, CreditCard, Users, 
+import {
+  BarChart3, ShoppingBag,
+  Ticket, CreditCard, Users,
   Menu, X, PanelLeftClose, PanelLeftOpen, Package,
-  ShieldAlert, LogOut, Truck, Store
+  ShieldAlert, LogOut, Truck, Store, Camera
 } from 'lucide-react';
 import { AdminProvider } from './AdminContext';
 import { useAuth } from '@/lib/useAuth';
@@ -111,6 +111,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     { name: 'POS Analytics', href: '/admin/analytics', icon: BarChart3, color: 'text-amber-500' },
     { name: 'Products', href: '/admin/products', icon: Package, color: 'text-orange-500' },
     { name: 'Delivery', href: '/admin/delivery', icon: Truck, color: 'text-cyan-500' },
+    { name: 'Shop Images', href: '/admin/shop-images', icon: Camera, color: 'text-fuchsia-500' },
     { name: 'Coupons', href: '/admin/coupons', icon: Ticket, color: 'text-purple-500' },
     { name: 'Users', href: '/admin/users', icon: Users, color: 'text-pink-500' },
   ];

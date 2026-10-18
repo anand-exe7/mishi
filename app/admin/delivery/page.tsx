@@ -337,59 +337,71 @@ export default function DeliveryManagement() {
             return (
               <div 
                 key={region.id}
-                className="bg-white border border-slate-200 rounded-2xl overflow-hidden shadow-sm transition-all"
+                className="bg-white border border-slate-200 rounded-2xl overflow-hidden shadow-sm transition-all hover:shadow-md"
               >
-                {/* Region Card Header */}
-                <div className="p-4 sm:px-6 flex items-center justify-between gap-4 bg-white border-b border-slate-100">
-                  <div className="flex items-center gap-3 min-w-0">
-                    <button
-                      onClick={() => setExpandedRegionId(isExpanded ? null : region.id)}
-                      className="p-1.5 hover:bg-slate-100 rounded-lg text-slate-500 transition-colors"
-                    >
-                      {isExpanded ? <ChevronUp size={20} /> : <ChevronDown size={20} />}
-                    </button>
+                {/* Region Card Header — tap-to-expand row */}
+                <button
+                  type="button"
+                  onClick={() => setExpandedRegionId(isExpanded ? null : region.id)}
+                  className="w-full text-left px-4 pt-4 pb-3 sm:px-6 sm:py-4 bg-white hover:bg-slate-50/50 transition-colors cursor-pointer"
+                >
+                  <div className="flex items-start gap-3">
+                    <div className={`shrink-0 w-9 h-9 rounded-xl flex items-center justify-center ${region.isActive ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' : 'bg-slate-100 text-slate-400 border border-slate-200'}`}>
+                      <Truck size={16} />
+                    </div>
 
-                    <div className="min-w-0">
-                      <div className="flex items-center gap-2">
-                        <h2 className="text-base font-bold text-slate-900 truncate">{region.name}</h2>
-                        <span className={`px-2 py-0.5 rounded-full text-[10px] font-extrabold uppercase tracking-wider ${region.isActive ? 'bg-emerald-100 text-emerald-700' : 'bg-slate-100 text-slate-500'}`}>
+                    <div className="min-w-0 flex-1">
+                      <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
+                        <h2 className="text-sm sm:text-base font-bold text-slate-900 break-words leading-snug">{region.name}</h2>
+                        <span className={`px-2 py-0.5 rounded-full text-[10px] font-extrabold uppercase tracking-wider shrink-0 ${region.isActive ? 'bg-emerald-100 text-emerald-700' : 'bg-slate-100 text-slate-500'}`}>
                           {region.isActive ? 'Active' : 'Inactive'}
                         </span>
                       </div>
-                      <p className="text-xs text-slate-400 font-medium">
-                        {region.tiers.length === 0 ? 'No weight tiers configured' : `${region.tiers.length} weight tier(s) configured`}
+                      <p className={`text-xs font-medium mt-1 flex items-center gap-1.5 ${region.tiers.length === 0 ? 'text-amber-600' : 'text-slate-500'}`}>
+                        {region.tiers.length === 0 ? (
+                          <>
+                            <AlertCircle size={12} /> No weight tiers configured
+                          </>
+                        ) : (
+                          <>
+                            <CheckCircle2 size={12} className="text-emerald-500" /> {region.tiers.length} weight tier{region.tiers.length === 1 ? '' : 's'} configured
+                          </>
+                        )}
                       </p>
                     </div>
-                  </div>
 
-                  <div className="flex items-center gap-2 shrink-0">
-                    <button
-                      onClick={() => handleToggleRegionStatus(region)}
-                      className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all border ${region.isActive ? 'border-amber-200 bg-amber-50 text-amber-700 hover:bg-amber-100' : 'border-emerald-200 bg-emerald-50 text-emerald-700 hover:bg-emerald-100'}`}
-                    >
-                      {region.isActive ? 'Disable' : 'Enable'}
-                    </button>
-                    
-                    <button
-                      onClick={() => {
-                        setEditingRegion({ id: region.id, name: region.name });
-                        setRegionNameInput(region.name);
-                        setShowRegionModal(true);
-                      }}
-                      className="p-2 hover:bg-slate-100 text-slate-600 rounded-lg transition-colors"
-                      title="Edit Region Name"
-                    >
-                      <Edit3 size={16} />
-                    </button>
-
-                    <button
-                      onClick={() => handleDeleteRegion(region.id, region.name)}
-                      className="p-2 hover:bg-rose-50 text-rose-600 rounded-lg transition-colors"
-                      title="Delete Region"
-                    >
-                      <Trash2 size={16} />
-                    </button>
+                    <div className="shrink-0 p-1.5 rounded-lg bg-slate-50 text-slate-500">
+                      {isExpanded ? <ChevronUp size={18} /> : <ChevronDown size={18} />}
+                    </div>
                   </div>
+                </button>
+
+                {/* Action row — full-width segmented */}
+                <div className="grid grid-cols-3 gap-0 border-t border-slate-100">
+                  <button
+                    onClick={() => handleToggleRegionStatus(region)}
+                    className={`flex items-center justify-center gap-1.5 py-2.5 text-xs font-bold transition-colors border-r border-slate-100 cursor-pointer ${region.isActive ? 'text-amber-700 hover:bg-amber-50' : 'text-emerald-700 hover:bg-emerald-50'}`}
+                  >
+                    {region.isActive ? 'Disable' : 'Enable'}
+                  </button>
+
+                  <button
+                    onClick={() => {
+                      setEditingRegion({ id: region.id, name: region.name });
+                      setRegionNameInput(region.name);
+                      setShowRegionModal(true);
+                    }}
+                    className="flex items-center justify-center gap-1.5 py-2.5 text-xs font-bold text-slate-600 hover:bg-slate-50 border-r border-slate-100 transition-colors cursor-pointer"
+                  >
+                    <Edit3 size={13} /> Edit
+                  </button>
+
+                  <button
+                    onClick={() => handleDeleteRegion(region.id, region.name)}
+                    className="flex items-center justify-center gap-1.5 py-2.5 text-xs font-bold text-rose-600 hover:bg-rose-50 transition-colors cursor-pointer"
+                  >
+                    <Trash2 size={13} /> Delete
+                  </button>
                 </div>
 
                 {/* Weight Tiers Table & Editor */}

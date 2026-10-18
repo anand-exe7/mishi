@@ -23,6 +23,7 @@ const playfair = Playfair_Display({ subsets: ["latin"] });
 import { useEffect, useState, useRef } from "react";
 import { useProductStore, useLangStore } from "@/store/store";
 import { getT } from "@/lib/translations";
+import { fetchShopImages, ShopImage } from "@/lib/db";
 import Link from "next/link";
 import SacredRitualFinder from "@/components/SacredRitualFinder";
 import InstagramIcon from "@/components/InstagramIcon";
@@ -44,6 +45,11 @@ export default function Home() {
   const [reviewSuccess, setReviewSuccess] = useState(false);
 
   const categoryScrollRef = useRef<HTMLDivElement>(null);
+  const [shopImages, setShopImages] = useState<ShopImage[]>([]);
+
+  useEffect(() => {
+    fetchShopImages().then(setShopImages).catch(() => setShopImages([]));
+  }, []);
 
   useEffect(() => {
     fetchProducts();
@@ -468,75 +474,144 @@ export default function Home() {
         </div>
       </section>
 
-      {/* INSIDE OUR STORE */}
+      {/* SHOP GALLERY — Admin-uploaded shop photos, with sensible dummy fallbacks */}
+      <section className="py-8 sm:py-12 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto">
+        <div className="mb-6 sm:mb-8">
+          <h3 className="text-[10px] font-extrabold uppercase tracking-[0.2em] text-[#7DAA8F] mb-1">
+            Step Inside
+          </h3>
+          <h2 className="text-2xl sm:text-4xl font-black text-[#2C392A] tracking-tight">
+            Our Shop
+          </h2>
+        </div>
+
+        {(() => {
+          // Default (dummy) tiles used wherever admin hasn't uploaded a slot yet
+          const defaults = [
+            { src: "/gallery/gallery_setup_1783444417350.png",       tag: "Our Space",    title: "Our Store" },
+            { src: "/gallery/gallery_ingredients_1783444379768.png", tag: "Fresh Herbs",  title: "Hand-Harvested" },
+            { src: "/gallery/gallery_sambrani_1783444367509.png",    tag: "Resins",       title: "Sacred Sambrani" },
+            { src: "/gallery/gallery_setup_1783444417350.png",       tag: "Workshop",     title: "Daily Workshop" },
+          ];
+
+          // Merge admin uploads over the dummies by position (1-4)
+          const tiles = [1, 2, 3, 4].map((pos, idx) => {
+            const admin = shopImages.find(s => s.position === pos);
+            return admin
+              ? { src: admin.imageUrl, tag: `Slot ${pos}`, title: admin.caption || "Our Shop" }
+              : defaults[idx];
+          });
+
+          return (
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-5 max-w-6xl mx-auto">
+              {tiles.map((img, i) => (
+                <div
+                  key={i}
+                  className="relative rounded-[2rem] overflow-hidden shadow-xl border-[5px] border-white group aspect-[9/16] bg-slate-100 ring-1 ring-neutral-200/70"
+                >
+                  <img
+                    src={img.src}
+                    alt={img.title}
+                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
+                  />
+                  <span className="absolute top-3 left-3 bg-white/90 backdrop-blur text-[9px] font-black uppercase tracking-[0.25em] text-[#2C392A] rounded-full px-2.5 py-1 border border-white shadow-sm">
+                    {img.tag}
+                  </span>
+                  <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/70 via-black/15 to-transparent p-4">
+                    <h3 className="text-white text-sm sm:text-base font-black leading-tight">{img.title}</h3>
+                  </div>
+                </div>
+              ))}
+            </div>
+          );
+        })()}
+      </section>
+
+      {/* INSIDE OUR STORE — magazine layout */}
       <section
         id="about"
-        className="py-10 sm:py-14 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto bg-white rounded-3xl my-6 border border-neutral-200/60 shadow-sm"
+        className="py-12 sm:py-16 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto bg-gradient-to-b from-white to-[#F9F8F5] rounded-3xl my-6 border border-neutral-200/60 shadow-sm relative overflow-hidden"
       >
-        <div className="flex flex-col lg:flex-row gap-8 sm:gap-12 lg:gap-16 items-center">
-          
-          <div className="w-full lg:w-5/12 text-left">
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#7DAA8F]/15 text-[#5F6D59] text-[10px] font-black uppercase tracking-widest mb-3">
-              <Sparkles size={12} /> A Glimpse of Tradition
-            </div>
-            <h2 className="text-2xl xs:text-3xl sm:text-4xl lg:text-5xl font-black text-[#2C392A] mb-4 tracking-tight leading-tight">
-              Inside Our Store & Workshop
-            </h2>
-            <p className="text-[#5F6D59] text-xs sm:text-base mb-6 leading-relaxed font-normal">
-              Explore our traditional herbal and pooja store in Chennai, where genuine organic quality and sacred authenticity have been our commitment.
-            </p>
+        {/* ambient blur accents */}
+        <div className="absolute -top-20 -right-20 w-64 h-64 bg-emerald-200/30 rounded-full blur-3xl pointer-events-none" />
+        <div className="absolute -bottom-24 -left-10 w-72 h-72 bg-amber-200/20 rounded-full blur-3xl pointer-events-none" />
 
-            <div className="space-y-3.5">
-              <div className="flex items-center gap-3 text-[#2C392A] font-bold text-xs sm:text-sm bg-[#F9F8F5] p-3 rounded-2xl border border-neutral-200/80">
-                <div className="bg-[#7DAA8F] text-white p-1.5 rounded-xl shrink-0 shadow-sm">
-                  <Award size={14} />
-                </div>
-                <span>100% Authentic Siddha Formulations</span>
-              </div>
-              <div className="flex items-center gap-3 text-[#2C392A] font-bold text-xs sm:text-sm bg-[#F9F8F5] p-3 rounded-2xl border border-neutral-200/80">
-                <div className="bg-[#7DAA8F] text-white p-1.5 rounded-xl shrink-0 shadow-sm">
-                  <Leaf size={14} />
-                </div>
-                <span>Hand-harvested & Sun-Dried Herbs</span>
-              </div>
-              <div className="flex items-center gap-3 text-[#2C392A] font-bold text-xs sm:text-sm bg-[#F9F8F5] p-3 rounded-2xl border border-neutral-200/80">
-                <div className="bg-[#7DAA8F] text-white p-1.5 rounded-xl shrink-0 shadow-sm">
-                  <Star size={14} />
-                </div>
-                <span>Traditional Pooja & Sambrani Resins</span>
-              </div>
-            </div>
+        {/* Centered header */}
+        <div className="relative text-center max-w-2xl mx-auto mb-10 sm:mb-12">
+          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#7DAA8F]/15 text-[#5F6D59] text-[10px] font-black uppercase tracking-widest mb-4">
+            <Sparkles size={12} /> A Glimpse of Tradition
           </div>
+          <h2 className={`text-3xl sm:text-4xl lg:text-5xl font-black text-[#2C392A] tracking-tight leading-[1.1] mb-4 ${playfair.className}`}>
+            Inside Our Store <span className="text-[#7DAA8F]">&</span> Workshop
+          </h2>
+          <p className="text-[#5F6D59] text-sm sm:text-base leading-relaxed font-normal max-w-xl mx-auto">
+            Explore our traditional herbal and pooja store in Chennai, where genuine organic quality and sacred authenticity have been our commitment for generations.
+          </p>
+        </div>
 
-          <div className="w-full lg:w-7/12">
-            <div className="grid grid-cols-2 sm:grid-rows-2 gap-3 sm:gap-4 sm:aspect-[3/2]">
-              <div className="col-span-2 sm:col-span-1 sm:row-span-2 rounded-2xl sm:rounded-3xl overflow-hidden relative shadow-md aspect-square sm:aspect-auto sm:h-full border-2 border-white group">
-                <img
-                  src="/gallery/gallery_setup_1783444417350.png"
-                  alt="Inside Mishi Store Setup"
-                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                />
-                <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent flex items-end p-4 text-white font-extrabold text-xs">
-                  Authentic Workshop & Store
-                </div>
-              </div>
-              <div className="col-span-1 rounded-2xl sm:rounded-3xl overflow-hidden relative shadow-md aspect-square sm:aspect-auto sm:h-full border-2 border-white group">
-                <img
-                  src="/gallery/gallery_ingredients_1783444379768.png"
-                  alt="Hand-Harvested Herbs"
-                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                />
-              </div>
-              <div className="col-span-1 rounded-2xl sm:rounded-3xl overflow-hidden relative shadow-md aspect-square sm:aspect-auto sm:h-full border-2 border-white group">
-                <img
-                  src="/gallery/gallery_sambrani_1783444367509.png"
-                  alt="Traditional Sambrani Resins"
-                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                />
+        {/* Straight 3-column equal gallery */}
+        <div className="relative grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4 mb-10 sm:mb-12">
+          {[
+            {
+              src: "/gallery/gallery_setup_1783444417350.png",
+              alt: "Inside Mishi Store Setup",
+              tag: "Our Space",
+              title: "Authentic Workshop & Store",
+            },
+            {
+              src: "/gallery/gallery_ingredients_1783444379768.png",
+              alt: "Hand-Harvested Herbs",
+              tag: "Fresh Harvest",
+              title: "Hand-Harvested Herbs",
+            },
+            {
+              src: "/gallery/gallery_sambrani_1783444367509.png",
+              alt: "Traditional Sambrani Resins",
+              tag: "Sacred Resins",
+              title: "Traditional Sambrani",
+            },
+          ].map((img) => (
+            <div
+              key={img.src}
+              className="relative rounded-3xl overflow-hidden shadow-lg border border-white group aspect-[4/5]"
+            >
+              <img
+                src={img.src}
+                alt={img.alt}
+                className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
+              />
+              <span className="absolute top-3 left-3 bg-white/90 backdrop-blur text-[9px] font-black uppercase tracking-[0.25em] text-[#2C392A] rounded-full px-2.5 py-1 border border-white shadow-sm">
+                {img.tag}
+              </span>
+              <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/70 via-black/15 to-transparent p-4">
+                <h3 className="text-white text-sm sm:text-base font-black leading-tight">
+                  {img.title}
+                </h3>
               </div>
             </div>
-          </div>
+          ))}
+        </div>
 
+        {/* Feature cards — horizontal, with vertical dividers */}
+        <div className="relative grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-0 bg-white rounded-2xl border border-neutral-200 shadow-sm overflow-hidden">
+          {[
+            { icon: Award, label: '100% Authentic', sub: 'Siddha Formulations' },
+            { icon: Leaf,  label: 'Hand-Harvested', sub: 'Sun-Dried Herbs' },
+            { icon: Star,  label: 'Traditional',    sub: 'Pooja & Sambrani Resins' },
+          ].map(({ icon: Icon, label, sub }, i) => (
+            <div
+              key={label}
+              className={`flex items-center gap-3 p-4 sm:p-5 ${i < 2 ? 'sm:border-r border-neutral-200' : ''}`}
+            >
+              <div className="w-10 h-10 rounded-2xl bg-[#2C392A] text-white flex items-center justify-center shrink-0 shadow-sm">
+                <Icon size={18} />
+              </div>
+              <div className="min-w-0">
+                <p className="text-xs sm:text-sm font-black text-[#2C392A] leading-tight">{label}</p>
+                <p className="text-[11px] sm:text-xs text-[#5F6D59] font-medium">{sub}</p>
+              </div>
+            </div>
+          ))}
         </div>
       </section>
 

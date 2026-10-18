@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { User, FileText, Trash2, CheckCircle2, ChevronDown, Search, Plus } from 'lucide-react';
+import { User, FileText, Trash2, CheckCircle2, ChevronDown, Search, Plus, Banknote, CreditCard, Smartphone, Split as SplitIcon, Receipt, Printer, Save } from 'lucide-react';
 import { useAdmin } from '../AdminContext';
 import { fetchProducts, fetchCoupons, fetchDeliveryRegions, calculateDeliveryFee, Product, Coupon, Order, OrderItem, generateBillingInvoiceId, DeliveryRegion } from '@/lib/db';
 
@@ -25,6 +25,15 @@ export default function POSBillingPanel() {
   const [discountType, setDiscountType] = useState<'AMOUNT' | 'PERCENTAGE'>('AMOUNT');
   const [delivery, setDelivery] = useState(0);
   const [amountReceived, setAmountReceived] = useState('');
+
+  // GST / Payment
+  const [isGst, setIsGst] = useState(false);
+  const [gstPercent, setGstPercent] = useState<number>(18);
+  type PayMethod = 'CASH' | 'CARD' | 'GPAY' | 'SPLIT';
+  const [paymentMethod, setPaymentMethod] = useState<PayMethod>('CASH');
+  const [splitCash, setSplitCash] = useState<string>('');
+  const [splitGpay, setSplitGpay] = useState<string>('');
+  const [splitCard, setSplitCard] = useState<string>('');
 
   // Catalog selection states
   const [isCatalogModalOpen, setIsCatalogModalOpen] = useState(false);
@@ -132,11 +141,16 @@ export default function POSBillingPanel() {
     return Math.round((subtotal * matched.discount) / 100);
   })();
 
-  const calculatedManualDiscount = discountType === 'PERCENTAGE' 
-    ? Math.round((subtotal * manualDiscount) / 100) 
+  const calculatedManualDiscount = discountType === 'PERCENTAGE'
+    ? Math.round((subtotal * manualDiscount) / 100)
     : manualDiscount;
 
-  const grandTotal = Math.max(0, subtotal - couponDiscount - calculatedManualDiscount + delivery);
+  const taxableAmount = Math.max(0, subtotal - couponDiscount - calculatedManualDiscount);
+  const gstAmount = isGst ? Math.round((taxableAmount * gstPercent) / 100) : 0;
+  const grandTotal = Math.max(0, taxableAmount + gstAmount + delivery);
+
+  const splitTotal = (Number(splitCash) || 0) + (Number(splitGpay) || 0) + (Number(splitCard) || 0);
+  const splitRemaining = Math.max(0, grandTotal - splitTotal);
 
   const handleSendBill = async () => {
     const cleanPhone = customerPhone.replace(/\D/g, '');
@@ -151,6 +165,19 @@ export default function POSBillingPanel() {
 
     const received = Number(amountReceived) || 0;
     const change = Math.max(0, received - grandTotal);
+
+    // Payment breakdown summary for the receipt / WhatsApp message
+    let paymentSummary = '';
+    if (paymentMethod === 'CASH') paymentSummary = `Cash: ₹${grandTotal.toLocaleString('en-IN')}`;
+    else if (paymentMethod === 'CARD') paymentSummary = `Card: ₹${grandTotal.toLocaleString('en-IN')}`;
+    else if (paymentMethod === 'GPAY') paymentSummary = `GPay/UPI: ₹${grandTotal.toLocaleString('en-IN')}`;
+    else {
+      const parts: string[] = [];
+      if (Number(splitCash) > 0) parts.push(`Cash ₹${Number(splitCash).toLocaleString('en-IN')}`);
+      if (Number(splitGpay) > 0) parts.push(`GPay ₹${Number(splitGpay).toLocaleString('en-IN')}`);
+      if (Number(splitCard) > 0) parts.push(`Card ₹${Number(splitCard).toLocaleString('en-IN')}`);
+      paymentSummary = `Split: ${parts.join(' + ') || '—'}`;
+    }
 
     const orderId = await generateBillingInvoiceId();
 
@@ -187,8 +214,11 @@ export default function POSBillingPanel() {
       // 2. Format WhatsApp Message
       let message = `Mishi Pooja Products- Purchase Successful!%0A%0A`;
       message += `Hi ${customerName},%0A`;
-      message += `Thank you for shopping with us! You can view, download, or print your official digital invoice here:%0A%0A`;
-      message += `${window.location.origin}/invoice/${orderId}%0A%0A`;
+      message += `Thank you for shopping with us!%0A%0A`;
+      message += `Bill Total: ₹${grandTotal.toLocaleString('en-IN')}%0A`;
+      if (isGst) message += `GST (${gstPercent}%25): ₹${gstAmount.toLocaleString('en-IN')} — GST INVOICE%0A`;
+      message += `Payment: ${paymentSummary}%0A%0A`;
+      message += `View, download or print your official invoice here:%0A${window.location.origin}/invoice/${orderId}%0A%0A`;
       message += `Have a great day!`;
 
       // 3. Open WhatsApp Web
@@ -204,6 +234,12 @@ export default function POSBillingPanel() {
       setDiscountType('AMOUNT');
       setDelivery(0);
       setAmountReceived('');
+      setIsGst(false);
+      setGstPercent(18);
+      setPaymentMethod('CASH');
+      setSplitCash('');
+      setSplitGpay('');
+      setSplitCard('');
       alert("Invoice processed and saved successfully!");
     } catch (err) {
       console.error(err);
@@ -534,38 +570,184 @@ export default function POSBillingPanel() {
                 />
               </div>
 
-              <div className="flex justify-between items-end pt-2">
-                <span className="text-xs sm:text-sm font-black uppercase tracking-widest text-slate-800">Grand Total</span>
-                <span className="text-xl sm:text-2xl font-black text-slate-900">₹{grandTotal.toLocaleString('en-IN')}</span>
+              {/* GST / Non-GST Toggle */}
+              <div className="pt-2">
+                <label className="block text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-2">Invoice Type</label>
+                <div className="flex bg-slate-100 rounded-full p-1 border border-slate-200">
+                  <button
+                    type="button"
+                    onClick={() => setIsGst(false)}
+                    className={`flex-1 flex items-center justify-center gap-1.5 px-3 py-2 rounded-full text-xs font-bold transition-all cursor-pointer ${!isGst ? 'bg-white text-slate-900 shadow-sm border border-slate-200' : 'text-slate-500 hover:text-slate-800'}`}
+                  >
+                    <Receipt size={14} /> NON-GST BILL
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setIsGst(true)}
+                    className={`flex-1 flex items-center justify-center gap-1.5 px-3 py-2 rounded-full text-xs font-bold transition-all cursor-pointer ${isGst ? 'bg-slate-900 text-white shadow-sm' : 'text-slate-500 hover:text-slate-800'}`}
+                  >
+                    <Receipt size={14} /> GST INVOICE
+                  </button>
+                </div>
+              </div>
+
+              {isGst && (
+                <div className="flex justify-between items-center text-xs sm:text-sm font-bold text-slate-700 bg-amber-50/60 border border-amber-100 rounded-lg px-3 py-2">
+                  <span className="flex items-center gap-2">
+                    GST <span className="text-[10px] text-amber-700 font-black">(ADDED)</span>
+                  </span>
+                  <div className="flex items-center gap-2">
+                    <input
+                      type="number"
+                      value={gstPercent}
+                      onChange={e => setGstPercent(Math.max(0, Math.min(100, Number(e.target.value) || 0)))}
+                      className="w-14 text-center bg-white border border-amber-200 rounded-md px-1.5 py-1 text-xs font-black text-slate-900 focus:outline-none"
+                    />
+                    <span className="text-slate-500">%</span>
+                    <span className="text-slate-900 font-black min-w-[70px] text-right">₹{gstAmount.toLocaleString('en-IN')}</span>
+                  </div>
+                </div>
+              )}
+
+              {/* Grand Total — flex-safe alignment so the amount never clips */}
+              <div className="flex justify-between items-center gap-3 pt-3 border-t border-slate-200">
+                <span className="text-xs sm:text-sm font-black uppercase tracking-widest text-slate-800 shrink-0">Grand Total</span>
+                <span className="text-xl sm:text-2xl font-black text-slate-900 tabular-nums leading-none text-right">
+                  ₹{grandTotal.toLocaleString('en-IN')}
+                </span>
               </div>
             </div>
 
-            {/* Cash Payment Section */}
-            <div className="mt-6 sm:mt-8 bg-slate-50 border border-slate-100 rounded-xl p-3.5 sm:p-4">
-              <h3 className="text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-2 sm:mb-3">Cash Payment</h3>
-              <label className="block text-xs font-bold text-slate-600 mb-1">Amount Received (₹)</label>
-              <input 
-                type="number" 
-                value={amountReceived}
-                onChange={e => setAmountReceived(e.target.value)}
-                className="w-full bg-white border border-slate-200 rounded-lg px-3 py-2 sm:py-2.5 text-xs sm:text-sm focus:outline-none font-bold text-slate-900"
-                placeholder="0.00"
-              />
-              {amountReceived && Number(amountReceived) >= grandTotal && (
-                <div className="mt-3 flex justify-between items-center text-xs font-bold text-emerald-600 animate-in slide-in-from-top-2">
-                  <span>Change Balance:</span>
-                  <span>₹{(Number(amountReceived) - grandTotal).toLocaleString('en-IN')}</span>
-                </div>
-              )}
+            {/* Payment Method */}
+            <div className="mt-5 sm:mt-6">
+              <label className="block text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-2">Payment Method</label>
+              <div className="grid grid-cols-4 gap-1.5 bg-slate-100 border border-slate-200 rounded-xl p-1">
+                {([
+                  { key: 'CASH',  label: 'CASH',  Icon: Banknote   },
+                  { key: 'CARD',  label: 'CARD',  Icon: CreditCard },
+                  { key: 'GPAY',  label: 'GPAY',  Icon: Smartphone },
+                  { key: 'SPLIT', label: 'SPLIT', Icon: SplitIcon  },
+                ] as const).map(({ key, label, Icon }) => (
+                  <button
+                    key={key}
+                    type="button"
+                    onClick={() => setPaymentMethod(key)}
+                    className={`flex items-center justify-center gap-1 px-2 py-2 rounded-lg text-[11px] font-black uppercase tracking-wider transition-all cursor-pointer ${paymentMethod === key ? 'bg-slate-900 text-white shadow-sm' : 'text-slate-500 hover:text-slate-800 hover:bg-white'}`}
+                  >
+                    <Icon size={13} /> <span className="hidden xs:inline sm:inline">{label}</span>
+                  </button>
+                ))}
+              </div>
             </div>
 
-            {/* Submit Button */}
-            <button 
+            {/* Payment Details per method */}
+            {paymentMethod === 'CASH' && (
+              <div className="mt-3 bg-slate-50 border border-slate-100 rounded-xl p-3.5 sm:p-4">
+                <label className="block text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-2">Cash Received (₹)</label>
+                <input
+                  type="number"
+                  value={amountReceived}
+                  onChange={e => setAmountReceived(e.target.value)}
+                  className="w-full bg-white border border-slate-200 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:border-slate-300 font-bold text-slate-900"
+                  placeholder="Enter cash received"
+                />
+                {amountReceived && Number(amountReceived) >= grandTotal && (
+                  <div className="mt-3 flex justify-between items-center text-xs font-bold text-emerald-600">
+                    <span>Change to return:</span>
+                    <span className="tabular-nums">₹{(Number(amountReceived) - grandTotal).toLocaleString('en-IN')}</span>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {paymentMethod === 'CARD' && (
+              <div className="mt-3 bg-slate-50 border border-slate-100 rounded-xl p-3.5 sm:p-4 text-xs font-bold text-slate-600 flex justify-between items-center">
+                <span>Card Charged</span>
+                <span className="text-slate-900 font-black tabular-nums">₹{grandTotal.toLocaleString('en-IN')}</span>
+              </div>
+            )}
+
+            {paymentMethod === 'GPAY' && (
+              <div className="mt-3 bg-slate-50 border border-slate-100 rounded-xl p-3.5 sm:p-4 text-xs font-bold text-slate-600 flex justify-between items-center">
+                <span>GPay / UPI</span>
+                <span className="text-slate-900 font-black tabular-nums">₹{grandTotal.toLocaleString('en-IN')}</span>
+              </div>
+            )}
+
+            {paymentMethod === 'SPLIT' && (
+              <div className="mt-3 bg-slate-50 border border-slate-100 rounded-xl p-3.5 sm:p-4 space-y-3">
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
+                  <div>
+                    <label className="block text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-1">Cash Portion</label>
+                    <input
+                      type="number"
+                      value={splitCash}
+                      onChange={e => setSplitCash(e.target.value)}
+                      className="w-full bg-white border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-slate-300 font-bold text-slate-900"
+                      placeholder="0.00"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-1">GPay Portion</label>
+                    <input
+                      type="number"
+                      value={splitGpay}
+                      onChange={e => setSplitGpay(e.target.value)}
+                      className="w-full bg-white border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-slate-300 font-bold text-slate-900"
+                      placeholder="0.00"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-1">Card Portion</label>
+                    <input
+                      type="number"
+                      value={splitCard}
+                      onChange={e => setSplitCard(e.target.value)}
+                      className="w-full bg-white border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-slate-300 font-bold text-slate-900"
+                      placeholder="0.00"
+                    />
+                  </div>
+                </div>
+                <div className="flex justify-between items-center text-xs font-bold border-t border-slate-200 pt-2.5">
+                  <span className="text-slate-500">Entered</span>
+                  <span className="text-slate-900 tabular-nums">₹{splitTotal.toLocaleString('en-IN')} / ₹{grandTotal.toLocaleString('en-IN')}</span>
+                </div>
+                {splitRemaining > 0 ? (
+                  <div className="flex justify-between items-center text-xs font-bold text-amber-700 bg-amber-50 rounded-lg px-3 py-2">
+                    <span>Remaining to collect</span>
+                    <span className="tabular-nums">₹{splitRemaining.toLocaleString('en-IN')}</span>
+                  </div>
+                ) : (
+                  <div className="flex justify-between items-center text-xs font-bold text-emerald-700 bg-emerald-50 rounded-lg px-3 py-2">
+                    <span>Split matches total</span>
+                    <CheckCircle2 size={14} />
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* Action buttons */}
+            <button
               onClick={handleSendBill}
               className="w-full mt-4 bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-3 sm:py-3.5 rounded-xl transition-colors flex items-center justify-center gap-2 text-xs sm:text-sm uppercase tracking-widest shadow-md hover:shadow-lg cursor-pointer"
             >
-              <CheckCircle2 size={18} /> Send Bill Via WhatsApp
+              <CheckCircle2 size={18} /> Complete Sale & WhatsApp
             </button>
+
+            <div className="grid grid-cols-2 gap-2 mt-2">
+              <button
+                onClick={() => window.print()}
+                className="flex items-center justify-center gap-2 py-2.5 border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 font-bold rounded-xl text-xs uppercase tracking-widest cursor-pointer"
+              >
+                <Printer size={14} /> Print
+              </button>
+              <button
+                onClick={handleSendBill}
+                className="flex items-center justify-center gap-2 py-2.5 border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 font-bold rounded-xl text-xs uppercase tracking-widest cursor-pointer"
+              >
+                <Save size={14} /> Save Only
+              </button>
+            </div>
 
           </div>
         </div>
