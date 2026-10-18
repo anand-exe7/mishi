@@ -238,21 +238,21 @@ Please confirm my order. Thank you! ✨`;
       
       {/* Header Section */}
       <div className="flex flex-col xl:flex-row justify-between items-start xl:items-center gap-4">
-        <div className="flex items-center gap-3">
-          <WhatsAppIcon size={32} className="text-[#25D366]" />
-          <h1 className="text-2xl font-black text-slate-900 tracking-tight">WhatsApp Center</h1>
-          <span className="bg-amber-100 text-amber-700 text-[10px] font-bold px-3 py-1 rounded-full uppercase tracking-widest animate-pulse">
+        <div className="flex flex-wrap items-center gap-2 sm:gap-3 w-full xl:w-auto min-w-0">
+          <WhatsAppIcon size={28} className="text-[#25D366] shrink-0" />
+          <h1 className="text-lg sm:text-2xl font-black text-slate-900 tracking-tight min-w-0 truncate">WhatsApp Center</h1>
+          <span className="bg-amber-100 text-amber-700 text-[10px] font-bold px-2.5 py-1 rounded-full uppercase tracking-widest animate-pulse shrink-0">
             {metrics.pending} pending
           </span>
         </div>
         
-        <div className="flex flex-wrap items-center gap-3">
-          <div className="flex flex-wrap items-center bg-white rounded-full border border-slate-200 p-1 shadow-sm text-xs font-bold text-slate-600">
+        <div className="flex flex-wrap items-center gap-3 w-full xl:w-auto">
+          <div className="w-full sm:w-auto grid grid-cols-5 sm:flex sm:items-center bg-white rounded-2xl sm:rounded-full border border-slate-200 p-0.5 sm:p-1 shadow-sm text-[10px] sm:text-xs font-bold text-slate-600 gap-0.5 sm:gap-1 overflow-hidden">
             {['ALL', 'TODAY', 'WEEK', 'MONTH', 'CUSTOM'].map(f => (
-              <button 
+              <button
                 key={f}
                 onClick={() => setFilter(f)}
-                className={`px-4 py-1.5 rounded-full transition-colors ${filter === f ? 'bg-[#2C392A] text-white' : 'hover:bg-slate-50'}`}
+                className={`min-w-0 px-1 sm:px-4 py-1.5 rounded-lg sm:rounded-full transition-colors text-center truncate ${filter === f ? 'bg-[#2C392A] text-white' : 'hover:bg-slate-50'}`}
               >
                 {f}
               </button>
@@ -260,11 +260,15 @@ Please confirm my order. Thank you! ✨`;
           </div>
 
           {filter === 'CUSTOM' && (
-            <div className="flex items-center gap-2 bg-white rounded-full border border-slate-200 px-3 py-1 shadow-sm text-xs font-bold text-slate-700">
-              <span className="text-[10px] text-slate-400">FROM</span>
-              <input type="date" value={customFrom} onChange={e => setCustomFrom(e.target.value)} className="outline-none bg-transparent" />
-              <span className="text-[10px] text-slate-400">TO</span>
-              <input type="date" value={customTo} onChange={e => setCustomTo(e.target.value)} className="outline-none bg-transparent" />
+            <div className="w-full sm:w-auto grid grid-cols-2 sm:flex sm:items-center gap-2 bg-white rounded-xl sm:rounded-full border border-slate-200 px-3 py-2 shadow-sm text-xs font-bold text-slate-700">
+              <label className="flex items-center gap-1.5 min-w-0">
+                <span className="text-[10px] text-slate-400 shrink-0">FROM</span>
+                <input type="date" value={customFrom} onChange={e => setCustomFrom(e.target.value)} className="outline-none bg-transparent min-w-0 w-full" />
+              </label>
+              <label className="flex items-center gap-1.5 min-w-0">
+                <span className="text-[10px] text-slate-400 shrink-0">TO</span>
+                <input type="date" value={customTo} onChange={e => setCustomTo(e.target.value)} className="outline-none bg-transparent min-w-0 w-full" />
+              </label>
             </div>
           )}
 

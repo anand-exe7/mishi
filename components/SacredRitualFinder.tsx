@@ -16,75 +16,35 @@ import {
   ChevronRight
 } from "lucide-react";
 import { Playfair_Display } from "next/font/google";
-import { useCartStore, useProductStore } from "@/store/store";
+import { useCartStore, useProductStore, useLangStore } from "@/store/store";
+import { getT } from "@/lib/translations";
 import { toast } from "react-hot-toast";
 import Link from "next/link";
 
 const playfair = Playfair_Display({ subsets: ["latin"] });
 
 const INTENTS = [
-  {
-    id: "meditation",
-    title: "Peace & Meditation",
-    subtitle: "Calm your mind & create a quiet sanctuary",
-    icon: Moon,
-    color: "from-emerald-900 to-[#1e271d]",
-  },
-  {
-    id: "pooja",
-    title: "Sacred Pooja & Prayer",
-    subtitle: "Purify room energy with authentic divine resins",
-    icon: Flame,
-    color: "from-[#2C392A] to-emerald-950",
-  },
-  {
-    id: "immunity",
-    title: "Immunity & Vitality",
-    subtitle: "Organic Siddha herbal powders for daily health",
-    icon: Leaf,
-    color: "from-emerald-800 to-[#2C392A]",
-  },
-  {
-    id: "evening",
-    title: "Evening Aromatherapy",
-    subtitle: "Natural fragrant incense for restful relaxation",
-    icon: Sun,
-    color: "from-[#1e271d] to-emerald-900",
-  },
-];
+  { id: "meditation", icon: Moon,  titleKey: "finder.intent.meditation", subtitleKey: "finder.intent.meditation_sub" },
+  { id: "pooja",      icon: Flame, titleKey: "finder.intent.pooja",      subtitleKey: "finder.intent.pooja_sub" },
+  { id: "immunity",   icon: Leaf,  titleKey: "finder.intent.immunity",   subtitleKey: "finder.intent.immunity_sub" },
+  { id: "evening",    icon: Sun,   titleKey: "finder.intent.evening",    subtitleKey: "finder.intent.evening_sub" },
+] as const;
 
 const PREFERENCES = [
-  {
-    id: "incense",
-    title: "Natural Resins & Incense",
-    desc: "Sambrani, Dhoop, and pure aromatic sticks",
-    icon: "💨",
-  },
-  {
-    id: "powder",
-    title: "Sun-Dried Herbal Powders",
-    desc: "Ashwagandha, Triphala, and authentic Siddha herbs",
-    icon: "🍃",
-  },
-  {
-    id: "oil",
-    title: "Divine Deepam Oil",
-    desc: "Pure sesame & aromatic lamp oils",
-    icon: "🪔",
-  },
-  {
-    id: "all",
-    title: "Complete Ritual Bundle",
-    desc: "All-in-one curated sacred wellness kit",
-    icon: "📦",
-  },
-];
+  { id: "incense", icon: "💨", titleKey: "finder.pref.incense", descKey: "finder.pref.incense_sub" },
+  { id: "powder",  icon: "🍃", titleKey: "finder.pref.powder",  descKey: "finder.pref.powder_sub" },
+  { id: "oil",     icon: "🪔", titleKey: "finder.pref.oil",     descKey: "finder.pref.oil_sub" },
+  { id: "all",     icon: "📦", titleKey: "finder.pref.all",     descKey: "finder.pref.all_sub" },
+] as const;
 
 export default function SacredRitualFinder() {
   const [step, setStep] = useState<1 | 2 | 3>(1);
   const [selectedIntent, setSelectedIntent] = useState<string>("");
   const [selectedPref, setSelectedPref] = useState<string>("");
-  
+
+  const { lang } = useLangStore();
+  const t = getT(lang);
+
   const { products } = useProductStore();
   const addItem = useCartStore((state) => state.addItem);
 
@@ -197,13 +157,13 @@ export default function SacredRitualFinder() {
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8 pb-6 border-b border-emerald-100">
         <div>
           <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-50 text-emerald-800 text-[10px] font-black uppercase tracking-widest mb-2 border border-emerald-200">
-            <Sparkles size={13} className="text-emerald-600 animate-spin" /> Interactive Ritual Assistant
+            <Sparkles size={13} className="text-emerald-600 animate-spin" /> {t("finder.badge" as any)}
           </div>
           <h2 className={`text-2xl sm:text-3xl md:text-4xl font-black text-emerald-950 tracking-tight ${playfair.className}`}>
-            Find Your Sacred Herbal Ritual
+            {t("finder.title" as any)}
           </h2>
           <p className="text-[#5F6D59] text-xs sm:text-sm mt-1 font-normal">
-            Answer 2 quick questions to discover your personalized Siddha remedy matches.
+            {t("finder.subtitle" as any)}
           </p>
         </div>
 
@@ -237,7 +197,7 @@ export default function SacredRitualFinder() {
             transition={{ duration: 0.3 }}
           >
             <h3 className="text-sm font-black uppercase tracking-wider text-emerald-900 mb-4 flex items-center gap-2">
-              <span className="w-2 h-2 rounded-full bg-emerald-600" /> Step 1: What is your primary wellness or spiritual goal?
+              <span className="w-2 h-2 rounded-full bg-emerald-600" /> {t("finder.step1" as any)}
             </h3>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5 sm:gap-4">
@@ -254,10 +214,10 @@ export default function SacredRitualFinder() {
                     </div>
                     <div className="flex-1 min-w-0">
                       <h4 className="font-extrabold text-emerald-950 text-sm sm:text-base mb-1 group-hover:text-emerald-700 transition-colors">
-                        {intent.title}
+                        {t(intent.titleKey as any)}
                       </h4>
                       <p className="text-xs text-[#5F6D59] leading-relaxed">
-                        {intent.subtitle}
+                        {t(intent.subtitleKey as any)}
                       </p>
                     </div>
                     <ChevronRight size={18} className="text-emerald-400 group-hover:translate-x-1 transition-transform self-center" />
@@ -279,13 +239,13 @@ export default function SacredRitualFinder() {
           >
             <div className="flex items-center justify-between mb-4">
               <h3 className="text-sm font-black uppercase tracking-wider text-emerald-900 flex items-center gap-2">
-                <span className="w-2 h-2 rounded-full bg-emerald-600" /> Step 2: How do you prefer to use your remedies?
+                <span className="w-2 h-2 rounded-full bg-emerald-600" /> {t("finder.step2" as any)}
               </h3>
               <button
                 onClick={() => setStep(1)}
                 className="text-xs font-bold text-emerald-700 hover:underline flex items-center gap-1"
               >
-                Back to Step 1
+                {t("finder.back1" as any)}
               </button>
             </div>
 
@@ -301,10 +261,10 @@ export default function SacredRitualFinder() {
                   </div>
                   <div className="flex-1 min-w-0">
                     <h4 className="font-extrabold text-emerald-950 text-sm sm:text-base mb-1 group-hover:text-emerald-700 transition-colors">
-                      {pref.title}
+                      {t(pref.titleKey as any)}
                     </h4>
                     <p className="text-xs text-[#5F6D59] leading-relaxed">
-                      {pref.desc}
+                      {t(pref.descKey as any)}
                     </p>
                   </div>
                   <ChevronRight size={18} className="text-emerald-400 group-hover:translate-x-1 transition-transform self-center" />
@@ -328,17 +288,17 @@ export default function SacredRitualFinder() {
             <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 bg-emerald-50/80 p-4 rounded-2xl border border-emerald-200">
               <div>
                 <span className="text-[10px] font-black uppercase tracking-widest text-emerald-800 block">
-                  Match Results Found ({recommendedProducts.length} Products)
+                  {t("finder.results" as any)} ({recommendedProducts.length})
                 </span>
                 <p className="text-xs text-emerald-950 font-bold mt-0.5">
-                  Curated Siddha remedies tailored for your selected ritual preferences.
+                  {t("finder.results_sub" as any)}
                 </p>
               </div>
               <button
                 onClick={handleReset}
                 className="px-4 py-2 rounded-xl bg-[#2C392A] hover:bg-[#1e271d] text-white text-xs font-bold transition-all shadow-md flex items-center gap-1.5 shrink-0"
               >
-                <RotateCcw size={14} /> Change Selections
+                <RotateCcw size={14} /> {t("finder.reset" as any)}
               </button>
             </div>
 
@@ -389,7 +349,7 @@ export default function SacredRitualFinder() {
                   <div className="pt-3 border-t border-white/15 flex items-center justify-between gap-3">
                     <div>
                       <span className="text-[9px] text-emerald-300 uppercase tracking-wider block font-bold">
-                        Price
+                        {t("finder.price" as any)}
                       </span>
                       <span className="text-xl font-black text-white">
                         ₹{prod.price}
@@ -401,7 +361,7 @@ export default function SacredRitualFinder() {
                         href="/products"
                         className="px-3 py-2 rounded-xl bg-white/10 hover:bg-white/20 text-white text-xs font-bold transition-colors"
                       >
-                        View
+                        {t("finder.view" as any)}
                       </Link>
                       <button
                         onClick={() => {
@@ -418,7 +378,7 @@ export default function SacredRitualFinder() {
                         }}
                         className="bg-emerald-500 hover:bg-emerald-400 text-emerald-950 font-black px-4 py-2 rounded-xl text-xs uppercase tracking-wider transition-all shadow-lg shadow-emerald-500/30 flex items-center gap-1.5"
                       >
-                        <ShoppingCart size={14} /> Add
+                        <ShoppingCart size={14} /> {t("finder.add" as any)}
                       </button>
                     </div>
                   </div>

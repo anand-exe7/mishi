@@ -24,6 +24,14 @@ export interface DeliveryRegion {
   tiers: DeliveryTier[];
 }
 
+export interface ShopImage {
+  id: string;
+  position: number; // 1, 2, or 3
+  imageUrl: string;
+  caption?: string;
+  updatedAt: string;
+}
+
 export interface Product {
   id: string;
   name: string;
@@ -590,27 +598,43 @@ export const dbDeleteOrder = async (id: string) => {
   }
 };
 
+// Set NEXT_PUBLIC_ORDER_SEQ_OFFSET to the highest existing test-data sequence
+// to reset the counter without touching the database. e.g. offset=7337 makes the
+// next generated ID start at ORD-YYYY-00001 even if test rows up to 07337 exist.
+const SEQ_OFFSET = Number(process.env.NEXT_PUBLIC_ORDER_SEQ_OFFSET || 0);
+
+const scanMaxSeq = (rows: any[] | null | undefined): number => {
+  let maxSeq = 0;
+  (rows || []).forEach((item: any) => {
+    if (!item?.id || typeof item.id !== 'string') return;
+    const match =
+      item.id.trim().match(/ORD-\d{4}-(\d+)/i) ||
+      item.id.trim().match(/ORD-(\d+)/i);
+    if (match) {
+      const num = parseInt(match[1], 10);
+      if (!isNaN(num) && num > maxSeq) maxSeq = num;
+    }
+  });
+  return maxSeq;
+};
+
 export const generateSequentialOrderId = async (_isOnline: boolean = true) => {
   const currentYear = new Date().getFullYear();
   const prefix = `ORD-${currentYear}-`;
   try {
-    const { data: wData } = await supabase.from('whatsapp_requests').select('id');
-    
-    let maxSeq = 0;
-    if (wData && wData.length > 0) {
-      wData.forEach((item: any) => {
-        if (!item.id || typeof item.id !== 'string') return;
-        const match = item.id.trim().match(/ORD-\d{4}-(\d+)/i) || item.id.trim().match(/ORD-(\d+)/i);
-        if (match) {
-          const num = parseInt(match[1], 10);
-          if (!isNaN(num) && num > maxSeq) {
-            maxSeq = num;
-          }
-        }
-      });
-    }
+    // Pull ids from BOTH tables so cart orders and POS invoices share one series
+    const [wRes, oRes] = await Promise.all([
+      supabase.from('whatsapp_requests').select('id'),
+      supabase.from('orders').select('id'),
+    ]);
 
-    const nextVal = maxSeq + 1;
+    const effectiveMax = Math.max(
+      scanMaxSeq(wRes.data) - SEQ_OFFSET,
+      scanMaxSeq(oRes.data) - SEQ_OFFSET,
+      0
+    );
+
+    const nextVal = effectiveMax + 1;
     return `${prefix}${String(nextVal).padStart(5, '0')}`;
   } catch (e) {
     console.error('Error generating order ID:', e);
@@ -618,10 +642,77 @@ export const generateSequentialOrderId = async (_isOnline: boolean = true) => {
   }
 };
 
+// POS billing now shares the sequential ORD-YYYY-NNNNN series so the
+// customer-visible invoice numbers stay in one continuous ledger.
 export const generateBillingInvoiceId = async () => {
-  const currentYear = new Date().getFullYear();
-  const randomStr = Math.random().toString(36).substring(2, 7).toUpperCase();
-  return `INV-${currentYear}-${randomStr}`;
+  return generateSequentialOrderId(false);
+};
+
+// ============================
+// SHOP IMAGES (landing-page gallery)
+// ============================
+export const fetchShopImages = async (): Promise<ShopImage[]> => {
+  const { data, error } = await supabase
+    .from('shop_images')
+    .select('*')
+    .order('position');
+  if (error) {
+    // Table may not exist yet — treat as empty, don't crash.
+    console.warn('shop_images fetch failed (table may not exist yet):', error.message);
+    return [];
+  }
+  return (data || []).map((r: any) => ({
+    id: r.id,
+    position: r.position,
+    imageUrl: r.image_url,
+    caption: r.caption || '',
+    updatedAt: r.updated_at,
+  }));
+};
+
+export const uploadShopImage = async (
+  position: 1 | 2 | 3 | 4,
+  file: File,
+  caption?: string
+): Promise<ShopImage> => {
+  if (file.size > 5 * 1024 * 1024) {
+    throw new Error('Image must be 5 MB or smaller.');
+  }
+
+  const ext = (file.name.split('.').pop() || 'jpg').toLowerCase();
+  const fileName = `shop-${position}-${Date.now()}.${ext}`;
+
+  const { error: upErr } = await supabase.storage
+    .from('shop-images')
+    .upload(fileName, file, { upsert: true, cacheControl: '3600' });
+  if (upErr) throw upErr;
+
+  const { data: pub } = supabase.storage.from('shop-images').getPublicUrl(fileName);
+  const imageUrl = pub.publicUrl;
+
+  const row = {
+    id: `shop-${position}`,
+    position,
+    image_url: imageUrl,
+    caption: caption || '',
+    updated_at: new Date().toISOString(),
+  };
+
+  const { error: dbErr } = await supabase.from('shop_images').upsert(row);
+  if (dbErr) throw dbErr;
+
+  return {
+    id: row.id,
+    position: row.position,
+    imageUrl: row.image_url,
+    caption: row.caption,
+    updatedAt: row.updated_at,
+  };
+};
+
+export const deleteShopImage = async (position: 1 | 2 | 3 | 4) => {
+  const { error } = await supabase.from('shop_images').delete().eq('position', position);
+  if (error) throw error;
 };
 
 // ============================

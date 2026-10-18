@@ -251,7 +251,7 @@ export default function CartPage() {
 
       // 2. Format WhatsApp redirect message
       let rawWhatsApp =
-        process.env.NEXT_PUBLIC_ADMIN_WHATSAPP || "918056101114";
+        process.env.NEXT_PUBLIC_ADMIN_WHATSAPP || "919500456288";
       const adminWhatsApp =
         rawWhatsApp.length === 10 ? `91${rawWhatsApp}` : rawWhatsApp;
       let itemsSummary = items
@@ -278,7 +278,7 @@ export default function CartPage() {
       const regionText = selectedRegion ? `\n*Delivery Region:* ${selectedRegion.name}` : "";
       const deliveryText = `\n*Delivery Charge:* ₹${deliveryCharge}`;
 
-      const message = `${ePray} *Hello Mishi Pooja Products!*\n\nI would like to place an order. ${ePackage}\n\n*Order ID:* ${orderId}\n\n${ePerson} *Customer Details:*\n*Name:* ${formData.name}\n*Phone:* ${formData.phone}\n*Address:* ${formData.address}${regionText}\n\n${eCart} *Order Summary:*\n${itemsSummary}${discountText}${deliveryText}\n\n${eCard} *Final Total:* ₹${finalTotal}\n\n${eMobile} *GPay Number:* 9894609057\n\nPlease confirm my order. Thank you! ${eSparkle}`;
+      const message = `${ePray} *Hello Mishi Pooja Products!*\n\nI would like to place an order. ${ePackage}\n\n*Order ID:* ${orderId}\n\n${ePerson} *Customer Details:*\n*Name:* ${formData.name}\n*Phone:* ${formData.phone}\n*Address:* ${formData.address}${regionText}\n\n${eCart} *Order Summary:*\n${itemsSummary}${discountText}${deliveryText}\n\n${eCard} *Final Total:* ₹${finalTotal}\n\n${eMobile} *GPay Number:* 9500456288\n\nPlease confirm my order. Thank you! ${eSparkle}`;
 
       // 3. Clear Zustand cart, open WhatsApp, and navigate to Profile
       clearCart();
@@ -291,7 +291,7 @@ export default function CartPage() {
       console.error("Error creating order:", err?.message || err);
 
       let rawWhatsAppFallback =
-        process.env.NEXT_PUBLIC_ADMIN_WHATSAPP || "918056101114";
+        process.env.NEXT_PUBLIC_ADMIN_WHATSAPP || "919500456288";
       const adminWhatsAppFallback =
         rawWhatsAppFallback.length === 10
           ? `91${rawWhatsAppFallback}`
@@ -318,7 +318,7 @@ export default function CartPage() {
           : `\n\n*Subtotal:* ₹${subtotal}`;
       const regionText = selectedRegion ? `\n*Delivery Region:* ${selectedRegion.name}` : "";
       const deliveryText = `\n*Delivery Charge:* ₹${deliveryCharge}`;
-      const message = `${ePray} *Hello Mishi Pooja Products!*\n\nI would like to place an order. ${ePackage}\n\n*Order ID:* ${orderId}\n\n${ePerson} *Customer Details:*\n*Name:* ${formData.name}\n*Phone:* ${formData.phone}\n*Address:* ${formData.address}${regionText}\n\n${eCart} *Order Summary:*\n${itemsSummary}${discountText}${deliveryText}\n\n${eCard} *Final Total:* ₹${finalTotal}\n\n${eMobile} *GPay Number:* 9894609057\n\nPlease confirm my order. Thank you! ${eSparkle}`;
+      const message = `${ePray} *Hello Mishi Pooja Products!*\n\nI would like to place an order. ${ePackage}\n\n*Order ID:* ${orderId}\n\n${ePerson} *Customer Details:*\n*Name:* ${formData.name}\n*Phone:* ${formData.phone}\n*Address:* ${formData.address}${regionText}\n\n${eCart} *Order Summary:*\n${itemsSummary}${discountText}${deliveryText}\n\n${eCard} *Final Total:* ₹${finalTotal}\n\n${eMobile} *GPay Number:* 9500456288\n\nPlease confirm my order. Thank you! ${eSparkle}`;
 
       clearCart();
       window.open(

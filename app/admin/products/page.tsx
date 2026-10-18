@@ -389,8 +389,8 @@ export default function ProductsManagement() {
                           product.sizes.map((s, i) => (
                             <span key={i} className="text-xs font-bold text-slate-700">
                               {s.weightGrams ? (
-                                <span className="px-2 py-0.5 bg-cyan-50 text-cyan-800 border border-cyan-200/60 rounded-md inline-block">
-                                  {s.weightGrams >= 1000 ? `${(s.weightGrams / 1000).toFixed(1)} kg` : `${s.weightGrams} g`}
+                                <span className="px-2 py-0.5 bg-cyan-50 text-cyan-800 border border-cyan-200/60 rounded-md inline-block whitespace-nowrap">
+                                  {s.weightGrams >= 1000 ? `${(s.weightGrams / 1000).toFixed(1)} kg` : `${s.weightGrams} g`}
                                 </span>
                               ) : (
                                 <span className="text-slate-400 font-normal">0 g</span>
