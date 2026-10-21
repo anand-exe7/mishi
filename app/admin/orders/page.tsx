@@ -1,9 +1,10 @@
 'use client';
 
 import React, { useState, useMemo } from 'react';
-import { Search, CheckCircle2, AlertCircle, Eye, X, ChevronDown, MessageSquare, Printer, FileText, ArrowLeft, Trash2 } from 'lucide-react';
+import { Search, CheckCircle2, AlertCircle, Eye, X, ChevronDown, MessageSquare, Printer, FileText, ArrowLeft, Trash2, Bluetooth } from 'lucide-react';
 import { useAdmin } from '../AdminContext';
 import { Order } from '@/lib/db';
+import { printOrderOverBluetooth, isBluetoothSupported } from '@/lib/bluetoothPrint';
 
 const STATUS_COLORS: Record<string, string> = {
   'Pending': 'bg-purple-100 text-purple-700 border-purple-200',
@@ -98,6 +99,25 @@ export default function OrdersManagement() {
     window.open(`/invoice/${orderId}?print=true`, '_blank');
   };
 
+  const handleBluetoothPrint = async (order: Order) => {
+    if (!isBluetoothSupported()) {
+      showToast('Bluetooth printing needs Chrome on desktop or Android.', 'error');
+      return;
+    }
+    try {
+      await printOrderOverBluetooth(order);
+      showToast('Sent to Bluetooth printer', 'success');
+    } catch (err: any) {
+      // User cancelled the pairing dialog is a normal path — don't shout
+      if (err?.name === 'NotFoundError') {
+        showToast('No printer selected', 'error');
+      } else {
+        console.error(err);
+        showToast(err?.message || 'Bluetooth print failed', 'error');
+      }
+    }
+  };
+
   const renderInvoice = () => {
     if (!selectedOrder) return null;
     return (
@@ -152,32 +172,60 @@ export default function OrdersManagement() {
 
         <div className="flex justify-end mb-8">
           <div className="w-64 space-y-3">
-            <div className="flex justify-between text-sm text-slate-600">
-              <span>Subtotal</span>
-              <span>₹{selectedOrder.subtotal.toLocaleString('en-IN')}</span>
-            </div>
-            {selectedOrder.couponDiscount > 0 && (
-              <div className="flex justify-between text-sm text-red-500">
-                <span>Coupon ({selectedOrder.couponCode})</span>
-                <span>-₹{selectedOrder.couponDiscount.toLocaleString('en-IN')}</span>
-              </div>
-            )}
-            {selectedOrder.manualDiscount > 0 && (
-              <div className="flex justify-between text-sm text-red-500">
-                <span>Discount</span>
-                <span>-₹{selectedOrder.manualDiscount.toLocaleString('en-IN')}</span>
-              </div>
-            )}
-            {selectedOrder.deliveryCharge > 0 && (
-              <div className="flex justify-between text-sm text-slate-600">
-                <span>Delivery</span>
-                <span>₹{selectedOrder.deliveryCharge.toLocaleString('en-IN')}</span>
-              </div>
-            )}
-            <div className="flex justify-between items-center text-lg font-black text-slate-900 pt-3 border-t border-slate-200">
-              <span>Total</span>
-              <span>₹{selectedOrder.totalPrice.toLocaleString('en-IN')}</span>
-            </div>
+            {(() => {
+              const taxable = Math.max(0, selectedOrder.subtotal - (selectedOrder.couponDiscount || 0) - (selectedOrder.manualDiscount || 0));
+              const gstAmount = Math.max(0, Math.round(selectedOrder.totalPrice - taxable - (selectedOrder.deliveryCharge || 0)));
+              const gstPercent = taxable > 0 && gstAmount > 0 ? Math.round((gstAmount / taxable) * 100) : 0;
+              const cgstAmount = gstAmount / 2;
+              const sgstAmount = gstAmount / 2;
+              const cgstPercent = gstPercent / 2;
+              const sgstPercent = gstPercent / 2;
+              const fmt = (n: number) => n.toLocaleString('en-IN', { minimumFractionDigits: n % 1 ? 2 : 0, maximumFractionDigits: 2 });
+              const pctFmt = (p: number) => (p % 1 === 0 ? p.toString() : p.toFixed(1));
+
+              return (
+                <>
+                  <div className="flex justify-between text-sm text-slate-600">
+                    <span>Subtotal</span>
+                    <span>₹{selectedOrder.subtotal.toLocaleString('en-IN')}</span>
+                  </div>
+                  {selectedOrder.couponDiscount > 0 && (
+                    <div className="flex justify-between text-sm text-red-500">
+                      <span>Coupon ({selectedOrder.couponCode})</span>
+                      <span>-₹{selectedOrder.couponDiscount.toLocaleString('en-IN')}</span>
+                    </div>
+                  )}
+                  {selectedOrder.manualDiscount > 0 && (
+                    <div className="flex justify-between text-sm text-red-500">
+                      <span>Discount</span>
+                      <span>-₹{selectedOrder.manualDiscount.toLocaleString('en-IN')}</span>
+                    </div>
+                  )}
+                  {gstAmount > 0 && (
+                    <>
+                      <div className="flex justify-between text-sm text-slate-600">
+                        <span>CGST @ {pctFmt(cgstPercent)}%</span>
+                        <span>₹{fmt(cgstAmount)}</span>
+                      </div>
+                      <div className="flex justify-between text-sm text-slate-600">
+                        <span>SGST @ {pctFmt(sgstPercent)}%</span>
+                        <span>₹{fmt(sgstAmount)}</span>
+                      </div>
+                    </>
+                  )}
+                  {selectedOrder.deliveryCharge > 0 && (
+                    <div className="flex justify-between text-sm text-slate-600">
+                      <span>Delivery</span>
+                      <span>₹{selectedOrder.deliveryCharge.toLocaleString('en-IN')}</span>
+                    </div>
+                  )}
+                  <div className="flex justify-between items-center text-lg font-black text-slate-900 pt-3 border-t border-slate-200">
+                    <span>Total</span>
+                    <span>₹{selectedOrder.totalPrice.toLocaleString('en-IN')}</span>
+                  </div>
+                </>
+              );
+            })()}
           </div>
         </div>
         
@@ -328,14 +376,45 @@ export default function OrdersManagement() {
                         </span>
                       </td>
                       <td className="px-6 py-4 text-right">
-                        <div className="flex items-center justify-end gap-2">
-                          <button 
+                        <div className="flex items-center justify-end gap-1.5 flex-wrap">
+                          <button
                             onClick={() => { setSelectedOrder(order); setShowInvoiceView(false); }}
-                            className="px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold rounded-lg text-xs transition-colors flex items-center gap-1.5 cursor-pointer"
+                            className="px-2.5 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold rounded-lg text-xs transition-colors flex items-center gap-1.5 cursor-pointer"
+                            title="View Details"
                           >
-                            <Eye size={14} /> View Details
+                            <Eye size={14} /> View
                           </button>
-                          <button 
+                          <button
+                            onClick={() => handleWhatsAppCustomer(order)}
+                            className="p-2 bg-[#25D366]/10 hover:bg-[#25D366]/20 text-[#128C7E] font-bold rounded-lg text-xs transition-colors border border-[#25D366]/30 cursor-pointer"
+                            title="Send Invoice on WhatsApp"
+                          >
+                            <WhatsAppIcon size={14} />
+                          </button>
+                          <a
+                            href={`/invoice/${order.id}`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="p-2 bg-blue-50 hover:bg-blue-100 text-blue-600 font-bold rounded-lg text-xs transition-colors border border-blue-200 cursor-pointer inline-flex items-center"
+                            title="View / Download A4 PDF Invoice"
+                          >
+                            <FileText size={14} />
+                          </a>
+                          <button
+                            onClick={() => handlePrintOrder(order.id)}
+                            className="p-2 bg-[#2C392A]/5 hover:bg-[#2C392A]/15 text-[#2C392A] font-bold rounded-lg text-xs transition-colors border border-[#2C392A]/20 cursor-pointer"
+                            title="Print A4 Invoice"
+                          >
+                            <Printer size={14} />
+                          </button>
+                          <button
+                            onClick={() => handleBluetoothPrint(order)}
+                            className="p-2 bg-sky-50 hover:bg-sky-100 text-sky-700 font-bold rounded-lg text-xs transition-colors border border-sky-200 cursor-pointer"
+                            title="Bluetooth Thermal Receipt Printer"
+                          >
+                            <Bluetooth size={14} />
+                          </button>
+                          <button
                             onClick={() => handleDeleteOrder(order.id)}
                             disabled={updatingId === order.id}
                             className="p-2 bg-rose-50 hover:bg-rose-100 text-rose-600 font-bold rounded-lg text-xs transition-colors border border-rose-200 cursor-pointer disabled:opacity-50"
@@ -381,12 +460,19 @@ export default function OrdersManagement() {
               </div>
 
               <div className="flex flex-wrap items-center gap-2 w-full sm:w-auto">
-                <button 
+                <button
                   onClick={() => handlePrintOrder(selectedOrder.id)}
                   className="flex-1 sm:flex-initial inline-flex items-center justify-center gap-1.5 px-3 py-1.5 bg-[#2C392A] hover:bg-[#1e271d] text-white rounded-lg text-xs font-bold transition-colors border border-[#2C392A] shadow-sm cursor-pointer"
-                  title="Print receipt / Bluetooth Thermal Print"
+                  title="Print A4 invoice"
                 >
-                  <Printer size={14} /> Print / Bluetooth
+                  <Printer size={14} /> Print A4
+                </button>
+                <button
+                  onClick={() => handleBluetoothPrint(selectedOrder)}
+                  className="flex-1 sm:flex-initial inline-flex items-center justify-center gap-1.5 px-3 py-1.5 bg-sky-600 hover:bg-sky-700 text-white rounded-lg text-xs font-bold transition-colors border border-sky-600 shadow-sm cursor-pointer"
+                  title="Bluetooth thermal receipt printer"
+                >
+                  <Bluetooth size={14} /> Bluetooth
                 </button>
 
                 <a 
@@ -498,32 +584,59 @@ export default function OrdersManagement() {
                   </div>
                   
                   <div className="bg-slate-50 p-4 border-t border-slate-200 space-y-2">
-                    <div className="flex justify-between text-xs font-bold text-slate-500">
-                      <span>Subtotal</span>
-                      <span>₹{selectedOrder.subtotal.toLocaleString('en-IN')}</span>
-                    </div>
-                    {selectedOrder.couponDiscount > 0 && (
-                      <div className="flex justify-between text-xs font-bold text-red-500">
-                        <span>Coupon Discount ({selectedOrder.couponCode})</span>
-                        <span>-₹{selectedOrder.couponDiscount.toLocaleString('en-IN')}</span>
-                      </div>
-                    )}
-                    {selectedOrder.manualDiscount > 0 && (
-                      <div className="flex justify-between text-xs font-bold text-red-500">
-                        <span>Manual Discount</span>
-                        <span>-₹{selectedOrder.manualDiscount.toLocaleString('en-IN')}</span>
-                      </div>
-                    )}
-                    {selectedOrder.deliveryCharge > 0 && (
-                      <div className="flex justify-between text-xs font-bold text-slate-500">
-                        <span>Delivery</span>
-                        <span>₹{selectedOrder.deliveryCharge.toLocaleString('en-IN')}</span>
-                      </div>
-                    )}
-                    <div className="flex justify-between items-center text-sm font-black text-slate-900 pt-2 border-t border-slate-200 mt-2">
-                      <span className="uppercase tracking-widest">Grand Total</span>
-                      <span className="text-lg">₹{selectedOrder.totalPrice.toLocaleString('en-IN')}</span>
-                    </div>
+                    {(() => {
+                      const taxable = Math.max(0, selectedOrder.subtotal - (selectedOrder.couponDiscount || 0) - (selectedOrder.manualDiscount || 0));
+                      const gstAmount = Math.max(0, Math.round(selectedOrder.totalPrice - taxable - (selectedOrder.deliveryCharge || 0)));
+                      const gstPercent = taxable > 0 && gstAmount > 0 ? Math.round((gstAmount / taxable) * 100) : 0;
+                      const cgstAmount = gstAmount / 2;
+                      const sgstAmount = gstAmount / 2;
+                      const cgstPercent = gstPercent / 2;
+                      const sgstPercent = gstPercent / 2;
+                      const fmt = (n: number) => n.toLocaleString('en-IN', { minimumFractionDigits: n % 1 ? 2 : 0, maximumFractionDigits: 2 });
+                      const pctFmt = (p: number) => (p % 1 === 0 ? p.toString() : p.toFixed(1));
+                      return (
+                        <>
+                          <div className="flex justify-between text-xs font-bold text-slate-500">
+                            <span>Subtotal</span>
+                            <span>₹{selectedOrder.subtotal.toLocaleString('en-IN')}</span>
+                          </div>
+                          {selectedOrder.couponDiscount > 0 && (
+                            <div className="flex justify-between text-xs font-bold text-red-500">
+                              <span>Coupon Discount ({selectedOrder.couponCode})</span>
+                              <span>-₹{selectedOrder.couponDiscount.toLocaleString('en-IN')}</span>
+                            </div>
+                          )}
+                          {selectedOrder.manualDiscount > 0 && (
+                            <div className="flex justify-between text-xs font-bold text-red-500">
+                              <span>Manual Discount</span>
+                              <span>-₹{selectedOrder.manualDiscount.toLocaleString('en-IN')}</span>
+                            </div>
+                          )}
+                          {gstAmount > 0 && (
+                            <>
+                              <div className="flex justify-between text-xs font-bold text-slate-500">
+                                <span>CGST @ {pctFmt(cgstPercent)}%</span>
+                                <span>₹{fmt(cgstAmount)}</span>
+                              </div>
+                              <div className="flex justify-between text-xs font-bold text-slate-500">
+                                <span>SGST @ {pctFmt(sgstPercent)}%</span>
+                                <span>₹{fmt(sgstAmount)}</span>
+                              </div>
+                            </>
+                          )}
+                          {selectedOrder.deliveryCharge > 0 && (
+                            <div className="flex justify-between text-xs font-bold text-slate-500">
+                              <span>Delivery</span>
+                              <span>₹{selectedOrder.deliveryCharge.toLocaleString('en-IN')}</span>
+                            </div>
+                          )}
+                          <div className="flex justify-between items-center text-sm font-black text-slate-900 pt-2 border-t border-slate-200 mt-2">
+                            <span className="uppercase tracking-widest">Grand Total</span>
+                            <span className="text-lg">₹{selectedOrder.totalPrice.toLocaleString('en-IN')}</span>
+                          </div>
+                        </>
+                      );
+                    })()}
                   </div>
                 </div>
               </div>

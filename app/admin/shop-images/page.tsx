@@ -5,7 +5,7 @@ import { ImageIcon, UploadCloud, Trash2, CheckCircle2, AlertCircle, Camera } fro
 import { fetchShopImages, uploadShopImage, deleteShopImage, ShopImage } from '@/lib/db';
 
 const MAX_BYTES = 5 * 1024 * 1024; // 5 MB
-const SLOTS: (1 | 2 | 3 | 4)[] = [1, 2, 3, 4];
+const SLOTS: (1 | 2 | 3)[] = [1, 2, 3];
 
 type Toast = { message: string; type: 'success' | 'error' } | null;
 
@@ -35,7 +35,7 @@ export default function ShopImagesPage() {
 
   useEffect(() => { load(); }, []);
 
-  const handleFile = async (position: 1 | 2 | 3 | 4, file: File | null) => {
+  const handleFile = async (position: 1 | 2 | 3, file: File | null) => {
     if (!file) return;
     if (!file.type.startsWith('image/')) {
       showToast('Please choose an image file (JPG, PNG, WEBP).', 'error');
@@ -58,7 +58,7 @@ export default function ShopImagesPage() {
     }
   };
 
-  const handleDelete = async (position: 1 | 2 | 3 | 4) => {
+  const handleDelete = async (position: 1 | 2 | 3) => {
     if (!confirm(`Remove shop image #${position}?`)) return;
     try {
       setSavingSlot(position);
@@ -81,11 +81,11 @@ export default function ShopImagesPage() {
             <Camera className="text-[#2C392A]" size={22} /> Shop Images
           </h1>
           <p className="text-xs text-slate-500 font-medium mt-1">
-            Upload up to 4 photos of your shop. They appear on the home page gallery.
+            Upload 3 photos of your shop. They appear on the home page's "Inside Our Store & Workshop" section.
           </p>
         </div>
         <div className="text-[10px] font-bold uppercase tracking-widest text-slate-500 bg-slate-100 border border-slate-200 rounded-full px-3 py-1.5">
-          Max 4 images · 5 MB each
+          3 slots · 5 MB each
         </div>
       </div>
 
@@ -97,8 +97,8 @@ export default function ShopImagesPage() {
         </div>
       )}
 
-      {/* Grid of 4 slots */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
+      {/* Grid of 3 slots */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
         {SLOTS.map(position => {
           const img = images[position];
           const busy = savingSlot === position;
@@ -167,15 +167,6 @@ export default function ShopImagesPage() {
         })}
       </div>
 
-      {/* Setup help */}
-      <div className="bg-amber-50 border border-amber-200 rounded-2xl p-4 text-xs text-amber-900">
-        <p className="font-bold mb-1">First-time setup</p>
-        <p className="font-medium leading-relaxed">
-          If uploads fail, create a public storage bucket named <code className="bg-white border border-amber-200 rounded px-1 py-0.5">shop-images</code> and
-          a table <code className="bg-white border border-amber-200 rounded px-1 py-0.5">shop_images</code> in Supabase.
-          See the on-screen help in the page docs — this feature doesn't touch any existing data.
-        </p>
-      </div>
     </div>
   );
 }

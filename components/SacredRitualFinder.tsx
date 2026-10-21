@@ -309,9 +309,9 @@ export default function SacredRitualFinder() {
                   key={prod.id}
                   className="bg-gradient-to-r from-emerald-950 via-[#2C392A] to-emerald-950 rounded-3xl p-5 sm:p-6 text-white shadow-xl border border-emerald-500/30 flex flex-col justify-between"
                 >
-                  <div className="flex gap-4 mb-4">
+                  <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 mb-4">
                     {/* Image */}
-                    <div className="w-28 sm:w-32 aspect-square rounded-2xl overflow-hidden bg-white/10 p-2 relative shrink-0 border border-white/20">
+                    <div className="w-full sm:w-32 aspect-[4/3] sm:aspect-square rounded-2xl overflow-hidden bg-white/10 p-2 relative shrink-0 border border-white/20">
                       <img
                         src={prod.imageUrl}
                         alt={prod.name}
@@ -324,21 +324,21 @@ export default function SacredRitualFinder() {
 
                     {/* Details */}
                     <div className="flex-1 min-w-0">
-                      <span className="text-emerald-300 text-[9px] font-extrabold uppercase tracking-widest block truncate">
+                      <span className="text-emerald-300 text-[9px] font-extrabold uppercase tracking-widest block">
                         {prod.category}
                       </span>
-                      <h3 className={`text-lg sm:text-xl font-black text-white mb-1 leading-tight ${playfair.className}`}>
+                      <h3 className={`text-base sm:text-xl font-black text-white mb-1 leading-tight break-words ${playfair.className}`}>
                         {prod.name}
                       </h3>
                       <p className="text-emerald-100/80 text-xs font-light line-clamp-2 leading-relaxed">
                         {prod.description}
                       </p>
-                      
+
                       <div className="mt-2 space-y-1">
                         {prod.benefits.slice(0, 2).map((b: string, idx: number) => (
-                          <div key={idx} className="flex items-center gap-1.5 text-[10px] font-semibold text-emerald-200 truncate">
+                          <div key={idx} className="flex items-center gap-1.5 text-[10px] font-semibold text-emerald-200">
                             <ShieldCheck size={12} className="text-emerald-400 shrink-0" />
-                            <span className="truncate">{b}</span>
+                            <span className="break-words">{b}</span>
                           </div>
                         ))}
                       </div>

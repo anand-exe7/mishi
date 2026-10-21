@@ -137,7 +137,7 @@ export default function InvoicePage({ params }: { params: Promise<{ id: string }
         {/* Header Section */}
         <div className="bg-[#FCFCFA] border-b border-[#E8DEC8] p-8 sm:p-12 print:p-6 flex flex-col items-center text-center">
           <div className="w-80 h-48 flex items-center justify-center mb-4">
-            <img src="/logo.webp" alt="Mishi Pooja Products Logo" className="max-w-full max-h-full object-contain" />
+            <img src="/org_logo.jpeg" alt="Mishi Pooja Products Logo" className="max-w-full max-h-full object-contain mix-blend-multiply" />
           </div>
           <p className="text-xs text-amber-600 font-bold tracking-wider mt-1 mb-4">INVOICE: {order.id}</p>
           
@@ -220,40 +220,85 @@ export default function InvoicePage({ params }: { params: Promise<{ id: string }
 
             {/* Calculations */}
             <div className="w-full sm:w-1/2 space-y-3">
-              {(order.couponDiscount > 0 || order.manualDiscount > 0 || order.deliveryCharge > 0) && (
-                <div className="flex justify-between items-center text-sm">
-                  <span className="text-[#8A7B72] font-bold uppercase tracking-wider">Subtotal</span>
-                  <span className="font-bold text-[#32231A]">₹{order.subtotal.toLocaleString('en-IN')}</span>
-                </div>
-              )}
-              
-              {order.couponDiscount > 0 && (
-                <div className="flex justify-between items-center text-sm">
-                  <span className="text-[#8A7B72] font-bold uppercase tracking-wider">
-                    Coupon Discount {order.couponCode ? `(${order.couponCode})` : ''}
-                  </span>
-                  <span className="font-bold text-emerald-600">-₹{order.couponDiscount.toLocaleString('en-IN')}</span>
-                </div>
-              )}
+              {(() => {
+                // Derive GST from stored amounts (backward-compatible, no schema change needed)
+                const taxable = Math.max(0, order.subtotal - (order.couponDiscount || 0) - (order.manualDiscount || 0));
+                const gstAmount = Math.max(0, Math.round(order.totalPrice - taxable - (order.deliveryCharge || 0)));
+                // Round to nearest whole % (17.78 → 18); split 18/2 = 9, 7/2 = 3.5
+                const gstPercent = taxable > 0 && gstAmount > 0 ? Math.round((gstAmount / taxable) * 100) : 0;
+                const cgstAmount = gstAmount / 2;
+                const sgstAmount = gstAmount / 2;
+                const cgstPercent = gstPercent / 2;
+                const sgstPercent = gstPercent / 2;
+                const pctFmt = (p: number) => (p % 1 === 0 ? p.toString() : p.toFixed(1));
+                const hasAnyAdjustment = order.couponDiscount > 0 || order.manualDiscount > 0 || order.deliveryCharge > 0 || gstAmount > 0;
 
-              {order.manualDiscount > 0 && (
-                <div className="flex justify-between items-center text-sm">
-                  <span className="text-[#8A7B72] font-bold uppercase tracking-wider">Manual Discount</span>
-                  <span className="font-bold text-emerald-600">-₹{order.manualDiscount.toLocaleString('en-IN')}</span>
-                </div>
-              )}
+                return (
+                  <>
+                    {hasAnyAdjustment && (
+                      <div className="flex justify-between items-center text-sm">
+                        <span className="text-[#8A7B72] font-bold uppercase tracking-wider">Subtotal</span>
+                        <span className="font-bold text-[#32231A]">₹{order.subtotal.toLocaleString('en-IN')}</span>
+                      </div>
+                    )}
 
-              {order.deliveryCharge > 0 && (
-                <div className="flex justify-between items-center text-sm">
-                  <span className="text-[#8A7B72] font-bold uppercase tracking-wider">Delivery Fee</span>
-                  <span className="font-bold text-[#32231A]">₹{order.deliveryCharge.toLocaleString('en-IN')}</span>
-                </div>
-              )}
+                    {order.couponDiscount > 0 && (
+                      <div className="flex justify-between items-center text-sm">
+                        <span className="text-[#8A7B72] font-bold uppercase tracking-wider">
+                          Coupon Discount {order.couponCode ? `(${order.couponCode})` : ''}
+                        </span>
+                        <span className="font-bold text-emerald-600">-₹{order.couponDiscount.toLocaleString('en-IN')}</span>
+                      </div>
+                    )}
 
-              <div className="border-t border-[#E8DEC8] pt-4 mt-2 flex justify-between items-center">
-                <span className="text-sm font-black text-amber-600 uppercase tracking-widest">Total Amount</span>
-                <span className="text-3xl font-black text-[#192836]">₹{order.totalPrice.toLocaleString('en-IN')}</span>
-              </div>
+                    {order.manualDiscount > 0 && (
+                      <div className="flex justify-between items-center text-sm">
+                        <span className="text-[#8A7B72] font-bold uppercase tracking-wider">Manual Discount</span>
+                        <span className="font-bold text-emerald-600">-₹{order.manualDiscount.toLocaleString('en-IN')}</span>
+                      </div>
+                    )}
+
+                    {gstAmount > 0 && (
+                      <>
+                        <div className="flex justify-between items-center text-sm">
+                          <span className="text-[#8A7B72] font-bold uppercase tracking-wider">Taxable Amount</span>
+                          <span className="font-bold text-[#32231A]">₹{taxable.toLocaleString('en-IN')}</span>
+                        </div>
+                        <div className="flex justify-between items-center text-sm">
+                          <span className="text-[#8A7B72] font-bold uppercase tracking-wider">
+                            CGST @ {pctFmt(cgstPercent)}%
+                          </span>
+                          <span className="font-bold text-[#32231A]">₹{cgstAmount.toLocaleString('en-IN', { minimumFractionDigits: cgstAmount % 1 ? 2 : 0, maximumFractionDigits: 2 })}</span>
+                        </div>
+                        <div className="flex justify-between items-center text-sm">
+                          <span className="text-[#8A7B72] font-bold uppercase tracking-wider">
+                            SGST @ {pctFmt(sgstPercent)}%
+                          </span>
+                          <span className="font-bold text-[#32231A]">₹{sgstAmount.toLocaleString('en-IN', { minimumFractionDigits: sgstAmount % 1 ? 2 : 0, maximumFractionDigits: 2 })}</span>
+                        </div>
+                      </>
+                    )}
+
+                    {order.deliveryCharge > 0 && (
+                      <div className="flex justify-between items-center text-sm">
+                        <span className="text-[#8A7B72] font-bold uppercase tracking-wider">Delivery Fee</span>
+                        <span className="font-bold text-[#32231A]">₹{order.deliveryCharge.toLocaleString('en-IN')}</span>
+                      </div>
+                    )}
+
+                    <div className="border-t border-[#E8DEC8] pt-4 mt-2 flex justify-between items-center">
+                      <span className="text-sm font-black text-amber-600 uppercase tracking-widest">Total Amount</span>
+                      <span className="text-3xl font-black text-[#192836]">₹{order.totalPrice.toLocaleString('en-IN')}</span>
+                    </div>
+
+                    {gstAmount > 0 && (
+                      <p className="text-[10px] text-[#8A7B72] font-semibold text-right pt-1">
+                        Total GST ({pctFmt(gstPercent)}%): CGST + SGST
+                      </p>
+                    )}
+                  </>
+                );
+              })()}
             </div>
         </div>
         

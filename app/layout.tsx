@@ -54,7 +54,7 @@ export const metadata: Metadata = {
     locale: "en_IN",
     images: [
       {
-        url: "/logo.webp",
+        url: "/org_logo.jpeg",
         width: 1200,
         height: 630,
         alt: `${SITE_NAME} logo`,
@@ -65,7 +65,7 @@ export const metadata: Metadata = {
     card: "summary_large_image",
     title: `${SITE_NAME} — Authentic Siddha Herbal & Pooja Store`,
     description: SITE_DESC,
-    images: ["/logo.webp"],
+    images: ["/org_logo.jpeg"],
   },
   robots: {
     index: true,
@@ -88,7 +88,7 @@ const organizationJsonLd = {
   "@type": "Organization",
   name: SITE_NAME,
   url: SITE_URL,
-  logo: `${SITE_URL}/logo.webp`,
+  logo: `${SITE_URL}/org_logo.jpeg`,
   description: SITE_DESC,
   sameAs: ["https://www.instagram.com/mishi_sambrani/"],
   address: {
@@ -122,6 +122,7 @@ export default function RootLayout({
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
     >
       <body className="min-h-full flex flex-col justify-between">
+        <link rel="preload" as="image" href="/org_logo.jpeg" fetchPriority="high" />
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(organizationJsonLd) }}

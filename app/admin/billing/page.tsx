@@ -1,9 +1,11 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { User, FileText, Trash2, CheckCircle2, ChevronDown, Search, Plus, Banknote, CreditCard, Smartphone, Split as SplitIcon, Receipt, Printer, Save } from 'lucide-react';
+import toast from 'react-hot-toast';
+import { User, FileText, Trash2, CheckCircle2, ChevronDown, Search, Plus, Banknote, CreditCard, Smartphone, Split as SplitIcon, Receipt, Printer, Save, Bluetooth } from 'lucide-react';
 import { useAdmin } from '../AdminContext';
 import { fetchProducts, fetchCoupons, fetchDeliveryRegions, calculateDeliveryFee, Product, Coupon, Order, OrderItem, generateBillingInvoiceId, DeliveryRegion } from '@/lib/db';
+import { printOrderOverBluetooth, isBluetoothSupported } from '@/lib/bluetoothPrint';
 
 export default function POSBillingPanel() {
   const { addOrder } = useAdmin();
@@ -39,6 +41,11 @@ export default function POSBillingPanel() {
   const [isCatalogModalOpen, setIsCatalogModalOpen] = useState(false);
   const [catalogSearch, setCatalogSearch] = useState('');
   const [catalogQuantities, setCatalogQuantities] = useState<Record<string, number>>({});
+
+  // Guard against double-clicks firing duplicate orders / WhatsApp sends
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  // Most recently saved order — used to Bluetooth-print the receipt after a sale
+  const [lastSavedOrder, setLastSavedOrder] = useState<Order | null>(null);
 
   const getCatalogQty = (id: string, size: string) => catalogQuantities[`${id}-${size}`] || 1;
   const updateCatalogQty = (id: string, size: string, delta: number) => {
@@ -152,17 +159,73 @@ export default function POSBillingPanel() {
   const splitTotal = (Number(splitCash) || 0) + (Number(splitGpay) || 0) + (Number(splitCard) || 0);
   const splitRemaining = Math.max(0, grandTotal - splitTotal);
 
-  const handleSendBill = async () => {
-    const cleanPhone = customerPhone.replace(/\D/g, '');
-    if (cleanPhone.length !== 10) {
-      alert("Please enter a valid 10-digit mobile number.");
-      return;
-    }
-    if (!customerName.trim() || items.length === 0) {
-      alert("Please enter customer name and at least one item.");
+  const handleBluetoothPrint = async () => {
+    if (!isBluetoothSupported()) {
+      toast.error('Bluetooth printing needs Chrome on desktop or Android.');
       return;
     }
 
+    // Prefer the last saved order (full data). Otherwise, build a preview
+    // from the current form so the admin can test-print before saving.
+    let orderForPrint: Order | null = lastSavedOrder;
+    if (!orderForPrint) {
+      if (items.length === 0) {
+        toast.error('Add at least one item to print.');
+        return;
+      }
+      orderForPrint = {
+        id: 'PREVIEW',
+        createdAt: new Date().toISOString(),
+        customerName: customerName.trim() || 'Walk-in Customer',
+        customerPhone: customerPhone.replace(/\D/g, ''),
+        customerAddress: customerAddress || 'Walk-in',
+        source: orderType,
+        status: 'Completed',
+        subtotal,
+        totalPrice: grandTotal,
+        couponCode: selectedCouponCode !== 'No Coupon' ? selectedCouponCode : undefined,
+        couponDiscount,
+        manualDiscount: calculatedManualDiscount,
+        deliveryCharge: delivery,
+        cashReceived: Number(amountReceived) || 0,
+        changeReturned: 0,
+        items: items.map(i => ({
+          productId: i.productId,
+          name: i.name,
+          size: i.size,
+          quantity: i.qty,
+          price: i.price,
+        })),
+      };
+    }
+
+    try {
+      await printOrderOverBluetooth(orderForPrint);
+      toast.success('Sent to Bluetooth printer');
+    } catch (err: any) {
+      if (err?.name === 'NotFoundError') {
+        toast.error('No printer selected');
+      } else {
+        console.error(err);
+        toast.error(err?.message || 'Bluetooth print failed');
+      }
+    }
+  };
+
+  const handleSendBill = async () => {
+    if (isSubmitting) return;
+
+    const cleanPhone = customerPhone.replace(/\D/g, '');
+    if (cleanPhone.length !== 10) {
+      toast.error("Please enter a valid 10-digit mobile number.");
+      return;
+    }
+    if (!customerName.trim() || items.length === 0) {
+      toast.error("Please enter customer name and at least one item.");
+      return;
+    }
+
+    setIsSubmitting(true);
     const received = Number(amountReceived) || 0;
     const change = Math.max(0, received - grandTotal);
 
@@ -210,13 +273,14 @@ export default function POSBillingPanel() {
     try {
       // 1. Write order to Supabase
       await addOrder(newOrder);
+      setLastSavedOrder(newOrder);
 
       // 2. Format WhatsApp Message
       let message = `Mishi Pooja Products- Purchase Successful!%0A%0A`;
       message += `Hi ${customerName},%0A`;
       message += `Thank you for shopping with us!%0A%0A`;
       message += `Bill Total: ₹${grandTotal.toLocaleString('en-IN')}%0A`;
-      if (isGst) message += `GST (${gstPercent}%25): ₹${gstAmount.toLocaleString('en-IN')} — GST INVOICE%0A`;
+      if (isGst) message += `GST (${gstPercent}%25): ₹${gstAmount.toLocaleString('en-IN')}%0A`;
       message += `Payment: ${paymentSummary}%0A%0A`;
       message += `View, download or print your official invoice here:%0A${window.location.origin}/invoice/${orderId}%0A%0A`;
       message += `Have a great day!`;
@@ -240,10 +304,12 @@ export default function POSBillingPanel() {
       setSplitCash('');
       setSplitGpay('');
       setSplitCard('');
-      alert("Invoice processed and saved successfully!");
+      toast.success("Invoice processed and saved successfully!");
     } catch (err) {
       console.error(err);
-      alert("Error saving order to Supabase database. Please try again.");
+      toast.error("Error saving order. Please try again.");
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -729,21 +795,35 @@ export default function POSBillingPanel() {
             {/* Action buttons */}
             <button
               onClick={handleSendBill}
-              className="w-full mt-4 bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-3 sm:py-3.5 rounded-xl transition-colors flex items-center justify-center gap-2 text-xs sm:text-sm uppercase tracking-widest shadow-md hover:shadow-lg cursor-pointer"
+              disabled={isSubmitting}
+              className="w-full mt-4 bg-emerald-600 hover:bg-emerald-700 disabled:bg-emerald-600/60 disabled:cursor-not-allowed text-white font-bold py-3 sm:py-3.5 rounded-xl transition-colors flex items-center justify-center gap-2 text-xs sm:text-sm uppercase tracking-widest shadow-md hover:shadow-lg cursor-pointer"
             >
-              <CheckCircle2 size={18} /> Complete Sale & WhatsApp
+              <CheckCircle2 size={18} />
+              {isSubmitting ? 'Processing…' : 'Complete Sale & WhatsApp'}
+            </button>
+
+            <button
+              onClick={handleBluetoothPrint}
+              disabled={isSubmitting}
+              className="w-full mt-2 bg-sky-600 hover:bg-sky-700 disabled:opacity-60 disabled:cursor-not-allowed text-white font-bold py-2.5 rounded-xl transition-colors flex items-center justify-center gap-2 text-xs uppercase tracking-widest shadow-sm cursor-pointer"
+              title="Print thermal receipt to a paired Bluetooth printer"
+            >
+              <Bluetooth size={16} />
+              {lastSavedOrder ? 'Bluetooth Print Last Receipt' : 'Bluetooth Print Preview'}
             </button>
 
             <div className="grid grid-cols-2 gap-2 mt-2">
               <button
                 onClick={() => window.print()}
-                className="flex items-center justify-center gap-2 py-2.5 border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 font-bold rounded-xl text-xs uppercase tracking-widest cursor-pointer"
+                disabled={isSubmitting}
+                className="flex items-center justify-center gap-2 py-2.5 border border-slate-200 bg-white hover:bg-slate-50 disabled:opacity-60 disabled:cursor-not-allowed text-slate-700 font-bold rounded-xl text-xs uppercase tracking-widest cursor-pointer"
               >
-                <Printer size={14} /> Print
+                <Printer size={14} /> Print A4
               </button>
               <button
                 onClick={handleSendBill}
-                className="flex items-center justify-center gap-2 py-2.5 border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 font-bold rounded-xl text-xs uppercase tracking-widest cursor-pointer"
+                disabled={isSubmitting}
+                className="flex items-center justify-center gap-2 py-2.5 border border-slate-200 bg-white hover:bg-slate-50 disabled:opacity-60 disabled:cursor-not-allowed text-slate-700 font-bold rounded-xl text-xs uppercase tracking-widest cursor-pointer"
               >
                 <Save size={14} /> Save Only
               </button>
@@ -804,7 +884,7 @@ export default function POSBillingPanel() {
                                   <span className="text-xs font-bold w-5 text-center text-slate-700">{getCatalogQty(p.id, s.size)}</span>
                                   <button onClick={() => updateCatalogQty(p.id, s.size, 1)} className="px-2 text-slate-500 hover:bg-slate-50 hover:text-emerald-500 font-bold cursor-pointer">+</button>
                                 </div>
-                                <button 
+                                <button
                                   onClick={() => {
                                     const qty = getCatalogQty(p.id, s.size);
                                     setItems(prev => {
@@ -816,6 +896,7 @@ export default function POSBillingPanel() {
                                       }
                                     });
                                     setCatalogQuantities(prev => ({ ...prev, [`${p.id}-${s.size}`]: 1 }));
+                                    toast.success(`Added ${qty} × ${p.name} (${s.size})`);
                                   }}
                                   className="px-2.5 py-1 bg-slate-100 hover:bg-[#2C392A] hover:text-white text-slate-700 font-bold rounded-lg transition-colors cursor-pointer text-xs"
                                 >
@@ -833,7 +914,7 @@ export default function POSBillingPanel() {
                                 <span className="text-xs font-bold w-5 text-center text-slate-700">{getCatalogQty(p.id, 'Standard')}</span>
                                 <button onClick={() => updateCatalogQty(p.id, 'Standard', 1)} className="px-2 text-slate-500 hover:bg-slate-50 hover:text-emerald-500 font-bold cursor-pointer">+</button>
                               </div>
-                              <button 
+                              <button
                                 onClick={() => {
                                   const qty = getCatalogQty(p.id, 'Standard');
                                   setItems(prev => {
@@ -845,6 +926,7 @@ export default function POSBillingPanel() {
                                     }
                                   });
                                   setCatalogQuantities(prev => ({ ...prev, [`${p.id}-Standard`]: 1 }));
+                                  toast.success(`Added ${qty} × ${p.name}`);
                                 }}
                                 className="px-2.5 py-1 bg-slate-100 hover:bg-[#2C392A] hover:text-white text-slate-700 font-bold rounded-lg transition-colors cursor-pointer text-xs"
                               >
