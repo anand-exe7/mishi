@@ -12,11 +12,7 @@ import {
   ChevronRight,
   Home,
   Package,
-  ShoppingBag,
-  Globe,
   Sparkles,
-  Layers,
-  FlaskConical
 } from "lucide-react";
 import { usePathname, useRouter } from "next/navigation";
 import { useLangStore, useCartStore } from "@/store/store";
@@ -33,13 +29,6 @@ export default function GlobalNav() {
 
   const cartItems = useCartStore((state) => state.items);
   const cartCount = cartItems.reduce((acc, item) => acc + item.quantity, 0);
-
-  const categories = [
-    { name: "Pooja Powder", href: "/products?search=Powder" },
-    { name: "Deepam Oil", href: "/products?search=Oil" },
-    { name: "Incense & Dhoop", href: "/products?search=Incense" },
-    { name: "Divine Kits", href: "/products?search=Kit" },
-  ];
 
   useEffect(() => {
     const handleScroll = () => {
@@ -88,18 +77,24 @@ export default function GlobalNav() {
   return (
     <>
       <header
-        className={`sticky top-0 z-40 w-full transition-all duration-300 bg-white/95 backdrop-blur-md border-b border-emerald-100/80 print:hidden ${
-          isScrolled ? "shadow-md py-1.5 sm:py-2" : "shadow-sm py-2 sm:py-3"
+        className={`sticky top-0 z-40 w-full transition-all duration-300 backdrop-blur-md border-b print:hidden ${
+          isScrolled
+            ? "bg-[#F2F0E8]/95 border-emerald-900/10 shadow-md py-1.5 sm:py-2"
+            : "bg-[#F9F8F5]/90 border-emerald-900/5 shadow-sm py-2 sm:py-3"
         }`}
       >
-        <div className="relative w-full px-2.5 sm:px-4 lg:px-6 flex items-center justify-between gap-1.5 sm:gap-4">
+        <div className="relative w-full px-2 sm:px-4 lg:px-6 flex items-center justify-between gap-1.5 sm:gap-3 min-w-0">
           {/* Brand Logo - Pinned to the far left */}
           <Link href="/" className="flex items-center shrink min-w-0 group mr-auto">
-            <img
-              src="/logo.webp"
-              alt="Mishi"
-              className="h-8 xs:h-10 sm:h-12 md:h-14 max-w-[140px] xs:max-w-[185px] sm:max-w-none w-auto object-contain transition-transform duration-300 group-hover:scale-105"
-            />
+            <span className="inline-flex bg-white rounded-lg sm:rounded-xl px-1 sm:px-1.5 py-0.5 sm:py-1 ring-1 ring-emerald-900/5 shadow-sm transition-shadow duration-300 group-hover:shadow-md">
+              <img
+                src="/org_logo.jpeg"
+                alt="Mishi Pooja Products — Manufacture & Exporter"
+                decoding="async"
+                fetchPriority="high"
+                className="h-8 xs:h-10 sm:h-14 md:h-16 w-auto max-w-[130px] xs:max-w-[200px] sm:max-w-[320px] md:max-w-[420px] object-contain transition-transform duration-300 group-hover:scale-[1.03] shrink-0"
+              />
+            </span>
           </Link>
 
           {/* Desktop Search Bar - Absolutely centered in the navbar */}
@@ -157,28 +152,28 @@ export default function GlobalNav() {
           </nav>
 
           {/* Right Controls (Language, Trolley Icon with Floating Count Badge, Burger Menu) */}
-          <div className="flex items-center gap-1.5 sm:gap-2.5 shrink-0">
+          <div className="flex items-center gap-1 sm:gap-2.5 shrink-0">
             {/* Language Switcher Button with Flags */}
             <button
               onClick={() => setLang(lang === "en" ? "ta" : "en")}
               title="Switch Language"
-              className="flex items-center gap-1 sm:gap-1.5 bg-[#2C392A] text-white rounded-full px-2.5 sm:px-3.5 py-1.5 text-[10px] sm:text-xs font-black hover:bg-[#1e271d] transition-all shadow-sm border border-emerald-500/20"
+              className="flex items-center gap-1 sm:gap-1.5 bg-[#2C392A] text-white rounded-full px-2 sm:px-3.5 py-1.5 text-[10px] sm:text-xs font-black hover:bg-[#1e271d] transition-all shadow-sm border border-emerald-500/20"
               aria-label="Language selector"
             >
-              <span className="text-xs sm:text-sm leading-none">{lang === "en" ? "🇬🇧" : "🇮🇳"}</span>
-              <span>{lang === "en" ? "EN" : "தமிழ்"}</span>
+              <span className="text-[11px] sm:text-sm leading-none">{lang === "en" ? "🇬🇧" : "🇮🇳"}</span>
+              <span className="hidden xs:inline">{lang === "en" ? "EN" : "தமிழ்"}</span>
             </button>
 
             {/* Dedicated Trolley Icon Button with Number Floating Above It */}
             <Link
               href="/cart"
-              className="relative p-2.5 sm:p-3 rounded-2xl bg-emerald-50 hover:bg-emerald-100/90 text-[#2C392A] border border-emerald-200/90 transition-all shadow-sm flex items-center justify-center shrink-0 group cursor-pointer"
+              className="relative p-2 sm:p-3 rounded-xl sm:rounded-2xl bg-emerald-50 hover:bg-emerald-100/90 text-[#2C392A] border border-emerald-200/90 transition-all shadow-sm flex items-center justify-center shrink-0 group cursor-pointer"
               aria-label="Shopping Cart"
               title="View Cart"
             >
-              <ShoppingCart size={20} className="text-[#2C392A] group-hover:scale-110 transition-transform shrink-0" />
+              <ShoppingCart size={18} className="sm:w-5 sm:h-5 text-[#2C392A] group-hover:scale-110 transition-transform shrink-0" />
               {cartCount > 0 && (
-                <span className="absolute -top-2 -right-2 bg-[#2C392A] text-white text-[10px] font-black min-w-[20px] h-[20px] rounded-full flex items-center justify-center px-1 border-2 border-white shadow-md leading-none animate-pulse">
+                <span className="absolute -top-1.5 -right-1.5 sm:-top-2 sm:-right-2 bg-[#2C392A] text-white text-[9px] sm:text-[10px] font-black min-w-[16px] sm:min-w-[20px] h-[16px] sm:h-[20px] rounded-full flex items-center justify-center px-1 border-2 border-white shadow-md leading-none animate-pulse">
                   {cartCount}
                 </span>
               )}
@@ -186,16 +181,16 @@ export default function GlobalNav() {
 
             {/* Main Burger Nav Button - Visible ONLY on Mobile & Tablet */}
             <button
-              className="lg:hidden p-1.5 sm:p-2 bg-[#2C392A] hover:bg-[#1e271d] text-white rounded-xl transition-all shadow-md flex items-center gap-1 font-bold text-xs shrink-0 cursor-pointer"
+              className="lg:hidden p-2 sm:p-2 bg-[#2C392A] hover:bg-[#1e271d] text-white rounded-lg sm:rounded-xl transition-all shadow-md flex items-center gap-1 font-bold text-xs shrink-0 cursor-pointer"
               onClick={() => setIsMenuOpen(!isMenuOpen)}
               aria-label="Toggle menu"
             >
               {isMenuOpen ? (
-                <X size={18} className="sm:w-5 sm:h-5" />
+                <X size={16} className="sm:w-5 sm:h-5" />
               ) : (
-                <Menu size={18} className="sm:w-5 sm:h-5" />
+                <Menu size={16} className="sm:w-5 sm:h-5" />
               )}
-              <span className="hidden xs:inline font-extrabold text-[11px] sm:text-xs">
+              <span className="hidden sm:inline font-extrabold text-xs">
                 Menu
               </span>
             </button>
@@ -227,11 +222,12 @@ export default function GlobalNav() {
             >
               <div className="p-4 sm:p-6">
                 {/* Drawer Header */}
-                <div className="flex items-center justify-between mb-5 pb-3 border-b border-emerald-100">
+                <div className="flex items-center justify-between mb-5 pb-3 border-b border-emerald-100 gap-3">
                   <img
-                    src="/logo.webp"
-                    alt="Mishi"
-                    className="h-6 sm:h-8 max-w-[140px] xs:max-w-[170px] w-auto object-contain"
+                    src="/org_logo.jpeg"
+                    alt="Mishi Pooja Products — Manufacture & Exporter"
+                    decoding="async"
+                    className="h-10 sm:h-12 max-w-[220px] xs:max-w-[260px] w-auto object-contain shrink-0 mix-blend-multiply"
                   />
                   <button
                     onClick={() => setIsMenuOpen(false)}
@@ -323,30 +319,6 @@ export default function GlobalNav() {
                   </div>
                 </div>
 
-                {/* Popular Categories */}
-                <div className="mb-6">
-                  <div className="flex items-center gap-1.5 text-[11px] font-bold text-emerald-800 uppercase tracking-widest mb-3 px-1">
-                    <Layers size={13} className="text-emerald-600" />
-                    <span>Popular Categories</span>
-                  </div>
-                  <div className="grid grid-cols-2 gap-2">
-                    {categories.map((cat) => (
-                      <Link
-                        key={cat.name}
-                        href={cat.href}
-                        onClick={() => setIsMenuOpen(false)}
-                        className="p-3 rounded-xl bg-emerald-50/40 border border-emerald-100 hover:border-emerald-500 hover:bg-emerald-50 transition-all text-left"
-                      >
-                        <span className="text-xs font-bold text-emerald-950 block truncate">
-                          {cat.name}
-                        </span>
-                        <span className="text-[10px] text-emerald-700 font-semibold flex items-center gap-1 mt-0.5">
-                          Browse <ChevronRight size={10} />
-                        </span>
-                      </Link>
-                    ))}
-                  </div>
-                </div>
               </div>
 
               {/* Drawer Footer */}

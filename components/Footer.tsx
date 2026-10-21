@@ -24,7 +24,7 @@ export default function Footer() {
         <div className="sm:col-span-2">
           <div className="bg-white/95 p-3 rounded-2xl inline-block border border-white/20 shadow-md mb-4 sm:mb-6">
             <img
-              src="/logo.webp"
+              src="/org_logo.jpeg"
               alt="Mishi Pooja Products"
               className="h-10 sm:h-12 w-auto object-contain"
             />

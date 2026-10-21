@@ -45,7 +45,7 @@ export default function Login() {
         </button>
 
         <div className="mb-4 mt-2 flex justify-center w-full">
-          <img src="/logo.webp" alt="Mishi" className="h-12 sm:h-16 w-auto object-contain" />
+          <img src="/org_logo.jpeg" alt="Mishi" className="h-12 sm:h-16 w-auto object-contain mix-blend-multiply" />
         </div>
         
         <h1 className="text-2xl sm:text-3xl font-black tracking-tight text-neutral-900 mb-2">

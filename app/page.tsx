@@ -11,8 +11,6 @@ import {
   Sparkles,
   Award,
   ShieldCheck,
-  ChevronRight,
-  ChevronLeft,
   Quote,
   X,
   CheckCircle2,
@@ -20,15 +18,14 @@ import {
 } from "lucide-react";
 import { Playfair_Display } from "next/font/google";
 const playfair = Playfair_Display({ subsets: ["latin"] });
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useState } from "react";
 import { useProductStore, useLangStore } from "@/store/store";
 import { getT } from "@/lib/translations";
 import { fetchShopImages, ShopImage } from "@/lib/db";
 import Link from "next/link";
 import SacredRitualFinder from "@/components/SacredRitualFinder";
 import InstagramIcon from "@/components/InstagramIcon";
-
-const reelVideos = ["DX9JNchDWyW", "DYTZ_U1idZK", "DYCWOObD0x3", "Daxqbe-ihQE"];
+import LazyVideo from "@/components/LazyVideo";
 
 export default function Home() {
   const { lang } = useLangStore();
@@ -44,9 +41,8 @@ export default function Home() {
   const [newText, setNewText] = useState("");
   const [reviewSuccess, setReviewSuccess] = useState(false);
 
-  const categoryScrollRef = useRef<HTMLDivElement>(null);
+  // Admin-uploaded shop photos (3 slots max, drive the Inside Our Store gallery)
   const [shopImages, setShopImages] = useState<ShopImage[]>([]);
-
   useEffect(() => {
     fetchShopImages().then(setShopImages).catch(() => setShopImages([]));
   }, []);
@@ -110,13 +106,6 @@ export default function Home() {
     const el = document.getElementById("ritual-finder");
     if (el) {
       el.scrollIntoView({ behavior: "smooth" });
-    }
-  };
-
-  const scrollContainer = (ref: React.RefObject<HTMLDivElement | null>, direction: "left" | "right") => {
-    if (ref.current) {
-      const scrollAmount = direction === "left" ? -280 : 280;
-      ref.current.scrollBy({ left: scrollAmount, behavior: "smooth" });
     }
   };
 
@@ -277,6 +266,7 @@ export default function Home() {
                   muted
                   loop
                   playsInline
+                  preload="metadata"
                   className="w-full h-full object-cover"
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-black/30 via-transparent to-transparent pointer-events-none" />
@@ -331,10 +321,10 @@ export default function Home() {
                 <Leaf size={20} />
               </div>
               <div className="min-w-0">
-                <h4 className="text-[#2C392A] font-black text-xs sm:text-sm truncate">
+                <h4 className="text-[#2C392A] font-black text-xs sm:text-sm leading-tight">
                   {t("trust.organic")}
                 </h4>
-                <p className="text-[9px] sm:text-[10px] text-[#5F6D59] leading-tight mt-0.5 truncate">
+                <p className="text-[9px] sm:text-[10px] text-[#5F6D59] leading-tight mt-0.5">
                   {t("trust.organic_sub")}
                 </p>
               </div>
@@ -345,10 +335,10 @@ export default function Home() {
                 <ShoppingCart size={20} />
               </div>
               <div className="min-w-0">
-                <h4 className="text-[#2C392A] font-black text-xs sm:text-sm truncate">
+                <h4 className="text-[#2C392A] font-black text-xs sm:text-sm leading-tight">
                   {t("trust.shipping")}
                 </h4>
-                <p className="text-[9px] sm:text-[10px] text-[#5F6D59] leading-tight mt-0.5 truncate">
+                <p className="text-[9px] sm:text-[10px] text-[#5F6D59] leading-tight mt-0.5">
                   {t("trust.shipping_sub")}
                 </p>
               </div>
@@ -359,10 +349,10 @@ export default function Home() {
                 <ShieldCheck size={20} />
               </div>
               <div className="min-w-0">
-                <h4 className="text-[#2C392A] font-black text-xs sm:text-sm truncate">
+                <h4 className="text-[#2C392A] font-black text-xs sm:text-sm leading-tight">
                   {t("trust.pure")}
                 </h4>
-                <p className="text-[9px] sm:text-[10px] text-[#5F6D59] leading-tight mt-0.5 truncate">
+                <p className="text-[9px] sm:text-[10px] text-[#5F6D59] leading-tight mt-0.5">
                   {t("trust.pure_sub")}
                 </p>
               </div>
@@ -373,10 +363,10 @@ export default function Home() {
                 <Star size={20} />
               </div>
               <div className="min-w-0">
-                <h4 className="text-[#2C392A] font-black text-xs sm:text-sm truncate">
+                <h4 className="text-[#2C392A] font-black text-xs sm:text-sm leading-tight">
                   {t("trust.gmp")}
                 </h4>
-                <p className="text-[9px] sm:text-[10px] text-[#5F6D59] leading-tight mt-0.5 truncate">
+                <p className="text-[9px] sm:text-[10px] text-[#5F6D59] leading-tight mt-0.5">
                   {t("trust.gmp_sub")}
                 </p>
               </div>
@@ -386,145 +376,75 @@ export default function Home() {
         </div>
       </section>
 
-      {/* INTERACTIVE FEATURE: Sacred Ritual Finder */}
-      <section id="ritual-finder" className="py-6 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto">
-        <SacredRitualFinder />
-      </section>
-
-      {/* SHOP BY CATEGORY */}
+      {/* TOP SELLING PRODUCTS */}
       <section className="py-8 sm:py-10 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto">
         <div className="flex flex-col sm:flex-row sm:justify-between sm:items-end gap-2 mb-6 sm:mb-8">
           <div>
-            <h3 className="text-[10px] font-extrabold uppercase tracking-[0.2em] text-[#7DAA8F] mb-1">
-              Browse Collection
+            <h3 className="text-[10px] font-extrabold uppercase tracking-[0.2em] text-[#7DAA8F] mb-1 flex items-center gap-1.5">
+              <span className="w-4.5 h-4.5 rounded-full bg-emerald-100 flex items-center justify-center text-emerald-700 shrink-0">
+                <Star size={10} />
+              </span>
+              Customer Favorites
             </h3>
-            <h2 className="text-2xl sm:text-4xl font-black text-[#2C392A] tracking-tight">
-              {t("cat.title")}
+            <h2 className="text-2xl sm:text-3xl md:text-4xl font-black text-[#2C392A] tracking-tight">
+              Top Selling Products
             </h2>
           </div>
-
-          <div className="flex items-center gap-3 self-end sm:self-auto">
-            <div className="flex items-center gap-1.5">
-              <button
-                onClick={() => scrollContainer(categoryScrollRef, "left")}
-                className="w-8 h-8 rounded-full bg-white border border-neutral-200 flex items-center justify-center text-[#2C392A] hover:bg-emerald-50 transition-colors shadow-sm"
-                aria-label="Scroll left"
-              >
-                <ChevronLeft size={18} />
-              </button>
-              <button
-                onClick={() => scrollContainer(categoryScrollRef, "right")}
-                className="w-8 h-8 rounded-full bg-white border border-neutral-200 flex items-center justify-center text-[#2C392A] hover:bg-emerald-50 transition-colors shadow-sm"
-                aria-label="Scroll right"
-              >
-                <ChevronRight size={18} />
-              </button>
-            </div>
-
-            <Link
-              href="/products"
-              className="text-[#7DAA8F] text-xs sm:text-sm font-bold flex items-center gap-1 hover:text-[#5F6D59]"
-            >
-              View All <ArrowRight size={14} />
-            </Link>
-          </div>
-        </div>
-
-        <div
-          ref={categoryScrollRef}
-          className="flex overflow-x-auto gap-3 sm:gap-5 pb-4 snap-x snap-mandatory hide-scrollbar scroll-smooth"
-        >
-          {[
-            { id: "pooja", img: 1, key: "cat.pooja" as const },
-            { id: "powder", img: 2, key: "cat.powder" as const },
-            { id: "oil", img: 3, key: "cat.oil" as const },
-            { id: "incense", img: 4, key: "cat.incense" as const },
-            { id: "spices", img: 5, key: "cat.spices" as const },
-            { id: "bundles", img: 1, key: "cat.bundles" as const },
-          ].map((cat) => (
-            <Link
-              href="/products"
-              key={cat.id}
-              className="min-w-[125px] xs:min-w-[145px] sm:min-w-[160px] flex flex-col items-center gap-2.5 snap-start group"
-            >
-              <div className="w-full aspect-square rounded-2xl bg-white p-2.5 sm:p-3 shadow-sm border border-neutral-200/80 group-hover:shadow-md group-hover:border-[#7DAA8F]/50 transition-all relative overflow-hidden">
-                <img
-                  src={`https://www.mishipoojaproducts.com/wp-content/uploads/2026/03/Product-${cat.img}.jpg`}
-                  className="w-full h-full object-contain rounded-xl group-hover:scale-105 transition-transform duration-300"
-                  alt={t(cat.key)}
-                />
-              </div>
-              <span className="text-xs font-extrabold text-[#2C392A] text-center group-hover:text-[#7DAA8F] transition-colors">
-                {t(cat.key)}
-              </span>
-            </Link>
-          ))}
-          
           <Link
             href="/products"
-            className="min-w-[125px] xs:min-w-[145px] sm:min-w-[160px] flex flex-col items-center gap-2.5 snap-start group"
+            className="text-[#7DAA8F] text-xs sm:text-sm font-bold flex items-center gap-1 hover:text-[#5F6D59]"
           >
-            <div className="w-full aspect-square rounded-2xl bg-[#2C392A] text-white flex flex-col items-center justify-center p-3 shadow-md group-hover:bg-[#1f281d] transition-colors">
-              <ArrowRight size={24} className="mb-2 text-emerald-400 group-hover:translate-x-1 transition-transform" />
-              <span className="text-[10px] font-black uppercase tracking-widest text-center">
-                Explore All
-              </span>
-            </div>
+            View Full Store <ArrowRight size={14} />
           </Link>
+        </div>
+
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4 lg:gap-6">
+          {storeProducts
+            .filter((p) => p.isActive)
+            .slice(0, 4)
+            .map((p) => (
+              <Link
+                href="/products"
+                key={p.id}
+                className="bg-white rounded-2xl sm:rounded-3xl overflow-hidden border border-neutral-200/80 shadow-sm hover:shadow-xl transition-all group p-3 sm:p-4 flex flex-col justify-between"
+              >
+                <div>
+                  <div className="w-full aspect-square rounded-xl sm:rounded-2xl bg-[#F9F8F5] mb-3 overflow-hidden relative border border-neutral-100 p-1.5 sm:p-2">
+                    <img
+                      src={p.imageUrl}
+                      alt={p.name}
+                      loading="lazy"
+                      decoding="async"
+                      className="w-full h-full object-contain group-hover:scale-105 transition-transform duration-300"
+                    />
+                    <span className="absolute top-2 left-2 bg-[#7DAA8F] text-white text-[9px] font-extrabold px-2 py-0.5 rounded-full uppercase">
+                      Pure
+                    </span>
+                  </div>
+                  <h3 className="text-xs sm:text-sm font-bold text-[#2C392A] mb-1 line-clamp-1">
+                    {lang === "ta" && p.nameTa ? p.nameTa : p.name}
+                  </h3>
+                  <p className="text-[10px] text-[#5F6D59] uppercase tracking-wider mb-2">
+                    {p.category}
+                  </p>
+                </div>
+
+                <div className="pt-2 border-t border-neutral-100 flex items-center justify-between mt-2">
+                  <span className="font-sans font-black text-[#2C392A] text-sm sm:text-base tracking-tight">
+                    <span className="text-[10px] sm:text-xs font-bold text-[#5F6D59] mr-1 align-middle">From</span> ₹{p.price}
+                  </span>
+                  <span className="w-7 h-7 rounded-full bg-[#2C392A] text-white flex items-center justify-center group-hover:bg-[#7DAA8F] transition-colors">
+                    <ShoppingCart size={13} />
+                  </span>
+                </div>
+              </Link>
+            ))}
         </div>
       </section>
 
-      {/* SHOP GALLERY — Admin-uploaded shop photos, with sensible dummy fallbacks */}
-      <section className="py-8 sm:py-12 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto">
-        <div className="mb-6 sm:mb-8">
-          <h3 className="text-[10px] font-extrabold uppercase tracking-[0.2em] text-[#7DAA8F] mb-1">
-            Step Inside
-          </h3>
-          <h2 className="text-2xl sm:text-4xl font-black text-[#2C392A] tracking-tight">
-            Our Shop
-          </h2>
-        </div>
-
-        {(() => {
-          // Default (dummy) tiles used wherever admin hasn't uploaded a slot yet
-          const defaults = [
-            { src: "/gallery/gallery_setup_1783444417350.png",       tag: "Our Space",    title: "Our Store" },
-            { src: "/gallery/gallery_ingredients_1783444379768.png", tag: "Fresh Herbs",  title: "Hand-Harvested" },
-            { src: "/gallery/gallery_sambrani_1783444367509.png",    tag: "Resins",       title: "Sacred Sambrani" },
-            { src: "/gallery/gallery_setup_1783444417350.png",       tag: "Workshop",     title: "Daily Workshop" },
-          ];
-
-          // Merge admin uploads over the dummies by position (1-4)
-          const tiles = [1, 2, 3, 4].map((pos, idx) => {
-            const admin = shopImages.find(s => s.position === pos);
-            return admin
-              ? { src: admin.imageUrl, tag: `Slot ${pos}`, title: admin.caption || "Our Shop" }
-              : defaults[idx];
-          });
-
-          return (
-            <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-5 max-w-6xl mx-auto">
-              {tiles.map((img, i) => (
-                <div
-                  key={i}
-                  className="relative rounded-[2rem] overflow-hidden shadow-xl border-[5px] border-white group aspect-[9/16] bg-slate-100 ring-1 ring-neutral-200/70"
-                >
-                  <img
-                    src={img.src}
-                    alt={img.title}
-                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
-                  />
-                  <span className="absolute top-3 left-3 bg-white/90 backdrop-blur text-[9px] font-black uppercase tracking-[0.25em] text-[#2C392A] rounded-full px-2.5 py-1 border border-white shadow-sm">
-                    {img.tag}
-                  </span>
-                  <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/70 via-black/15 to-transparent p-4">
-                    <h3 className="text-white text-sm sm:text-base font-black leading-tight">{img.title}</h3>
-                  </div>
-                </div>
-              ))}
-            </div>
-          );
-        })()}
+      {/* INTERACTIVE FEATURE: Sacred Ritual Finder */}
+      <section id="ritual-finder" className="py-6 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto">
+        <SacredRitualFinder />
       </section>
 
       {/* INSIDE OUR STORE — magazine layout */}
@@ -549,47 +469,63 @@ export default function Home() {
           </p>
         </div>
 
-        {/* Straight 3-column equal gallery */}
+        {/* Straight 3-column equal gallery — pulls from admin shop images, with fallbacks */}
         <div className="relative grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4 mb-10 sm:mb-12">
-          {[
-            {
-              src: "/gallery/gallery_setup_1783444417350.png",
-              alt: "Inside Mishi Store Setup",
-              tag: "Our Space",
-              title: "Authentic Workshop & Store",
-            },
-            {
-              src: "/gallery/gallery_ingredients_1783444379768.png",
-              alt: "Hand-Harvested Herbs",
-              tag: "Fresh Harvest",
-              title: "Hand-Harvested Herbs",
-            },
-            {
-              src: "/gallery/gallery_sambrani_1783444367509.png",
-              alt: "Traditional Sambrani Resins",
-              tag: "Sacred Resins",
-              title: "Traditional Sambrani",
-            },
-          ].map((img) => (
-            <div
-              key={img.src}
-              className="relative rounded-3xl overflow-hidden shadow-lg border border-white group aspect-[4/5]"
-            >
-              <img
-                src={img.src}
-                alt={img.alt}
-                className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
-              />
-              <span className="absolute top-3 left-3 bg-white/90 backdrop-blur text-[9px] font-black uppercase tracking-[0.25em] text-[#2C392A] rounded-full px-2.5 py-1 border border-white shadow-sm">
-                {img.tag}
-              </span>
-              <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/70 via-black/15 to-transparent p-4">
-                <h3 className="text-white text-sm sm:text-base font-black leading-tight">
-                  {img.title}
-                </h3>
+          {(() => {
+            const fallbacks = [
+              {
+                src: "/gallery/gallery_setup_1783444417350.png",
+                alt: "Inside Mishi Store Setup",
+                tag: "Our Space",
+                title: "Authentic Workshop & Store",
+              },
+              {
+                src: "/gallery/gallery_ingredients_1783444379768.png",
+                alt: "Hand-Harvested Herbs",
+                tag: "Fresh Harvest",
+                title: "Hand-Harvested Herbs",
+              },
+              {
+                src: "/gallery/gallery_sambrani_1783444367509.png",
+                alt: "Traditional Sambrani Resins",
+                tag: "Sacred Resins",
+                title: "Traditional Sambrani",
+              },
+            ];
+            const tiles = [1, 2, 3].map((pos, idx) => {
+              const uploaded = shopImages.find(s => s.position === pos);
+              return uploaded
+                ? {
+                    src: uploaded.imageUrl,
+                    alt: uploaded.caption || fallbacks[idx].alt,
+                    tag: fallbacks[idx].tag,
+                    title: uploaded.caption || fallbacks[idx].title,
+                  }
+                : fallbacks[idx];
+            });
+            return tiles.map((img, i) => (
+              <div
+                key={`${i}-${img.src}`}
+                className="relative rounded-3xl overflow-hidden shadow-lg border border-white group aspect-[4/5] bg-slate-100"
+              >
+                <img
+                  src={img.src}
+                  alt={img.alt}
+                  loading="lazy"
+                  decoding="async"
+                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
+                />
+                <span className="absolute top-3 left-3 bg-white/90 backdrop-blur text-[9px] font-black uppercase tracking-[0.25em] text-[#2C392A] rounded-full px-2.5 py-1 border border-white shadow-sm">
+                  {img.tag}
+                </span>
+                <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/70 via-black/15 to-transparent p-4">
+                  <h3 className="text-white text-sm sm:text-base font-black leading-tight">
+                    {img.title}
+                  </h3>
+                </div>
               </div>
-            </div>
-          ))}
+            ));
+          })()}
         </div>
 
         {/* Feature cards — horizontal, with vertical dividers */}
@@ -679,6 +615,8 @@ export default function Home() {
                   <img
                     src={country.flag}
                     alt={country.name}
+                    loading="lazy"
+                    decoding="async"
                     className="h-10 sm:h-12 w-auto object-contain rounded-md shadow-xs group-hover:scale-110 transition-transform"
                   />
                   <span className="text-[11px] font-extrabold text-[#2C392A] text-center">
@@ -720,13 +658,9 @@ export default function Home() {
               key={idx}
               className="bg-white rounded-2xl sm:rounded-3xl overflow-hidden border border-emerald-100 shadow-md relative group aspect-[9/16] flex flex-col justify-end p-3"
             >
-              <video
+              <LazyVideo
                 src={video.src}
                 className="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                autoPlay
-                muted
-                loop
-                playsInline
               />
               <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent pointer-events-none" />
               <div className="relative z-10 text-white">
@@ -776,70 +710,6 @@ export default function Home() {
 
             </div>
           </div>
-        </div>
-      </section>
-
-      {/* TOP SELLING PRODUCTS */}
-      <section className="py-8 sm:py-10 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto">
-        <div className="flex flex-col sm:flex-row sm:justify-between sm:items-end gap-2 mb-6 sm:mb-8">
-          <div>
-            <h3 className="text-[10px] font-extrabold uppercase tracking-[0.2em] text-[#7DAA8F] mb-1 flex items-center gap-1.5">
-              <span className="w-4.5 h-4.5 rounded-full bg-emerald-100 flex items-center justify-center text-emerald-700 shrink-0">
-                <Star size={10} />
-              </span>
-              Customer Favorites
-            </h3>
-            <h2 className="text-2xl sm:text-3xl md:text-4xl font-black text-[#2C392A] tracking-tight">
-              Top Selling Products
-            </h2>
-          </div>
-          <Link
-            href="/products"
-            className="text-[#7DAA8F] text-xs sm:text-sm font-bold flex items-center gap-1 hover:text-[#5F6D59]"
-          >
-            View Full Store <ArrowRight size={14} />
-          </Link>
-        </div>
-
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4 lg:gap-6">
-          {storeProducts
-            .filter((p) => p.isActive)
-            .slice(0, 4)
-            .map((p) => (
-              <Link
-                href="/products"
-                key={p.id}
-                className="bg-white rounded-2xl sm:rounded-3xl overflow-hidden border border-neutral-200/80 shadow-sm hover:shadow-xl transition-all group p-3 sm:p-4 flex flex-col justify-between"
-              >
-                <div>
-                  <div className="w-full aspect-square rounded-xl sm:rounded-2xl bg-[#F9F8F5] mb-3 overflow-hidden relative border border-neutral-100 p-1.5 sm:p-2">
-                    <img
-                      src={p.imageUrl}
-                      alt={p.name}
-                      className="w-full h-full object-contain group-hover:scale-105 transition-transform duration-300"
-                    />
-                    <span className="absolute top-2 left-2 bg-[#7DAA8F] text-white text-[9px] font-extrabold px-2 py-0.5 rounded-full uppercase">
-                      Pure
-                    </span>
-                  </div>
-                  <h3 className="text-xs sm:text-sm font-bold text-[#2C392A] mb-1 line-clamp-1">
-                    {lang === "ta" && p.nameTa ? p.nameTa : p.name}
-                  </h3>
-                  <p className="text-[10px] text-[#5F6D59] uppercase tracking-wider mb-2">
-                    {p.category}
-                  </p>
-                </div>
-
-                <div className="pt-2 border-t border-neutral-100 flex items-center justify-between mt-2">
-                  <span className="font-sans font-black text-[#2C392A] text-sm sm:text-base tracking-tight">
-                    <span className="text-[10px] sm:text-xs font-bold text-[#5F6D59] mr-1 align-middle">From</span> ₹{p.price}
-                  </span>
-                  <span className="w-7 h-7 rounded-full bg-[#2C392A] text-white flex items-center justify-center group-hover:bg-[#7DAA8F] transition-colors">
-                    <ShoppingCart size={13} />
-                  </span>
-                </div>
-              </Link>
-            ))}
         </div>
       </section>
 
