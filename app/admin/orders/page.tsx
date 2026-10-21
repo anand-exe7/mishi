@@ -1,10 +1,10 @@
 'use client';
 
 import React, { useState, useMemo } from 'react';
-import { Search, CheckCircle2, AlertCircle, Eye, X, ChevronDown, MessageSquare, Printer, FileText, ArrowLeft, Trash2, Bluetooth } from 'lucide-react';
+import { Search, CheckCircle2, AlertCircle, Eye, X, ChevronDown, Printer, FileText, ArrowLeft, Trash2 } from 'lucide-react';
 import { useAdmin } from '../AdminContext';
 import { Order } from '@/lib/db';
-import { printOrderOverBluetooth, isBluetoothSupported } from '@/lib/bluetoothPrint';
+import PrintOrderModal from '@/components/PrintOrderModal';
 
 const STATUS_COLORS: Record<string, string> = {
   'Pending': 'bg-purple-100 text-purple-700 border-purple-200',
@@ -36,6 +36,9 @@ export default function OrdersManagement() {
   const [toast, setToast] = useState<{ message: string, type: 'success' | 'error' } | null>(null);
   const [updatingId, setUpdatingId] = useState<string | null>(null);
   const [showInvoiceView, setShowInvoiceView] = useState(false);
+
+  // Print Settings Modal
+  const [printOrder, setPrintOrder] = useState<Order | null>(null);
 
   const themeColor = '#2C392A'; // Match Mishi Green Theme
 
@@ -95,28 +98,6 @@ export default function OrdersManagement() {
     window.open(`https://api.whatsapp.com/send/?phone=91${cleanPhone}&text=${message}`, '_blank');
   };
 
-  const handlePrintOrder = (orderId: string) => {
-    window.open(`/invoice/${orderId}?print=true`, '_blank');
-  };
-
-  const handleBluetoothPrint = async (order: Order) => {
-    if (!isBluetoothSupported()) {
-      showToast('Bluetooth printing needs Chrome on desktop or Android.', 'error');
-      return;
-    }
-    try {
-      await printOrderOverBluetooth(order);
-      showToast('Sent to Bluetooth printer', 'success');
-    } catch (err: any) {
-      // User cancelled the pairing dialog is a normal path — don't shout
-      if (err?.name === 'NotFoundError') {
-        showToast('No printer selected', 'error');
-      } else {
-        console.error(err);
-        showToast(err?.message || 'Bluetooth print failed', 'error');
-      }
-    }
-  };
 
   const renderInvoice = () => {
     if (!selectedOrder) return null;
@@ -400,19 +381,13 @@ export default function OrdersManagement() {
                           >
                             <FileText size={14} />
                           </a>
+                          {/* Unified Print button — opens Print Settings modal */}
                           <button
-                            onClick={() => handlePrintOrder(order.id)}
+                            onClick={() => setPrintOrder(order)}
                             className="p-2 bg-[#2C392A]/5 hover:bg-[#2C392A]/15 text-[#2C392A] font-bold rounded-lg text-xs transition-colors border border-[#2C392A]/20 cursor-pointer"
-                            title="Print A4 Invoice"
+                            title="Print (Thermal / A4)"
                           >
                             <Printer size={14} />
-                          </button>
-                          <button
-                            onClick={() => handleBluetoothPrint(order)}
-                            className="p-2 bg-sky-50 hover:bg-sky-100 text-sky-700 font-bold rounded-lg text-xs transition-colors border border-sky-200 cursor-pointer"
-                            title="Bluetooth Thermal Receipt Printer"
-                          >
-                            <Bluetooth size={14} />
                           </button>
                           <button
                             onClick={() => handleDeleteOrder(order.id)}
@@ -460,19 +435,13 @@ export default function OrdersManagement() {
               </div>
 
               <div className="flex flex-wrap items-center gap-2 w-full sm:w-auto">
+                {/* Unified Print button — opens Print Settings modal */}
                 <button
-                  onClick={() => handlePrintOrder(selectedOrder.id)}
+                  onClick={() => setPrintOrder(selectedOrder)}
                   className="flex-1 sm:flex-initial inline-flex items-center justify-center gap-1.5 px-3 py-1.5 bg-[#2C392A] hover:bg-[#1e271d] text-white rounded-lg text-xs font-bold transition-colors border border-[#2C392A] shadow-sm cursor-pointer"
-                  title="Print A4 invoice"
+                  title="Print (Thermal / A4)"
                 >
-                  <Printer size={14} /> Print A4
-                </button>
-                <button
-                  onClick={() => handleBluetoothPrint(selectedOrder)}
-                  className="flex-1 sm:flex-initial inline-flex items-center justify-center gap-1.5 px-3 py-1.5 bg-sky-600 hover:bg-sky-700 text-white rounded-lg text-xs font-bold transition-colors border border-sky-600 shadow-sm cursor-pointer"
-                  title="Bluetooth thermal receipt printer"
-                >
-                  <Bluetooth size={14} /> Bluetooth
+                  <Printer size={14} /> Print
                 </button>
 
                 <a 
@@ -647,6 +616,11 @@ export default function OrdersManagement() {
         </div>
       )}
 
+      {/* Print Settings Modal — format picker (thermal roll / sheet) + size picker + preview */}
+      <PrintOrderModal
+        order={printOrder}
+        onClose={() => setPrintOrder(null)}
+      />
     </div>
   );
 }
